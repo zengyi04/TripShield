@@ -1,0 +1,6 @@
+{
+  "name": "Harmonized Mobile UI - Voya",
+  "description": "TripShield travel decision engine mobile home page featuring flight and hotel offers, 4-feature bottom navigation panel, 3D round logo, and harmonized monochromatic palette.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

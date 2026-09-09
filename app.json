@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "TripShield",
+    "slug": "tripshield",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#B7D4F2"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#B7D4F2"
+      }
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
+  }
+}
