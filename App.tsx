@@ -392,7 +392,7 @@ function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab:
   ];
 
   return (
-    <View style={[styles.navWrap, { backgroundColor: 'rgba(22, 61, 101, 0.58)', borderTopColor: 'rgba(255,255,255,0.28)' } ]}>
+    <View style={[styles.navWrap, { backgroundColor: 'rgba(38,139,177,0.34)', borderTopColor: 'rgba(225,248,255,0.58)' } ]}>
       {tabs.map(tab => {
         const isActive = currentTab === tab.id;
         const iconName = tab.icon as any;
@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaItemRight: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
-  navWrap: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, backgroundColor: 'rgba(22,61,101,0.58)', shadowColor: '#102f50', shadowOpacity: 0.28, shadowRadius: 12 },
+  navWrap: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, backgroundColor: 'rgba(38,139,177,0.34)', shadowColor: '#0B4D68', shadowOpacity: 0.22, shadowRadius: 12 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 56, paddingVertical: 4 },
   navIconWrap: { position: 'relative', marginBottom: 6 },
   navLabel: { fontSize: 11, letterSpacing: -0.1 },
