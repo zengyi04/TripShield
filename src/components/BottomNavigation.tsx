@@ -7,44 +7,39 @@ interface BottomNavigationProps {
   currentTab: FeatureTab;
   onTabChange: (tab: FeatureTab) => void;
   barBgColor?: string;
+  showSelfHealBadge?: boolean;
 }
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   currentTab,
   onTabChange,
+  showSelfHealBadge,
 }) => {
   const tabs = [
     {
       id: 'home' as FeatureTab,
       label: 'Home',
       icon: Home,
-      hasDot: false,
     },
     {
       id: 'buy-window' as FeatureTab,
       label: 'Buy Window',
       icon: Timer,
-      hasDot: true,
-      dotColor: 'bg-emerald-500',
     },
     {
       id: 'consensus' as FeatureTab,
       label: 'Consensus',
       icon: Sparkles,
-      hasDot: false,
     },
     {
       id: 'ledger' as FeatureTab,
       label: 'Ledger',
       icon: Receipt,
-      hasDot: false,
     },
     {
       id: 'self-healing' as FeatureTab,
       label: 'Self-Healing',
       icon: ShieldCheck,
-      hasDot: true,
-      dotColor: 'bg-blue-500',
     },
   ];
 
@@ -78,13 +73,10 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
                 }`}
               />
 
-              {/* Red / Orange Dot Notification Indicator */}
-              {tab.hasDot && (
-                <span
-                  className={`absolute -top-0.5 -right-1 w-2 h-2 rounded-full ${
-                    tab.dotColor || 'bg-red-500'
-                  } border border-white`}
-                />
+              {tab.id === 'self-healing' && showSelfHealBadge && (
+                <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white flex items-center justify-center">
+                  <span className="text-[7px] leading-none text-white font-black">▲</span>
+                </span>
               )}
             </div>
 
