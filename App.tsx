@@ -3,7 +3,6 @@ import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Alert,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -16,15 +15,12 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
-import { SCREENSHOT_FEED_OFFERS, FeedOffer } from './src/data/mockOffers';
 import type { ActiveScreen } from './src/types';
-import { SelfHealingScreen } from './src/components/screens/SelfHealingScreen';
+import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
 
 const SAFE_TOP_COLOR = '#B7D4F2';
 
 type FeatureTab = 'home' | 'buy-window' | 'consensus' | 'ledger' | 'self-healing';
-
-type ChipCategory = 'deals' | 'events' | 'planner' | 'pulse' | 'flights' | 'stays';
 
 function App() {
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('welcome');
@@ -84,6 +80,8 @@ function PhoneMockup({
   const [currentTab, setCurrentTab] = useState<FeatureTab>('home');
   const [activePreviewFeature, setActivePreviewFeature] = useState<FeatureTab | null>(null);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [tripHealthScore, setTripHealthScore] = useState(computeTripHealthScore);
+  const showSelfHealBadge = tripHealthScore < LOW_TRIP_HEALTH;
 
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
@@ -116,6 +114,7 @@ function PhoneMockup({
                 buttonHover={buttonHover}
                 onNavigateHome={() => handleTabChange('home')}
                 onNavigate={onNavigate}
+                onHealthChange={setTripHealthScore}
               />
             ) : (
               <HomeScreen
@@ -127,7 +126,12 @@ function PhoneMockup({
                 onOpenSelfHealing={() => handleTabChange('self-healing')}
               />
             )}
-            <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
+            <BottomNavigation
+              currentTab={currentTab}
+              onTabChange={handleTabChange}
+              barBgColor={bottomColor}
+              showSelfHealBadge={showSelfHealBadge}
+            />
           </View>
         );
       case 'signup':
@@ -403,13 +407,22 @@ function DashboardScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHo
   );
 }
 
-function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab: FeatureTab; onTabChange: (tab: FeatureTab) => void; barBgColor?: string }) {
+function BottomNavigation({
+  currentTab,
+  onTabChange,
+  showSelfHealBadge,
+}: {
+  currentTab: FeatureTab;
+  onTabChange: (tab: FeatureTab) => void;
+  barBgColor?: string;
+  showSelfHealBadge?: boolean;
+}) {
   const tabs = [
-    { id: 'home' as FeatureTab, label: 'Home', icon: 'home', hasDot: false },
-    { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer', hasDot: false },
-    { id: 'consensus' as FeatureTab, label: 'Consensus', icon: 'sparkles', hasDot: false },
-    { id: 'ledger' as FeatureTab, label: 'Ledger', icon: 'receipt', hasDot: false },
-    { id: 'self-healing' as FeatureTab, label: 'Self-Healing', icon: 'shield-checkmark', hasDot: true },
+    { id: 'home' as FeatureTab, label: 'Home', icon: 'home' },
+    { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer' },
+    { id: 'consensus' as FeatureTab, label: 'Consensus', icon: 'sparkles' },
+    { id: 'ledger' as FeatureTab, label: 'Ledger', icon: 'receipt' },
+    { id: 'self-healing' as FeatureTab, label: 'Self-Healing', icon: 'shield-checkmark' },
   ];
 
   return (
@@ -417,11 +430,16 @@ function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab:
       {tabs.map(tab => {
         const isActive = currentTab === tab.id;
         const iconName = tab.icon as any;
+        const showHealBadge = tab.id === 'self-healing' && !!showSelfHealBadge;
         return (
           <Pressable key={tab.id} onPress={() => onTabChange(tab.id)} style={({ pressed }) => [styles.navItem, pressed && styles.pressedGlass]}>
             <View style={styles.navIconWrap}>
               <Ionicons name={iconName} size={22} color={isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)'} />
-              {tab.hasDot && !isActive && <View style={styles.navDot} />}
+              {showHealBadge && (
+                <View style={styles.navHealBadge}>
+                  <Ionicons name="caret-up" size={8} color="#fff" />
+                </View>
+              )}
             </View>
             <Text style={[styles.navLabel, { color: isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)', fontWeight: isActive ? '800' : '600' }]}>{tab.label}</Text>
           </Pressable>
@@ -447,65 +465,10 @@ function HomeScreen({
   onOpenSelfHealing?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeChip, setActiveChip] = useState<ChipCategory>('deals');
-  const [likedOffers, setLikedOffers] = useState<Record<string, boolean>>({ 'feed-3': true, 'feed-4': false });
-  const [selectedOffer, setSelectedOffer] = useState<FeedOffer | null>(null);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiResponse, setAiResponse] = useState<string | null>(null);
-  const [isAiThinking, setIsAiThinking] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  const toggleLike = (id: string) => {
-    setLikedOffers(prev => {
-      const next = !prev[id];
-      triggerToast(next ? 'Saved to Favorites ❤️' : 'Removed from Favorites');
-      return { ...prev, [id]: next };
-    });
-  };
-
-  const handleAskAi = () => {
-    if (!aiPrompt.trim()) return;
-    setIsAiThinking(true);
-    setTimeout(() => {
-      setIsAiThinking(false);
-      setAiResponse(`TripShield Assistant for "${aiPrompt}": Found non-stop flights from Kuala Lumpur to Shenzhen starting from RM450, plus top recommended boutique stays near Futian & Nanshan.`);
-    }, 900);
-  };
-
-  const displayedOffers = SCREENSHOT_FEED_OFFERS.filter(offer => {
-    const query = searchQuery.trim().toLowerCase();
-    const matchesSearch = !query || offer.title.toLowerCase().includes(query) || (offer.subtitle && offer.subtitle.toLowerCase().includes(query)) || (offer.partner && offer.partner.toLowerCase().includes(query));
-    if (activeChip === 'flights') return matchesSearch && (offer.type === 'flight-deal' || offer.title.toLowerCase().includes('flight'));
-    if (activeChip === 'stays') return matchesSearch && (offer.type === 'stay-deal' || offer.title.toLowerCase().includes('villa'));
-    if (activeChip === 'deals') return matchesSearch && (offer.type === 'promo-card' || !!offer.price || !!offer.badge);
-    return matchesSearch;
-  });
-
-  const chips = [
-    { id: 'deals' as ChipCategory, label: 'Deals', icon: 'pricetag' },
-    { id: 'events' as ChipCategory, label: 'Events', icon: 'calendar' },
-    { id: 'planner' as ChipCategory, label: 'Trip.Planner', icon: 'navigate' },
-    { id: 'pulse' as ChipCategory, label: 'Trip.Pulse', icon: 'trending-up' },
-    { id: 'flights' as ChipCategory, label: 'Flights', icon: 'airplane' },
-    { id: 'stays' as ChipCategory, label: 'Stays', icon: 'business' },
-  ];
 
   return (
     <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.homeScreen}>
-      {toastMessage && (
-        <View style={styles.toast}>
-          <View style={styles.toastIcon}><Ionicons name="checkmark" size={14} color="#fff" /></View>
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      )}
-
       <View style={styles.topBar}> 
         <View style={styles.topBarRow}>
           <View style={styles.userRow}>
@@ -552,21 +515,9 @@ function HomeScreen({
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsContent}>
-          {chips.map(chip => {
-            const selected = activeChip === chip.id;
-            return (
-              <Pressable key={chip.id} style={({ pressed }) => [styles.chip, selected ? styles.chipSelected : styles.chipUnselected, pressed && styles.pressedGlass]} onPress={() => setActiveChip(chip.id)}>
-                <Ionicons name={chip.icon as any} size={12} color={selected ? '#fff' : '#475569'} />
-                <Text style={[styles.chipText, { color: selected ? '#fff' : '#475569' }]}>{chip.label}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
       </View>
 
       <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent}>
-        {/* Live Trip Health & Disruption Banner */}
         <Pressable
           onPress={onOpenSelfHealing}
           style={({ pressed }) => [styles.homeHealthBanner, pressed && styles.pressedGlass]}
@@ -591,135 +542,11 @@ function HomeScreen({
             </View>
           </View>
           <View style={styles.homeHealthArrow}>
-            <Ionicons name="shield-checkmark" size={20} color="#93c5fd" />
+            <Ionicons name="shield-checkmark" size={20} color="#2563eb" />
             <Text style={styles.homeHealthActionText}>Self-Heal ➔</Text>
           </View>
         </Pressable>
-
-        <View style={styles.grid}>
-          {displayedOffers.map(offer => {
-            const isLiked = likedOffers[offer.id];
-            if (offer.type === 'promo-card') {
-              return (
-                <Pressable key={offer.id} onPress={() => setSelectedOffer(offer)} style={({ pressed }) => [styles.offerCard, styles.promoCard, pressed && styles.pressedGlass]}>
-                  <View style={styles.promoHeader}>
-                    <Text style={styles.promoTitle}>{offer.title}</Text>
-                    <View style={styles.signalGroup}><View style={styles.signalRed} /><View style={styles.signalYellow} /></View>
-                  </View>
-                  <Text style={styles.promoSubtitle}>{offer.subtitle}</Text>
-                  <Text style={styles.promoText}>Enjoy <Text style={styles.promoTextStrong}>RM250 OFF</Text> on your flight booking!</Text>
-                  <View style={styles.badgePill}><Text style={styles.badgeText}>{offer.badge}</Text></View>
-                  <Image source={{ uri: offer.imageUrl }} style={styles.offerImageBig} />
-                  {offer.cornerTag ? <Text style={styles.cornerTag}>{offer.cornerTag}</Text> : null}
-                </Pressable>
-              );
-            }
-
-            if (offer.type === 'guide-card') {
-              return (
-                <Pressable key={offer.id} onPress={() => setSelectedOffer(offer)} style={({ pressed }) => [styles.offerCard, pressed && styles.pressedGlass]}>
-                  <Image source={{ uri: offer.imageUrl }} style={styles.offerImage} />
-                  <View style={styles.overlayTitleWrap}>
-                    <Text style={styles.overlayBadge}>TOP 5 IN SHENZHEN</Text>
-                    <Text style={styles.overlayText}>深圳 · A City Where Future Meets Culture</Text>
-                  </View>
-                  <View style={styles.cardFooterWhite}>
-                    <Text style={styles.cardTitle}>{offer.title}</Text>
-                    <View style={styles.cardMetaRow}>
-                      <View style={styles.authorRow}><Image source={{ uri: offer.authorAvatar }} style={styles.avatarSmall} /><Text style={styles.authorName}>{offer.authorName}</Text></View>
-                      <View style={styles.metaEye}><Ionicons name="eye" size={11} color="#64748b" /><Text style={styles.metaTextSmall}>{offer.views}</Text></View>
-                    </View>
-                  </View>
-                </Pressable>
-              );
-            }
-
-            if (offer.type === 'lounge-card') {
-              return (
-                <Pressable key={offer.id} onPress={() => setSelectedOffer(offer)} style={({ pressed }) => [styles.offerCard, pressed && styles.pressedGlass]}>
-                  <Image source={{ uri: offer.imageUrl }} style={styles.offerImage} />
-                  <Pressable style={({ pressed }) => [styles.heartButton, pressed && styles.pressedGlass]} onPress={() => toggleLike(offer.id)}>
-                    <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={14} color={isLiked ? '#ef4444' : '#fff'} />
-                  </Pressable>
-                  <View style={styles.bannerStrip}><Text style={styles.bannerText}>FREE LOUNGE ACCESS WHILE YOU WAIT ✈️</Text></View>
-                  <View style={styles.cardFooterWhite}>
-                    <Text style={styles.cardTitle}>{offer.title}</Text>
-                    <View style={styles.cardMetaRow}>
-                      <View style={styles.authorRow}><Image source={{ uri: offer.authorAvatar }} style={styles.avatarSmall} /><Text style={styles.authorName}>{offer.authorName}</Text></View>
-                      <View style={styles.metaEye}><Ionicons name="eye" size={11} color="#64748b" /><Text style={styles.metaTextSmall}>{offer.views}</Text></View>
-                    </View>
-                  </View>
-                </Pressable>
-              );
-            }
-
-            return (
-              <Pressable key={offer.id} onPress={() => setSelectedOffer(offer)} style={({ pressed }) => [styles.offerCard, pressed && styles.pressedGlass]}>
-                <Image source={{ uri: offer.imageUrl }} style={styles.offerImage} />
-                <Pressable style={({ pressed }) => [styles.heartButton, pressed && styles.pressedGlass]} onPress={() => toggleLike(offer.id)}>
-                  <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={14} color={isLiked ? '#ef4444' : '#fff'} />
-                </Pressable>
-                {offer.badge ? <View style={[styles.cardBadge, { backgroundColor: offer.badgeColor || '#2563EB' }]}><Text style={styles.cardBadgeText}>{offer.badge}</Text></View> : null}
-                {offer.price ? <View style={styles.pricePill}><Text style={styles.priceText}>{offer.price}</Text>{offer.originalPrice ? <Text style={styles.oldPrice}>{offer.originalPrice}</Text> : null}</View> : null}
-                <View style={styles.cardFooterWhite}>
-                  <Text style={styles.cardTitle}>{offer.title}</Text>
-                  <Text style={styles.cardSubtitle}>{offer.subtitle}</Text>
-                  <View style={styles.cardMetaRow}>
-                    <View style={styles.authorRow}>{offer.authorAvatar ? <Image source={{ uri: offer.authorAvatar }} style={styles.avatarSmall} /> : null}<Text style={styles.authorName}>{offer.authorName || offer.partner}</Text></View>
-                    {offer.views ? <View style={styles.metaEye}><Ionicons name="eye" size={11} color="#64748b" /><Text style={styles.metaTextSmall}>{offer.views}</Text></View> : null}
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
       </ScrollView>
-
-      {selectedOffer && (
-        <Modal visible transparent animationType="slide">
-          <Pressable style={styles.modalBackdrop} onPress={() => setSelectedOffer(null)}>
-            <Pressable style={styles.offerDetailModal} onPress={() => undefined}>
-              <View style={styles.modalHeader}>
-                <View>
-                  <Text style={styles.modalPartner}>{selectedOffer.partner || 'TripShield Verified Offer'}</Text>
-                  <Text style={styles.modalTitle}>{selectedOffer.title}</Text>
-                </View>
-                <Pressable onPress={() => setSelectedOffer(null)} style={({ pressed }) => [styles.modalClose, pressed && styles.pressedGlass]}><Text style={styles.modalCloseText}>✕</Text></Pressable>
-              </View>
-              <Image source={{ uri: selectedOffer.imageUrl }} style={styles.modalImage} />
-              <Text style={styles.modalSubtitle}>{selectedOffer.subtitle}</Text>
-              {selectedOffer.description ? <Text style={styles.modalBody}>{selectedOffer.description}</Text> : null}
-              {selectedOffer.price ? <View style={styles.priceBox}><View><Text style={styles.priceBoxLabel}>Special Offer Price</Text><Text style={styles.priceBoxValue}>{selectedOffer.price}</Text></View>{selectedOffer.savings ? <Text style={styles.savingTag}>{selectedOffer.savings}</Text> : null}</View> : null}
-              <Pressable style={({ pressed }) => [styles.bookButton, pressed && styles.pressedGlass]} onPress={() => { triggerToast(`Locked in with ${selectedOffer.partner || 'Direct Partner'}!`); setSelectedOffer(null); }}>
-                <Text style={styles.bookButtonText}>Book / Lock Offer</Text>
-                <Ionicons name="open-outline" size={13} color="#fff" />
-              </Pressable>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      )}
-
-      {showAiModal && (
-        <Modal visible transparent animationType="slide">
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowAiModal(false)}>
-            <Pressable style={styles.aiModal} onPress={() => undefined}>
-              <View style={styles.aiModalHeader}>
-                <View style={styles.aiHeaderLeft}><TripShieldLogo size={24} /><Text style={styles.aiHeaderText}>TripShield Assistant</Text></View>
-                <Pressable onPress={() => setShowAiModal(false)}><Text style={styles.aiClose}>✕</Text></Pressable>
-              </View>
-              <Text style={styles.aiHelp}>Ask anything about flight buy windows, group discounts, or hotel splits:</Text>
-              {aiResponse ? <View style={styles.aiResponse}><Ionicons name="sparkles" size={16} color="#2563eb" /><Text style={styles.aiResponseText}>{aiResponse}</Text></View> : null}
-              <View style={styles.aiInputRow}>
-                <TextInput value={aiPrompt} onChangeText={setAiPrompt} style={styles.aiInput} placeholder="e.g. Find best flights from KL to Shenzhen..." placeholderTextColor="#64748b" />
-                <Pressable style={({ pressed }) => [styles.sendButton, pressed && styles.pressedGlass]} onPress={handleAskAi}>
-                  {isAiThinking ? <View style={styles.spinner} /> : <Ionicons name="send" size={14} color="#fff" />}
-                </Pressable>
-              </View>
-              <View style={styles.aiSubRow}><Ionicons name="mic" size={12} color="#2563eb" /><Text style={styles.aiHint}>Hold button to speak voice query</Text></View>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      )}
     </LinearGradient>
   );
 }
@@ -911,9 +738,21 @@ const styles = StyleSheet.create({
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 56, paddingVertical: 4 },
   navIconWrap: { position: 'relative', marginBottom: 6 },
   navLabel: { fontSize: 11, letterSpacing: -0.1 },
-  navDot: { position: 'absolute', top: -2, right: -5, width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', borderWidth: 1, borderColor: '#fff' },
+  navHealBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#10b981',
+    borderWidth: 1,
+    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   homeScreen: { flex: 1, position: 'relative' },
-  topBar: { paddingTop: 12, paddingBottom: 12, paddingHorizontal: 14, position: 'relative', backgroundColor: 'rgba(255,255,255,0.1)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.18)', shadowColor: '#17365f', shadowOpacity: 0.12, shadowRadius: 12 },
+  topBar: { paddingTop: 12, paddingBottom: 14, paddingHorizontal: 14, position: 'relative', backgroundColor: '#F4F7FB', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#D9E4F0' },
   topBarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   userRow: { flexDirection: 'row', alignItems: 'center' },
   identityRow: { flexDirection: 'row', alignItems: 'center' },
@@ -923,9 +762,9 @@ const styles = StyleSheet.create({
   proText: { color: '#1d4ed8', fontSize: 9, fontWeight: '800' },
   userSubtitle: { color: '#334155', fontSize: 10, fontWeight: '800', marginTop: 2 },
   topActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  iconButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.32)', alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  iconButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center', position: 'relative', shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   redDot: { position: 'absolute', top: 4, right: 5, width: 8, height: 8, backgroundColor: '#ef4444', borderRadius: 4, borderWidth: 1, borderColor: '#fff' },
-  logoutPill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 30, paddingHorizontal: 10, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', borderRadius: 999 },
+  logoutPill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 30, paddingHorizontal: 10, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E2E8F0', borderRadius: 999, shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   logoutText: { color: '#334155', fontSize: 10, fontWeight: '800' },
   notificationCard: { position: 'absolute', top: 60, right: 14, width: 260, backgroundColor: 'rgba(24,70,112,0.88)', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(190,225,255,0.48)', padding: 12, zIndex: 40, shadowColor: '#102f50', shadowOpacity: 0.35, shadowRadius: 16, elevation: 12 },
   notificationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(210,235,255,0.25)', paddingBottom: 6, marginBottom: 8 },

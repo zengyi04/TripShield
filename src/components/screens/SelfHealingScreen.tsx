@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -23,6 +23,25 @@ interface SelfHealingScreenProps {
   buttonHover: string;
   onNavigateHome: () => void;
   onNavigate?: (screen: ActiveScreen) => void;
+  onHealthChange?: (score: number) => void;
+}
+
+export const LOW_TRIP_HEALTH = 50;
+
+let savedAutoFixed: Record<string, boolean> = {};
+let savedRoomId = 'room-1';
+
+export function computeTripHealthScore(
+  roomId: string = savedRoomId,
+  autoFixed: Record<string, boolean> = savedAutoFixed,
+) {
+  const room = ROOMS.find(r => r.id === roomId);
+  if (!room) return 100;
+  if (autoFixed[roomId]) return 85;
+  const totalPenalty = room.conditions
+    .filter(c => c.active)
+    .reduce((sum, c) => sum + c.impactScore, 0);
+  return Math.max(0, Math.min(100, room.baseScore + totalPenalty));
 }
 
 const disruptionIcon = (icon: string) => {
@@ -49,12 +68,12 @@ const osmMap = (lat: number, lng: number) =>
 export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   topColor,
   bottomColor,
-  onNavigateHome,
+  onHealthChange,
 }) => {
   const [view, setView] = useState<'pivot' | 'simulator'>('pivot');
-  const [selectedRoomId, setSelectedRoomId] = useState<string>('room-1');
+  const [selectedRoomId, setSelectedRoomId] = useState<string>(savedRoomId);
   const [roomMenuOpen, setRoomMenuOpen] = useState(false);
-  const [autoFixed, setAutoFixed] = useState<Record<string, boolean>>({});
+  const [autoFixed, setAutoFixed] = useState<Record<string, boolean>>(() => ({ ...savedAutoFixed }));
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [itineraryGlow, setItineraryGlow] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
@@ -66,25 +85,30 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   } | null>(null);
   const [routeTarget, setRouteTarget] = useState<{ activity: TripActivity; day: TripDay } | null>(null);
 
+  useEffect(() => {
+    savedAutoFixed = autoFixed;
+    savedRoomId = selectedRoomId;
+  }, [autoFixed, selectedRoomId]);
+
+  useEffect(() => {
+    onHealthChange?.(computeTripHealthScore(selectedRoomId, autoFixed));
+  }, [autoFixed, selectedRoomId, onHealthChange]);
+
   const selectedRoom = ROOMS.find(r => r.id === selectedRoomId)!;
   const isFixed = !!autoFixed[selectedRoomId];
   const visibleDays = isFixed ? selectedRoom.optimizedDays : selectedRoom.days;
 
-  const liveScore = useMemo(() => {
-    const totalPenalty = selectedRoom.conditions
-      .filter(c => c.active)
-      .reduce((sum, c) => sum + c.impactScore, 0);
-    return Math.max(0, Math.min(100, selectedRoom.baseScore + totalPenalty));
-  }, [selectedRoom]);
-
-  const tripHealthScore = isFixed ? 85 : liveScore;
+  const tripHealthScore = useMemo(
+    () => computeTripHealthScore(selectedRoomId, autoFixed),
+    [selectedRoomId, autoFixed],
+  );
   const getHealthColor = (score: number) => {
     if (score >= 80) return '#10b981';
     if (score >= 50) return '#f59e0b';
     return '#ef4444';
   };
   const healthColor = getHealthColor(tripHealthScore);
-  const isLow = tripHealthScore < 50;
+  const isLow = tripHealthScore < LOW_TRIP_HEALTH;
   const isOptimal = tripHealthScore >= 80;
   const activeConditions = selectedRoom.conditions.filter(c => c.active);
 
@@ -178,20 +202,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
       style={styles.container}
     >
       <View style={styles.header}>
-        <Pressable onPress={onNavigateHome} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}>
-          <Ionicons name="arrow-back" size={20} color="#0f172a" />
-        </Pressable>
         <Text style={styles.headerTitle}>Self-Healing Pivot</Text>
-        <Pressable
-          onPress={() => {
-            setAutoFixed({});
-            setRoomMenuOpen(false);
-            setExpandedDay(null);
-          }}
-          style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}
-        >
-          <Ionicons name="refresh-outline" size={19} color="#0f172a" />
-        </Pressable>
       </View>
 
       <ScrollView
@@ -265,8 +276,9 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                 { backgroundColor: isOptimal ? '#d1fae5' : isLow ? '#fee2e2' : '#fef3c7' },
               ]}
             >
+              <View style={[styles.statusDot, { backgroundColor: healthColor }]} />
               <Text style={[styles.statusBadgeText, { color: healthColor }]}>
-                {isOptimal ? '🟢 OPTIMAL' : isLow ? '🔴 CRITICAL' : '🟠 AT RISK'}
+                {isOptimal ? 'High' : isLow ? 'Low' : 'Medium'}
               </Text>
             </View>
           </View>
@@ -490,47 +502,36 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    paddingTop: 12,
-    paddingHorizontal: 14,
-    paddingBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.18)',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#fff',
+    paddingTop: 14,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: '#F4F7FB',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D9E4F0',
   },
   pressed: { opacity: 0.75 },
   headerTitle: {
-    flex: 1,
     textAlign: 'center',
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#0f172a',
+    letterSpacing: -0.3,
   },
   scrollArea: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 20, gap: 16, paddingTop: 12 },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6EEF5',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   cardGlow: {
     shadowColor: '#10b981',
@@ -540,10 +541,10 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937', marginBottom: 12 },
   roomTrigger: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -580,23 +581,25 @@ const styles = StyleSheet.create({
   itineraryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F8FAFC',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E8EEF4',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 8,
   },
   dayDate: { fontSize: 13, fontWeight: '700', color: '#1f2937' },
   dayLabel: { flex: 1, fontSize: 13, color: '#4b5563', marginTop: 2 },
   activityCard: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E7EB',
+    borderRadius: 14,
+    padding: 12,
     marginBottom: 8,
     marginLeft: 4,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
   },
-  activityMuted: { opacity: 0.72, backgroundColor: '#f9fafb' },
+  activityMuted: { opacity: 0.72, backgroundColor: '#F8FAFC' },
   activityTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   activityTime: { fontSize: 11, color: '#6b7280', fontWeight: '700' },
   weatherChip: {
@@ -667,7 +670,17 @@ const styles = StyleSheet.create({
   aiArrowText: { fontSize: 12, fontWeight: '600', color: '#9ca3af' },
   healthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   monitorTag: { fontSize: 10, color: '#3b82f6', fontWeight: '700', marginTop: -6, marginBottom: 8 },
-  statusBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 12 },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 12,
+    flexShrink: 0,
+  },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusBadgeText: { fontSize: 11, fontWeight: '700' },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 8 },
   scoreCircle: {
@@ -716,17 +729,19 @@ const styles = StyleSheet.create({
   },
   autoFixText: { color: '#fff', fontSize: 13, fontWeight: '600' },
   whatIfEntry: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6EEF5',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   whatIfTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
   whatIfSub: { fontSize: 12, color: '#6b7280', marginTop: 2 },
@@ -737,10 +752,17 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   menuCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     padding: 16,
     gap: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6EEF5',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
   },
   menuRow: {
     flexDirection: 'row',
@@ -761,30 +783,43 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   planSheet: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F8FAFC',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: '88%',
-    borderWidth: 2,
-    borderColor: '#93c5fd',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6EEF5',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12,
   },
   planSheetHeader: {
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
     flexDirection: 'row',
     alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   planSheetKicker: { fontSize: 10, fontWeight: '800', color: '#2563eb', textTransform: 'uppercase' },
   planSheetTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginTop: 2 },
   planSheetSub: { fontSize: 12, color: '#6b7280', marginTop: 2 },
   planSheetBody: { padding: 16, paddingBottom: 32, gap: 12 },
   fullDayCard: {
-    borderWidth: 1.5,
-    borderColor: '#bfdbfe',
-    borderRadius: 14,
-    padding: 12,
-    backgroundColor: '#f8fbff',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6EEF5',
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   fullDayTitle: { fontSize: 14, fontWeight: '800', color: '#1e3a8a', marginBottom: 8 },
   fullStop: {
@@ -809,12 +844,17 @@ const styles = StyleSheet.create({
   },
   closeBtnText: { fontSize: 16, color: '#374151' },
   detailModal: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     padding: 18,
-    borderWidth: 2,
-    borderColor: '#93c5fd',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E6EEF5',
     maxHeight: '82%',
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.14,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   detailKicker: { fontSize: 10, fontWeight: '800', color: '#2563eb', textTransform: 'uppercase' },
   detailTitle: { fontSize: 16, fontWeight: '800', color: '#0f172a', marginTop: 4 },
