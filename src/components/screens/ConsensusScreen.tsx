@@ -30,9 +30,6 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
   const [selectedUser, setSelectedUser] = useState<MockUser | null>(null);
   const [travellers, setTravellers] = useState<(MockUser & { status: 'pending' | 'joined' | 'declined'; quizDone?: boolean })[]>([
     { id: 'user-huimin', username: '@huimin', displayName: 'Hui Min', initials: 'H', accent: '#2563eb', city: 'Kuala Lumpur', status: 'joined', quizDone: true },
-    { id: 'user-sarah', username: '@sarah', displayName: 'Sarah Lim', initials: 'S', accent: '#fb7185', city: 'Singapore', status: 'pending' },
-    { id: 'user-jason', username: '@jason', displayName: 'Jason Wong', initials: 'J', accent: '#a78bfa', city: 'Kuala Lumpur', status: 'pending' },
-    { id: 'user-mei', username: '@mei', displayName: 'Mei Chen', initials: 'M', accent: '#34d399', city: 'Taipei', status: 'pending' },
   ]);
   const [joinCode, setJoinCode] = useState('SEOU-2026');
   const [referralCode, setReferralCode] = useState('');
@@ -77,9 +74,6 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
   // AI thinking animation on group page
   useEffect(() => {
     if (phase !== 'group') { setAiThinking(false); setAiThinkingProgress(0); return; }
-    const joinedMembers = travellers.filter(t => t.status === 'joined');
-    const allDone = joinedMembers.every(t => t.quizDone);
-    if (!allDone) { setAiThinking(true); return; }
     setAiThinking(true);
     setAiThinkingProgress(0);
     const steps = [15, 35, 55, 75, 90, 100];
@@ -89,7 +83,7 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
     });
     stepTimers.push(setTimeout(() => setAiThinking(false), 600 * (steps.length + 1)));
     return () => stepTimers.forEach(clearTimeout);
-  }, [phase, travellers]);
+  }, [phase]);
 
   const toggleToken = (token: string) => {
     setSelectedTokens(current =>
@@ -611,38 +605,6 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
             <Text style={styles.eyebrowDark}>GROUP TRAVEL DNA ANALYSIS</Text>
             <Text style={styles.panelTitle}>Now TripShield understands the group.</Text>
 
-            {(() => {
-              const joinedMembers = travellers.filter(t => t.status === 'joined');
-              const allDone = joinedMembers.every(t => t.quizDone);
-              const doneCount = joinedMembers.filter(t => t.quizDone).length;
-              if (!allDone) return (
-                <View>
-                  <View style={styles.waitingCard}>
-                    <View style={styles.waitingIcon}><Text style={styles.waitingIconText}>{doneCount}/{joinedMembers.length}</Text></View>
-                    <View style={styles.waitingInfo}>
-                      <Text style={styles.waitingTitle}>Waiting for everyone to answer</Text>
-                      <Text style={styles.waitingBody}>The group analysis will be generated once all members complete their Travel DNA quiz. You can share the room link to remind them.</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.groupSectionTitle}>QUIZ STATUS</Text>
-                  {joinedMembers.map((member, i) => (
-                    <View key={member.id} style={styles.waitingMemberRow}>
-                      <View style={[styles.memberProfileAvatar, { backgroundColor: member.accent }]}><Text style={styles.memberProfileAvatarText}>{member.initials}</Text></View>
-                      <View style={styles.waitingMemberInfo}>
-                        <Text style={styles.memberProfileName}>{member.displayName}</Text>
-                        <Text style={member.quizDone ? styles.quizDoneText : styles.quizPendingText}>
-                          {member.quizDone ? 'Completed quiz' : 'Hasn\'t answered yet'}
-                        </Text>
-                      </View>
-                      {member.quizDone ? <Ionicons name="checkmark-circle" size={22} color="#10b981" /> : <Ionicons name="hourglass-outline" size={22} color="#f59e0b" />}
-                    </View>
-                  ))}
-                  <Pressable onPress={() => setPhase('setup')} style={styles.nextStepButton}><Text style={styles.nextStepText}>Back to room →</Text></Pressable>
-                </View>
-              );
-              return null;
-            })()}
-
             {aiThinking && (
               <View style={styles.aiThinkingCard}>
                 <View style={styles.aiThinkingHeader}>
@@ -679,16 +641,22 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
             {/* Member Profiles */}
             <Text style={styles.groupSectionTitle}>MEMBER PROFILES</Text>
             <View style={styles.memberProfiles}>
-              {[['Hui Min', 'The Foodie Explorer', '🍜', '#2563eb', 'High energy · Moderate budget'], ['Sarah', 'The Culture Seeker', '🏯', '#fb7185', 'Relaxed pace · Premium budget'], ['Jason', 'The Night Owl', '', '#a78bfa', 'High energy · Flexible budget'], ['Mei', 'The Careful Planner', '📋', '#34d399', 'Balanced · Budget-conscious']].map((p, i) => (
-                <View key={i} style={styles.memberProfileCard}>
-                  <View style={[styles.memberProfileAvatar, { backgroundColor: p[3] }]}><Text style={styles.memberProfileAvatarText}>{p[0][0]}</Text></View>
-                  <View style={styles.memberProfileInfo}>
-                    <Text style={styles.memberProfileName}>{p[0]} <Text style={styles.memberProfileEmoji}>{p[2]}</Text></Text>
-                    <Text style={styles.memberProfileType}>{p[1]}</Text>
-                    <Text style={styles.memberProfileMeta}>{p[4]}</Text>
+              {travellers.filter(t => t.status === 'joined').map((member, i) => {
+                const profileTypes = ['The Foodie Explorer', 'The Culture Seeker', 'The Night Owl', 'The Careful Planner', 'The Adventure Seeker', 'The Luxury Traveller', 'The Budget Backpacker', 'The Local Explorer'];
+                const profileEmojis = ['\U0001F35C', '\U0001F3EF', '', '\U0001F4CB', '\U0001F97E', '\U0001F48E', '\U0001F392', ''];
+                const profileTraits = ['High energy \u00b7 Moderate budget', 'Relaxed pace \u00b7 Premium budget', 'High energy \u00b7 Flexible budget', 'Balanced \u00b7 Budget-conscious', 'Active \u00b7 Moderate budget', 'Leisurely \u00b7 Premium budget', 'Active \u00b7 Low budget', 'Balanced \u00b7 Moderate budget'];
+                const typeIdx = i % profileTypes.length;
+                return (
+                  <View key={member.id} style={styles.memberProfileCard}>
+                    <View style={[styles.memberProfileAvatar, { backgroundColor: member.accent }]}><Text style={styles.memberProfileAvatarText}>{member.initials}</Text></View>
+                    <View style={styles.memberProfileInfo}>
+                      <Text style={styles.memberProfileName}>{member.displayName} <Text style={styles.memberProfileEmoji}>{profileEmojis[typeIdx]}</Text></Text>
+                      <Text style={styles.memberProfileType}>{profileTypes[typeIdx]}</Text>
+                      <Text style={styles.memberProfileMeta}>{profileTraits[typeIdx]}</Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
 
             {/* Interest Analysis */}
