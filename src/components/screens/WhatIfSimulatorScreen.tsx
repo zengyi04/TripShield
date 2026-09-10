@@ -361,10 +361,13 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingTop: 12,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.18)',
   },
   iconCircle: {
     width: 36,
@@ -383,9 +386,9 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0f172a',
   },
   content: {
     flex: 1,

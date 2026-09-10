@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,65 +6,15 @@ import {
   ScrollView,
   Pressable,
   Modal,
+  Linking,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import type { ActiveScreen } from '../../types';
 import { WhatIfSimulatorScreen } from './WhatIfSimulatorScreen';
-
-export type DisruptionScenario = 'flight-delay' | 'rainstorm' | 'transit-gridlock' | 'optimal';
-export type PivotStrategy = 'balanced' | 'indoor' | 'culinary' | 'budget';
-
-interface TripActivity {
-  time: string;
-  place: string;
-  type: 'flight' | 'hotel' | 'food' | 'attraction' | 'transport';
-  note?: string;
-}
-
-interface TripDay {
-  date: string;
-  label: string;
-  activities: TripActivity[];
-}
-
-interface RoomCondition {
-  id: string;
-  icon: string;
-  label: string;
-  detail: string;
-  impactScore: number;
-  active: boolean;
-}
-
-interface BackupPlan {
-  summary: string;
-  score: number;
-  activities: { time: string; place: string; note: string }[];
-}
-
-interface ComparisonItem {
-  date: string;
-  label: string;
-  status: 'ok' | 'cancelled';
-}
-
-interface RoomPlan {
-  id: string;
-  name: string;
-  destination: string;
-  city: string;
-  dateRange: string;
-  members: number;
-  memberNames: string[];
-  emoji: string;
-  accentColor: string;
-  baseScore: number;
-  days: TripDay[];
-  conditions: RoomCondition[];
-  backupPlan: BackupPlan;
-  comparison: { old: ComparisonItem[]; next: ComparisonItem[] };
-}
+import { ROOMS, type TripActivity, type TripDay } from '../../data/tripRooms';
+import { fetchPlaceWeather, type WeatherSnapshot } from '../../utils/weather';
 
 interface SelfHealingScreenProps {
   topColor: string;
@@ -75,246 +25,6 @@ interface SelfHealingScreenProps {
   onNavigate?: (screen: ActiveScreen) => void;
 }
 
-const ROOMS: RoomPlan[] = [
-  {
-    id: 'room-1',
-    name: 'Room 1',
-    destination: 'Shenzhen Tech Tour',
-    city: 'Shenzhen',
-    dateRange: 'Sep 12 - Sep 15, 2026',
-    members: 4,
-    memberNames: ['Alex M.', 'Jamie T.', 'Sam L.', 'Taylor K.'],
-    emoji: '🏙️',
-    accentColor: '#3b82f6',
-    baseScore: 100,
-    days: [
-      {
-        date: 'Sep 12',
-        label: 'Arrival Day',
-        activities: [
-          { time: '11:30 AM', place: 'Flight CZ3028 → SZX Airport', type: 'flight', note: 'Terminal 3, Gate B22' },
-          { time: '01:00 PM', place: 'Futian CBD Hotel Check-In', type: 'hotel', note: 'Renaissance Shenzhen' },
-          { time: '03:00 PM', place: 'OCT-LOFT Creative Park', type: 'attraction', note: 'Gallery District Tour' },
-          { time: '07:00 PM', place: 'Bistro 1873 Cantonese Fusion', type: 'food', note: 'Group dinner reservation' },
-        ],
-      },
-      {
-        date: 'Sep 13',
-        label: 'Tech District',
-        activities: [
-          { time: '09:00 AM', place: 'Huaqiangbei Electronics Market', type: 'attraction', note: 'Self-guided tour' },
-          { time: '12:00 PM', place: 'Lianhuashan Park Hike', type: 'attraction', note: 'Outdoor activity' },
-          { time: '02:30 PM', place: 'Tencent HQ Visitor Center', type: 'attraction', note: 'Tech tour booking required' },
-          { time: '06:00 PM', place: 'Shenzhen Bay Seafood Night', type: 'food', note: 'Outdoor dining' },
-        ],
-      },
-    ],
-    conditions: [
-      {
-        id: 'c1-flight',
-        icon: 'airplane',
-        label: 'Flight CZ3028 Delayed',
-        detail: 'Inbound from KUL, tarmac hold due to weather radar.',
-        impactScore: -35,
-        active: true,
-      },
-      {
-        id: 'c1-rain',
-        icon: 'rainy',
-        label: 'Torrential Rain',
-        detail: 'Outdoor activities compromised. OCT-LOFT & park canceled.',
-        impactScore: -20,
-        active: true,
-      },
-      {
-        id: 'c1-hotel',
-        icon: 'bed',
-        label: 'Hotel Check-In Delayed',
-        detail: 'Room not ready until 3PM due to prior guest late check-out.',
-        impactScore: -12,
-        active: false,
-      },
-      {
-        id: 'c1-traffic',
-        icon: 'car',
-        label: 'CBD Traffic Gridlock',
-        detail: '+45min on major interchange. Dinner reservation at risk.',
-        impactScore: -10,
-        active: false,
-      },
-    ],
-    backupPlan: {
-      summary: 'Auto-rerouted to indoor venues. Recovered 180 min of lost travel time.',
-      score: 85,
-      activities: [
-        { time: '03:30 PM', place: 'Skyline Tea & Co-working Lounge', note: 'Indoor pivot – Free artisan cold brew + 25% off' },
-        { time: '05:00 PM', place: 'Shenzhen Digital Art Pavilion', note: 'Replaces outdoor park – VIP Fast-Pass' },
-        { time: '07:15 PM', place: 'Bistro 1873 (Shifted +45 min)', note: 'Reservation held — zero no-show penalty' },
-      ],
-    },
-    comparison: {
-      old: [
-        { date: 'Sep 12', label: 'Arrival Day', status: 'ok' },
-        { date: 'Sep 13', label: 'Tech District', status: 'cancelled' },
-      ],
-      next: [
-        { date: 'Sep 12', label: 'Arrival Day', status: 'ok' },
-        { date: 'Sep 13', label: 'Indoor Tech Expo & Museum', status: 'ok' },
-      ],
-    },
-  },
-  {
-    id: 'room-2',
-    name: 'Room 2',
-    destination: 'Tokyo Cultural Journey',
-    city: 'Tokyo',
-    dateRange: 'Oct 3 - Oct 8, 2026',
-    members: 3,
-    memberNames: ['Morgan R.', 'Jordan B.', 'Casey W.'],
-    emoji: '⛩️',
-    accentColor: '#f43f5e',
-    baseScore: 100,
-    days: [
-      {
-        date: 'Oct 3',
-        label: 'Arrival & Akihabara',
-        activities: [
-          { time: '10:15 AM', place: 'Flight JL711 → NRT Airport', type: 'flight', note: 'Terminal 2' },
-          { time: '12:30 PM', place: 'Shinjuku Granbell Hotel', type: 'hotel', note: 'Check-in + luggage drop' },
-          { time: '02:00 PM', place: 'Akihabara Electric Town', type: 'attraction', note: 'Anime + Electronics District' },
-          { time: '07:00 PM', place: 'Omoide Yokocho Yakitori', type: 'food', note: 'Street food alley dinner' },
-        ],
-      },
-      {
-        date: 'Oct 4',
-        label: 'Temples & Gardens',
-        activities: [
-          { time: '08:00 AM', place: 'Senso-ji Temple, Asakusa', type: 'attraction', note: 'Morning walk + prayers' },
-          { time: '11:00 AM', place: 'Hamarikyu Gardens', type: 'attraction', note: 'Outdoor garden stroll' },
-          { time: '01:00 PM', place: 'Tsukiji Outer Market Lunch', type: 'food', note: 'Sushi omakase' },
-          { time: '04:00 PM', place: 'Teamlab Planets (Odaiba)', type: 'attraction', note: 'Digital art immersive' },
-        ],
-      },
-    ],
-    conditions: [
-      {
-        id: 'c2-typhoon',
-        icon: 'thunderstorm',
-        label: 'Typhoon Warning',
-        detail: 'Outdoor activities in Asakusa and Hamarikyu unsafe. JMA alert issued.',
-        impactScore: -30,
-        active: true,
-      },
-      {
-        id: 'c2-sold-out',
-        icon: 'ticket',
-        label: 'Teamlab Tickets Sold Out',
-        detail: 'Unexpected weekend demand. All slots booked through Oct 6.',
-        impactScore: -15,
-        active: true,
-      },
-      {
-        id: 'c2-rail',
-        icon: 'train',
-        label: 'Chuo Line Suspended',
-        detail: 'Service halted due to fallen debris. 2 hrs minimum delay.',
-        impactScore: -25,
-        active: false,
-      },
-    ],
-    backupPlan: {
-      summary: 'Shifted to sheltered indoor experiences and nearby museum cluster.',
-      score: 85,
-      activities: [
-        { time: '10:00 AM', place: 'Tokyo National Museum (Ueno)', note: 'Replaces outdoor Senso-ji walk' },
-        { time: '01:00 PM', place: 'Mori Art Museum (Roppongi)', note: 'Indoor gallery – 52nd floor city views' },
-        { time: '07:00 PM', place: 'Gonpachi Nishiazabu', note: 'Famous yakitori dinner, advance seat held' },
-      ],
-    },
-    comparison: {
-      old: [
-        { date: 'Oct 3', label: 'Arrival & Akihabara', status: 'ok' },
-        { date: 'Oct 4', label: 'Temples & Gardens', status: 'cancelled' },
-      ],
-      next: [
-        { date: 'Oct 3', label: 'Arrival & Akihabara', status: 'ok' },
-        { date: 'Oct 4', label: 'Indoor Museums & teamLab', status: 'ok' },
-      ],
-    },
-  },
-  {
-    id: 'room-3',
-    name: 'Room 3',
-    destination: 'Bangkok Beach Escape',
-    city: 'Bangkok',
-    dateRange: 'Nov 20 - Nov 25, 2026',
-    members: 6,
-    memberNames: ['Riley S.', 'Parker N.', 'Quinn A.', 'Drew H.', 'Skyler P.', 'Avery J.'],
-    emoji: '🌴',
-    accentColor: '#10b981',
-    baseScore: 100,
-    days: [
-      {
-        date: 'Nov 20',
-        label: 'Arrival & Beach',
-        activities: [
-          { time: '09:00 AM', place: 'Flight TG201 → BKK Suvarnabhumi', type: 'flight', note: 'Terminal A, Gate G9' },
-          { time: '11:00 AM', place: 'Anantara Riverside Hotel', type: 'hotel', note: 'River-view suite check-in' },
-          { time: '01:00 PM', place: 'Asiatique The Riverfront', type: 'attraction', note: 'Shopping & street food' },
-          { time: '06:00 PM', place: 'Rooftop Bar — Octave Marriott', type: 'food', note: 'Sunset cocktails' },
-        ],
-      },
-      {
-        date: 'Nov 21',
-        label: 'Island Day Trip',
-        activities: [
-          { time: '07:00 AM', place: 'Ko Samet Ferry Departure', type: 'transport', note: 'From Ban Phe pier' },
-          { time: '10:00 AM', place: 'Ko Samet Beach Day', type: 'attraction', note: 'Snorkeling & water sports' },
-          { time: '03:00 PM', place: 'Kayak to Ao Hin Khok Cove', type: 'attraction', note: 'Optional water activity' },
-          { time: '06:00 PM', place: 'Return Ferry + Dinner', type: 'transport', note: 'Beachside seafood BBQ on return' },
-        ],
-      },
-    ],
-    conditions: [
-      {
-        id: 'c3-monsoon',
-        icon: 'rainy',
-        label: 'Monsoon Rain Forecast',
-        detail: 'Tropical downpour expected 10AM-6PM. Outdoor plans impacted.',
-        impactScore: -10,
-        active: true,
-      },
-      {
-        id: 'c3-sea-rough',
-        icon: 'water',
-        label: 'Rough Seas — Ferry Canceled',
-        detail: 'Port authority suspended Ko Samet services. Wave height 3.2m.',
-        impactScore: -22,
-        active: true,
-      },
-    ],
-    backupPlan: {
-      summary: 'Coastal day trip replaced with Bangkok city cultural circuit.',
-      score: 85,
-      activities: [
-        { time: '09:00 AM', place: 'Grand Palace & Wat Phra Kaew', note: 'Air-conditioned guided tour' },
-        { time: '12:00 PM', place: 'Jim Thompson House Museum', note: 'Indoor cultural heritage visit' },
-        { time: '07:00 PM', place: 'Sirocco Sky Bar Dinner', note: 'Open-air high-rise — post-rain clear evening' },
-      ],
-    },
-    comparison: {
-      old: [
-        { date: 'Nov 20', label: 'Arrival & Beach', status: 'ok' },
-        { date: 'Nov 21', label: 'Island Day Trip', status: 'cancelled' },
-      ],
-      next: [
-        { date: 'Nov 20', label: 'Arrival & Beach', status: 'ok' },
-        { date: 'Nov 21', label: 'Bangkok City Cultural Circuit', status: 'ok' },
-      ],
-    },
-  },
-];
-
 const disruptionIcon = (icon: string) => {
   if (icon === 'airplane') return '✈️';
   if (icon === 'rainy' || icon === 'thunderstorm') return '🌧️';
@@ -322,6 +32,19 @@ const disruptionIcon = (icon: string) => {
   if (icon === 'water') return '🌊';
   return '⚠️';
 };
+
+const modeLabel: Record<string, string> = {
+  walk: 'Walk',
+  metro: 'Subway',
+  bus: 'Bus',
+  taxi: 'Taxi',
+  flight: 'Flight',
+  ferry: 'Ferry',
+  rail: 'Rail',
+};
+
+const osmMap = (lat: number, lng: number) =>
+  `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=640x280&markers=${lat},${lng},red-pushpin`;
 
 export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   topColor,
@@ -334,9 +57,18 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const [autoFixed, setAutoFixed] = useState<Record<string, boolean>>({});
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [itineraryGlow, setItineraryGlow] = useState(false);
+  const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [weatherTarget, setWeatherTarget] = useState<{
+    activity: TripActivity;
+    day: TripDay;
+    weather: WeatherSnapshot;
+    loading: boolean;
+  } | null>(null);
+  const [routeTarget, setRouteTarget] = useState<{ activity: TripActivity; day: TripDay } | null>(null);
 
   const selectedRoom = ROOMS.find(r => r.id === selectedRoomId)!;
   const isFixed = !!autoFixed[selectedRoomId];
+  const visibleDays = isFixed ? selectedRoom.optimizedDays : selectedRoom.days;
 
   const liveScore = useMemo(() => {
     const totalPenalty = selectedRoom.conditions
@@ -346,13 +78,11 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   }, [selectedRoom]);
 
   const tripHealthScore = isFixed ? 85 : liveScore;
-
   const getHealthColor = (score: number) => {
     if (score >= 80) return '#10b981';
     if (score >= 50) return '#f59e0b';
     return '#ef4444';
   };
-
   const healthColor = getHealthColor(tripHealthScore);
   const isLow = tripHealthScore < 50;
   const isOptimal = tripHealthScore >= 80;
@@ -361,7 +91,25 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const runAutoFix = () => {
     setAutoFixed(prev => ({ ...prev, [selectedRoomId]: true }));
     setItineraryGlow(true);
+    setExpandedDay(`${selectedRoomId}-new-${selectedRoom.optimizedDays[0]?.date}`);
     setTimeout(() => setItineraryGlow(false), 1500);
+  };
+
+  const openWeather = async (activity: TripActivity, day: TripDay) => {
+    setWeatherTarget({ activity, day, weather: activity.weather, loading: true });
+    const live = await fetchPlaceWeather(
+      activity.lat,
+      activity.lng,
+      day.isoDate,
+      activity.time,
+      selectedRoom.timezone,
+      activity.weather,
+    );
+    setWeatherTarget({ activity, day, weather: live, loading: false });
+  };
+
+  const openMaps = (url: string) => {
+    Linking.openURL(url).catch(() => undefined);
   };
 
   if (view === 'simulator') {
@@ -378,6 +126,51 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
     );
   }
 
+  const renderActivity = (act: TripActivity, day: TripDay, muted = false) => (
+    <View key={`${day.date}-${act.time}-${act.place}`} style={[styles.activityCard, muted && styles.activityMuted]}>
+      <View style={styles.activityTop}>
+        <Text style={styles.activityTime}>{act.time}</Text>
+        <Pressable onPress={() => openWeather(act, day)} style={styles.weatherChip} hitSlop={8}>
+          <Text style={styles.weatherEmoji}>{act.weather.emoji}</Text>
+        </Pressable>
+      </View>
+      <Text style={[styles.activityPlace, muted && styles.strike]}>{act.place}</Text>
+      {act.note ? <Text style={styles.activityNote}>{act.note}</Text> : null}
+      <Text style={styles.activityMeta}>
+        {day.weekday} · {day.date} · {act.time}
+      </Text>
+      <View style={styles.activityActions}>
+        <Pressable onPress={() => setRouteTarget({ activity: act, day })} style={styles.miniBtn}>
+          <Ionicons name="map-outline" size={13} color="#1e3a8a" />
+          <Text style={styles.miniBtnText}>Route</Text>
+        </Pressable>
+        <Pressable onPress={() => openMaps(act.route.mapsUrl)} style={styles.miniBtn}>
+          <Ionicons name="navigate" size={13} color="#1e3a8a" />
+          <Text style={styles.miniBtnText}>Google Maps</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const renderDayBlock = (day: TripDay, prefix: string, muted = false) => {
+    const key = `${selectedRoomId}-${prefix}-${day.date}`;
+    const open = expandedDay === key;
+    return (
+      <View key={key}>
+        <Pressable onPress={() => setExpandedDay(open ? null : key)} style={styles.itineraryItem}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.dayDate}>
+              {day.date} · {day.weekday}
+            </Text>
+            <Text style={styles.dayLabel}>{day.label}</Text>
+          </View>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color="#6b7280" />
+        </Pressable>
+        {open ? day.activities.map(act => renderActivity(act, day, muted)) : null}
+      </View>
+    );
+  };
+
   return (
     <LinearGradient
       colors={[topColor, '#8EAFD2', bottomColor]}
@@ -393,6 +186,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
           onPress={() => {
             setAutoFixed({});
             setRoomMenuOpen(false);
+            setExpandedDay(null);
           }}
           style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}
         >
@@ -430,72 +224,35 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
             </View>
           </View>
 
+          <Pressable onPress={() => setPlanModalOpen(true)} style={styles.fullPlanBtn}>
+            <Ionicons name="newspaper-outline" size={16} color="#1e3a8a" />
+            <Text style={styles.fullPlanBtnText}>Open full detailed plan</Text>
+          </Pressable>
+
           {isFixed ? (
             <>
               <View style={styles.optimizedPill}>
                 <Text style={styles.optimizedPillText}>✨  AI Plan Optimized</Text>
               </View>
-
+              <Text style={styles.compareHint}>
+                Tap a day to compare times and places with the previous plan. Weather icons open live conditions.
+              </Text>
               <View style={[styles.planBlock, styles.oldPlan]}>
                 <Text style={styles.oldPlanLabel}>PREVIOUS PLAN (DISRUPTED)</Text>
-                {selectedRoom.comparison.old.map(item => (
-                  <View key={`old-${item.date}`} style={styles.planItem}>
-                    <Text style={styles.oldPlanText}>
-                      {item.date} - {item.label}
-                    </Text>
-                    <Text style={styles.statusIcon}>
-                      {item.status === 'cancelled' ? '❌ Cancelled' : '🟢'}
-                    </Text>
-                  </View>
-                ))}
+                {selectedRoom.days.map(day => renderDayBlock(day, 'old', true))}
               </View>
-
               <View style={styles.aiArrow}>
                 <View style={styles.aiLine} />
                 <Text style={styles.aiArrowText}>AI Re-routed</Text>
                 <View style={styles.aiLine} />
               </View>
-
               <View style={[styles.planBlock, styles.newPlan]}>
                 <Text style={styles.newPlanLabel}>UPDATED PLAN (OPTIMAL)</Text>
-                {selectedRoom.comparison.next.map(item => (
-                  <View key={`new-${item.date}`} style={styles.planItem}>
-                    <Text style={styles.newPlanText}>
-                      {item.date} - {item.label}
-                    </Text>
-                    <Text style={styles.newCheck}>✅</Text>
-                  </View>
-                ))}
+                {selectedRoom.optimizedDays.map(day => renderDayBlock(day, 'new'))}
               </View>
             </>
           ) : (
-            selectedRoom.days.map(day => {
-              const key = `${selectedRoomId}-${day.date}`;
-              const open = expandedDay === key;
-              return (
-                <View key={day.date}>
-                  <Pressable
-                    onPress={() => setExpandedDay(open ? null : key)}
-                    style={styles.itineraryItem}
-                  >
-                    <Text style={styles.dayDate}>{day.date}</Text>
-                    <Text style={styles.dayLabel}>{day.label}</Text>
-                    <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color="#6b7280" />
-                  </Pressable>
-                  {open
-                    ? day.activities.map((act, idx) => (
-                        <View key={idx} style={styles.activityRow}>
-                          <Text style={styles.activityTime}>{act.time}</Text>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.activityPlace}>{act.place}</Text>
-                            {act.note ? <Text style={styles.activityNote}>{act.note}</Text> : null}
-                          </View>
-                        </View>
-                      ))
-                    : null}
-                </View>
-              );
-            })
+            selectedRoom.days.map(day => renderDayBlock(day, 'live'))
           )}
         </View>
 
@@ -513,6 +270,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
               </Text>
             </View>
           </View>
+          <Text style={styles.monitorTag}>OpenWeather · Google Maps live monitor</Text>
 
           <View style={styles.scoreRow}>
             <View style={[styles.scoreCircle, { borderColor: healthColor }]}>
@@ -603,6 +361,128 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
           </View>
         </Pressable>
       </Modal>
+
+      <Modal visible={planModalOpen} transparent animationType="slide">
+        <View style={styles.sheetRoot}>
+          <Pressable style={styles.sheetBackdrop} onPress={() => setPlanModalOpen(false)} />
+          <View style={styles.planSheet}>
+            <View style={styles.planSheetHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.planSheetKicker}>{isFixed ? 'Updated full plan' : 'Room itinerary'}</Text>
+                <Text style={styles.planSheetTitle}>{selectedRoom.destination}</Text>
+                <Text style={styles.planSheetSub}>
+                  {selectedRoom.dateRange} · {selectedRoom.city}
+                </Text>
+              </View>
+              <Pressable onPress={() => setPlanModalOpen(false)} style={styles.closeBtn}>
+                <Text style={styles.closeBtnText}>✕</Text>
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={styles.planSheetBody} showsVerticalScrollIndicator={false}>
+              {visibleDays.map(day => (
+                <View key={`full-${day.isoDate}`} style={styles.fullDayCard}>
+                  <Text style={styles.fullDayTitle}>
+                    {day.weekday}, {day.date} · {day.label}
+                  </Text>
+                  {day.activities.map(act => (
+                    <View key={`full-${act.time}-${act.place}`} style={styles.fullStop}>
+                      <View style={styles.fullStopHead}>
+                        <Text style={styles.fullStopTime}>{act.time}</Text>
+                        <Pressable onPress={() => openWeather(act, day)}>
+                          <Text style={styles.weatherEmoji}>{act.weather.emoji}</Text>
+                        </Pressable>
+                      </View>
+                      <Text style={styles.activityPlace}>{act.place}</Text>
+                      <Text style={styles.activityNote}>{act.address}</Text>
+                      <Text style={styles.routeSummary}>{act.route.summary}</Text>
+                      {act.route.legs.map((leg, idx) => (
+                        <Text key={idx} style={styles.legLine}>
+                          {idx + 1}. {modeLabel[leg.mode]}
+                          {leg.line ? ` · ${leg.line}` : ''} — {leg.instruction} ({leg.durationMin} min)
+                        </Text>
+                      ))}
+                      <Pressable onPress={() => openMaps(act.route.mapsUrl)} style={styles.mapsLink}>
+                        <Ionicons name="navigate" size={14} color="#1d4ed8" />
+                        <Text style={styles.mapsLinkText}>Open Google Maps transit route</Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={!!weatherTarget} transparent animationType="fade">
+        <Pressable style={styles.menuBackdrop} onPress={() => setWeatherTarget(null)}>
+          <Pressable style={styles.detailModal} onPress={() => undefined}>
+            {weatherTarget ? (
+              <>
+                <Text style={styles.detailKicker}>Place weather · {weatherTarget.weather.source}</Text>
+                <Text style={styles.detailTitle}>{weatherTarget.activity.place}</Text>
+                <Text style={styles.detailSub}>
+                  {weatherTarget.day.weekday}, {weatherTarget.day.date} · {weatherTarget.activity.time}
+                </Text>
+                <Text style={styles.weatherHero}>
+                  {weatherTarget.weather.emoji} {weatherTarget.loading ? 'Updating live…' : weatherTarget.weather.condition}
+                </Text>
+                <View style={styles.weatherGrid}>
+                  <Text style={styles.weatherStat}>{weatherTarget.weather.tempC}°C</Text>
+                  <Text style={styles.weatherStatLabel}>Temp</Text>
+                </View>
+                <Text style={styles.activityNote}>
+                  Feels like {weatherTarget.weather.feelsLikeC}°C · Humidity {weatherTarget.weather.humidity}% · Wind{' '}
+                  {weatherTarget.weather.windKph} km/h · Rain chance {weatherTarget.weather.precipChance}%
+                </Text>
+                <Text style={styles.activityNote}>{weatherTarget.activity.address}</Text>
+                <Pressable onPress={() => setWeatherTarget(null)} style={styles.modalBtn}>
+                  <Text style={styles.modalBtnText}>Close</Text>
+                </Pressable>
+              </>
+            ) : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={!!routeTarget} transparent animationType="fade">
+        <Pressable style={styles.menuBackdrop} onPress={() => setRouteTarget(null)}>
+          <Pressable style={styles.detailModal} onPress={() => undefined}>
+            {routeTarget ? (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Text style={styles.detailKicker}>How to get there · Google Maps</Text>
+                <Text style={styles.detailTitle}>{routeTarget.activity.place}</Text>
+                <Text style={styles.detailSub}>
+                  {routeTarget.day.weekday}, {routeTarget.day.date} · {routeTarget.activity.time}
+                </Text>
+                <Image
+                  source={{ uri: osmMap(routeTarget.activity.lat, routeTarget.activity.lng) }}
+                  style={styles.mapPreview}
+                />
+                <Text style={styles.routeSummary}>{routeTarget.activity.route.summary}</Text>
+                <Text style={styles.activityNote}>
+                  From {routeTarget.activity.route.from} · {routeTarget.activity.route.durationMin} min ·{' '}
+                  {routeTarget.activity.route.fare}
+                </Text>
+                {routeTarget.activity.route.legs.map((leg, idx) => (
+                  <View key={idx} style={styles.legCard}>
+                    <Text style={styles.legBadge}>{modeLabel[leg.mode]}</Text>
+                    {leg.line ? <Text style={styles.legLineName}>{leg.line}</Text> : null}
+                    <Text style={styles.legLine}>{leg.instruction}</Text>
+                    <Text style={styles.activityNote}>{leg.durationMin} min</Text>
+                  </View>
+                ))}
+                <Pressable onPress={() => openMaps(routeTarget.activity.route.mapsUrl)} style={styles.modalBtn}>
+                  <Text style={styles.modalBtnText}>Open in Google Maps</Text>
+                </Pressable>
+                <Pressable onPress={() => setRouteTarget(null)} style={styles.ghostBtn}>
+                  <Text style={styles.ghostBtnText}>Close</Text>
+                </Pressable>
+              </ScrollView>
+            ) : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -611,10 +491,13 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingTop: 12,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.18)',
   },
   iconCircle: {
     width: 36,
@@ -633,12 +516,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0f172a',
   },
   scrollArea: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 20, gap: 16 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 20, gap: 16, paddingTop: 12 },
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
@@ -681,6 +564,19 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   membersText: { fontSize: 12, fontWeight: '500', color: '#3b82f6' },
+  fullPlanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#93c5fd',
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  fullPlanBtnText: { fontSize: 13, fontWeight: '700', color: '#1e3a8a' },
   itineraryItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -689,40 +585,67 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
-  dayDate: { fontSize: 14, fontWeight: '600', color: '#1f2937', width: 64 },
-  dayLabel: { flex: 1, fontSize: 14, color: '#1f2937' },
-  activityRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 8,
-    paddingBottom: 10,
+  dayDate: { fontSize: 13, fontWeight: '700', color: '#1f2937' },
+  dayLabel: { flex: 1, fontSize: 13, color: '#4b5563', marginTop: 2 },
+  activityCard: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+    marginLeft: 4,
+    backgroundColor: '#fff',
   },
-  activityTime: { fontSize: 11, color: '#6b7280', fontWeight: '600', width: 72, paddingTop: 2 },
-  activityPlace: { fontSize: 12, fontWeight: '600', color: '#1f2937' },
-  activityNote: { fontSize: 11, color: '#6b7280', marginTop: 2 },
+  activityMuted: { opacity: 0.72, backgroundColor: '#f9fafb' },
+  activityTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  activityTime: { fontSize: 11, color: '#6b7280', fontWeight: '700' },
+  weatherChip: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weatherEmoji: { fontSize: 18 },
+  activityPlace: { fontSize: 13, fontWeight: '700', color: '#1f2937', marginTop: 4 },
+  strike: { textDecorationLine: 'line-through', color: '#6b7280' },
+  activityNote: { fontSize: 11, color: '#6b7280', marginTop: 3, lineHeight: 16 },
+  activityMeta: { fontSize: 10, color: '#3b82f6', fontWeight: '600', marginTop: 4 },
+  activityActions: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  miniBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  miniBtnText: { fontSize: 11, fontWeight: '700', color: '#1e3a8a' },
   optimizedPill: {
     alignSelf: 'flex-start',
     backgroundColor: '#d1fae5',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   optimizedPillText: { fontSize: 14, fontWeight: '700', color: '#10b981' },
+  compareHint: { fontSize: 11, color: '#6b7280', marginBottom: 10, lineHeight: 16 },
   planBlock: {
     borderRadius: 12,
-    padding: 14,
+    padding: 12,
     marginBottom: 12,
+    borderWidth: 1,
   },
   oldPlan: {
     backgroundColor: '#f3f4f6',
-    borderWidth: 1,
     borderColor: '#d1d5db',
     borderStyle: 'dashed',
   },
   newPlan: {
     backgroundColor: '#ecfdf5',
-    borderWidth: 1,
     borderColor: '#a7f3d0',
   },
   oldPlanLabel: {
@@ -739,20 +662,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 10,
   },
-  planItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  oldPlanText: { fontSize: 13, color: '#6b7280', textDecorationLine: 'line-through' },
-  newPlanText: { fontSize: 13, color: '#065f46', fontWeight: '500' },
-  statusIcon: { fontSize: 12, color: '#ef4444' },
-  newCheck: { fontSize: 14, color: '#10b981' },
   aiArrow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   aiLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
   aiArrowText: { fontSize: 12, fontWeight: '600', color: '#9ca3af' },
   healthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  monitorTag: { fontSize: 10, color: '#3b82f6', fontWeight: '700', marginTop: -6, marginBottom: 8 },
   statusBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 12 },
   statusBadgeText: { fontSize: 11, fontWeight: '700' },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 8 },
@@ -818,9 +732,9 @@ const styles = StyleSheet.create({
   whatIfSub: { fontSize: 12, color: '#6b7280', marginTop: 2 },
   menuBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
-    padding: 24,
+    padding: 20,
   },
   menuCard: {
     backgroundColor: '#fff',
@@ -837,4 +751,108 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   menuRowActive: { backgroundColor: '#eff6ff' },
+  sheetRoot: { flex: 1, justifyContent: 'flex-end' },
+  sheetBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  planSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: '88%',
+    borderWidth: 2,
+    borderColor: '#93c5fd',
+  },
+  planSheetHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  planSheetKicker: { fontSize: 10, fontWeight: '800', color: '#2563eb', textTransform: 'uppercase' },
+  planSheetTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginTop: 2 },
+  planSheetSub: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  planSheetBody: { padding: 16, paddingBottom: 32, gap: 12 },
+  fullDayCard: {
+    borderWidth: 1.5,
+    borderColor: '#bfdbfe',
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: '#f8fbff',
+  },
+  fullDayTitle: { fontSize: 14, fontWeight: '800', color: '#1e3a8a', marginBottom: 8 },
+  fullStop: {
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 10,
+    marginTop: 8,
+  },
+  fullStopHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  fullStopTime: { fontSize: 12, fontWeight: '800', color: '#334155' },
+  routeSummary: { fontSize: 12, color: '#334155', marginTop: 6, lineHeight: 17, fontWeight: '600' },
+  legLine: { fontSize: 11, color: '#475569', marginTop: 4, lineHeight: 16 },
+  mapsLink: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  mapsLinkText: { fontSize: 12, fontWeight: '700', color: '#1d4ed8' },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeBtnText: { fontSize: 16, color: '#374151' },
+  detailModal: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: '#93c5fd',
+    maxHeight: '82%',
+  },
+  detailKicker: { fontSize: 10, fontWeight: '800', color: '#2563eb', textTransform: 'uppercase' },
+  detailTitle: { fontSize: 16, fontWeight: '800', color: '#0f172a', marginTop: 4 },
+  detailSub: { fontSize: 12, color: '#64748b', marginTop: 2, marginBottom: 10 },
+  weatherHero: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 8 },
+  weatherGrid: { marginBottom: 8 },
+  weatherStat: { fontSize: 32, fontWeight: '900', color: '#1d4ed8' },
+  weatherStatLabel: { fontSize: 11, color: '#64748b', fontWeight: '700' },
+  mapPreview: { width: '100%', height: 140, borderRadius: 12, backgroundColor: '#dbeafe', marginBottom: 10 },
+  legCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  legBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#dbeafe',
+    color: '#1d4ed8',
+    fontSize: 10,
+    fontWeight: '800',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  legLineName: { fontSize: 12, fontWeight: '800', color: '#1e3a8a', marginBottom: 2 },
+  modalBtn: {
+    backgroundColor: '#2563eb',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  modalBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  ghostBtn: { alignItems: 'center', paddingVertical: 10 },
+  ghostBtnText: { color: '#64748b', fontSize: 13, fontWeight: '700' },
 });
