@@ -75,7 +75,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
     'self-healing': {
       title: 'Self-Healing Pivot & "What-If" Simulator',
       subtitle: 'Live Trip Health Score (0–100) & Instant Re-routing',
-      tag: 'Winning Feature 4',
+      tag: 'Self-Healing Pivot',
       icon: ShieldAlert,
       mechanism:
         'Continuously monitors route delays, transit congestion, and weather shifts via OpenWeather and Google Maps APIs to maintain an active Trip Health Score (0–100).',

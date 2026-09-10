@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import type { ActiveScreen } from '../../types';
+import { WhatIfSimulatorScreen } from './WhatIfSimulatorScreen';
 
 export type DisruptionScenario = 'flight-delay' | 'rainstorm' | 'transit-gridlock' | 'optimal';
 export type PivotStrategy = 'balanced' | 'indoor' | 'culinary' | 'budget';
@@ -32,7 +33,7 @@ interface RoomCondition {
   icon: string;
   label: string;
   detail: string;
-  impactScore: number; // negative = score reduction
+  impactScore: number;
   active: boolean;
 }
 
@@ -42,10 +43,17 @@ interface BackupPlan {
   activities: { time: string; place: string; note: string }[];
 }
 
+interface ComparisonItem {
+  date: string;
+  label: string;
+  status: 'ok' | 'cancelled';
+}
+
 interface RoomPlan {
   id: string;
   name: string;
   destination: string;
+  city: string;
   dateRange: string;
   members: number;
   memberNames: string[];
@@ -55,6 +63,7 @@ interface RoomPlan {
   days: TripDay[];
   conditions: RoomCondition[];
   backupPlan: BackupPlan;
+  comparison: { old: ComparisonItem[]; next: ComparisonItem[] };
 }
 
 interface SelfHealingScreenProps {
@@ -66,15 +75,13 @@ interface SelfHealingScreenProps {
   onNavigate?: (screen: ActiveScreen) => void;
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// ROOM DATA
-// ────────────────────────────────────────────────────────────────────────────
 const ROOMS: RoomPlan[] = [
   {
     id: 'room-1',
     name: 'Room 1',
     destination: 'Shenzhen Tech Tour',
-    dateRange: 'Sep 12 – Sep 15, 2026',
+    city: 'Shenzhen',
+    dateRange: 'Sep 12 - Sep 15, 2026',
     members: 4,
     memberNames: ['Alex M.', 'Jamie T.', 'Sam L.', 'Taylor K.'],
     emoji: '🏙️',
@@ -106,15 +113,15 @@ const ROOMS: RoomPlan[] = [
       {
         id: 'c1-flight',
         icon: 'airplane',
-        label: 'Flight CZ3028 Delayed +3h',
+        label: 'Flight CZ3028 Delayed',
         detail: 'Inbound from KUL, tarmac hold due to weather radar.',
         impactScore: -35,
         active: true,
       },
       {
         id: 'c1-rain',
-        icon: 'thunderstorm',
-        label: 'Torrential Rain (28mm/h)',
+        icon: 'rainy',
+        label: 'Torrential Rain',
         detail: 'Outdoor activities compromised. OCT-LOFT & park canceled.',
         impactScore: -20,
         active: true,
@@ -138,11 +145,21 @@ const ROOMS: RoomPlan[] = [
     ],
     backupPlan: {
       summary: 'Auto-rerouted to indoor venues. Recovered 180 min of lost travel time.',
-      score: 78,
+      score: 85,
       activities: [
         { time: '03:30 PM', place: 'Skyline Tea & Co-working Lounge', note: 'Indoor pivot – Free artisan cold brew + 25% off' },
         { time: '05:00 PM', place: 'Shenzhen Digital Art Pavilion', note: 'Replaces outdoor park – VIP Fast-Pass' },
         { time: '07:15 PM', place: 'Bistro 1873 (Shifted +45 min)', note: 'Reservation held — zero no-show penalty' },
+      ],
+    },
+    comparison: {
+      old: [
+        { date: 'Sep 12', label: 'Arrival Day', status: 'ok' },
+        { date: 'Sep 13', label: 'Tech District', status: 'cancelled' },
+      ],
+      next: [
+        { date: 'Sep 12', label: 'Arrival Day', status: 'ok' },
+        { date: 'Sep 13', label: 'Indoor Tech Expo & Museum', status: 'ok' },
       ],
     },
   },
@@ -150,7 +167,8 @@ const ROOMS: RoomPlan[] = [
     id: 'room-2',
     name: 'Room 2',
     destination: 'Tokyo Cultural Journey',
-    dateRange: 'Oct 3 – Oct 8, 2026',
+    city: 'Tokyo',
+    dateRange: 'Oct 3 - Oct 8, 2026',
     members: 3,
     memberNames: ['Morgan R.', 'Jordan B.', 'Casey W.'],
     emoji: '⛩️',
@@ -182,18 +200,10 @@ const ROOMS: RoomPlan[] = [
       {
         id: 'c2-typhoon',
         icon: 'thunderstorm',
-        label: 'Typhoon Warning Level 2',
+        label: 'Typhoon Warning',
         detail: 'Outdoor activities in Asakusa and Hamarikyu unsafe. JMA alert issued.',
         impactScore: -30,
         active: true,
-      },
-      {
-        id: 'c2-rail',
-        icon: 'train',
-        label: 'Chuo Line Suspended',
-        detail: 'Service halted due to fallen debris. 2 hrs minimum delay.',
-        impactScore: -25,
-        active: false,
       },
       {
         id: 'c2-sold-out',
@@ -204,22 +214,31 @@ const ROOMS: RoomPlan[] = [
         active: true,
       },
       {
-        id: 'c2-closure',
-        icon: 'storefront',
-        label: 'Tsukiji Market Closed',
-        detail: 'Emergency inspection — all stalls closed for the day.',
-        impactScore: -8,
+        id: 'c2-rail',
+        icon: 'train',
+        label: 'Chuo Line Suspended',
+        detail: 'Service halted due to fallen debris. 2 hrs minimum delay.',
+        impactScore: -25,
         active: false,
       },
     ],
     backupPlan: {
       summary: 'Shifted to sheltered indoor experiences and nearby museum cluster.',
-      score: 71,
+      score: 85,
       activities: [
         { time: '10:00 AM', place: 'Tokyo National Museum (Ueno)', note: 'Replaces outdoor Senso-ji walk' },
         { time: '01:00 PM', place: 'Mori Art Museum (Roppongi)', note: 'Indoor gallery – 52nd floor city views' },
-        { time: '03:30 PM', place: 'teamLab Future Park (Azabudai)', note: 'Alternative Teamlab venue – same experience' },
         { time: '07:00 PM', place: 'Gonpachi Nishiazabu', note: 'Famous yakitori dinner, advance seat held' },
+      ],
+    },
+    comparison: {
+      old: [
+        { date: 'Oct 3', label: 'Arrival & Akihabara', status: 'ok' },
+        { date: 'Oct 4', label: 'Temples & Gardens', status: 'cancelled' },
+      ],
+      next: [
+        { date: 'Oct 3', label: 'Arrival & Akihabara', status: 'ok' },
+        { date: 'Oct 4', label: 'Indoor Museums & teamLab', status: 'ok' },
       ],
     },
   },
@@ -227,7 +246,8 @@ const ROOMS: RoomPlan[] = [
     id: 'room-3',
     name: 'Room 3',
     destination: 'Bangkok Beach Escape',
-    dateRange: 'Nov 20 – Nov 25, 2026',
+    city: 'Bangkok',
+    dateRange: 'Nov 20 - Nov 25, 2026',
     members: 6,
     memberNames: ['Riley S.', 'Parker N.', 'Quinn A.', 'Drew H.', 'Skyler P.', 'Avery J.'],
     emoji: '🌴',
@@ -257,113 +277,106 @@ const ROOMS: RoomPlan[] = [
     ],
     conditions: [
       {
-        id: 'c3-sea-rough',
-        icon: 'water',
-        label: 'Rough Seas — Ferry Canceled',
-        detail: 'Port authority suspended Ko Samet services. Wave height 3.2m.',
-        impactScore: -22,
-        active: false,
-      },
-      {
         id: 'c3-monsoon',
         icon: 'rainy',
         label: 'Monsoon Rain Forecast',
         detail: 'Tropical downpour expected 10AM-6PM. Outdoor plans impacted.',
         impactScore: -10,
-        active: false,
+        active: true,
       },
       {
-        id: 'c3-visa',
-        icon: 'document-text',
-        label: 'Visa Extension Required',
-        detail: 'Group member passport valid until Nov 22. Admin delay risk.',
-        impactScore: -5,
-        active: false,
-      },
-      {
-        id: 'c3-hotel-overbooking',
-        icon: 'home',
-        label: 'Hotel Overbooking Alert',
-        detail: 'System flagged double-booking. Room allocation not confirmed.',
-        impactScore: -8,
-        active: false,
+        id: 'c3-sea-rough',
+        icon: 'water',
+        label: 'Rough Seas — Ferry Canceled',
+        detail: 'Port authority suspended Ko Samet services. Wave height 3.2m.',
+        impactScore: -22,
+        active: true,
       },
     ],
     backupPlan: {
       summary: 'Coastal day trip replaced with Bangkok city cultural circuit.',
-      score: 82,
+      score: 85,
       activities: [
         { time: '09:00 AM', place: 'Grand Palace & Wat Phra Kaew', note: 'Air-conditioned guided tour' },
         { time: '12:00 PM', place: 'Jim Thompson House Museum', note: 'Indoor cultural heritage visit' },
-        { time: '02:30 PM', place: 'Central Embassy Spa & Lounge', note: 'Premium spa — group booking secured' },
         { time: '07:00 PM', place: 'Sirocco Sky Bar Dinner', note: 'Open-air high-rise — post-rain clear evening' },
+      ],
+    },
+    comparison: {
+      old: [
+        { date: 'Nov 20', label: 'Arrival & Beach', status: 'ok' },
+        { date: 'Nov 21', label: 'Island Day Trip', status: 'cancelled' },
+      ],
+      next: [
+        { date: 'Nov 20', label: 'Arrival & Beach', status: 'ok' },
+        { date: 'Nov 21', label: 'Bangkok City Cultural Circuit', status: 'ok' },
       ],
     },
   },
 ];
 
-// ────────────────────────────────────────────────────────────────────────────
-// COMPONENT
-// ────────────────────────────────────────────────────────────────────────────
+const disruptionIcon = (icon: string) => {
+  if (icon === 'airplane') return '✈️';
+  if (icon === 'rainy' || icon === 'thunderstorm') return '🌧️';
+  if (icon === 'ticket') return '🎟️';
+  if (icon === 'water') return '🌊';
+  return '⚠️';
+};
+
 export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   topColor,
   bottomColor,
-  buttonBg,
   onNavigateHome,
-  onNavigate,
 }) => {
+  const [view, setView] = useState<'pivot' | 'simulator'>('pivot');
   const [selectedRoomId, setSelectedRoomId] = useState<string>('room-1');
-  const [roomConditions, setRoomConditions] = useState<Record<string, RoomCondition[]>>(() =>
-    Object.fromEntries(ROOMS.map(r => [r.id, r.conditions.map(c => ({ ...c }))])),
-  );
-  const [showBackupModal, setShowBackupModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [roomMenuOpen, setRoomMenuOpen] = useState(false);
+  const [autoFixed, setAutoFixed] = useState<Record<string, boolean>>({});
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3200);
-  };
+  const [itineraryGlow, setItineraryGlow] = useState(false);
 
   const selectedRoom = ROOMS.find(r => r.id === selectedRoomId)!;
-  const currentConditions = roomConditions[selectedRoomId] ?? selectedRoom.conditions;
+  const isFixed = !!autoFixed[selectedRoomId];
 
-  const tripHealthScore = useMemo(() => {
-    const totalPenalty = currentConditions
+  const liveScore = useMemo(() => {
+    const totalPenalty = selectedRoom.conditions
       .filter(c => c.active)
       .reduce((sum, c) => sum + c.impactScore, 0);
     return Math.max(0, Math.min(100, selectedRoom.baseScore + totalPenalty));
-  }, [selectedRoomId, currentConditions, selectedRoom]);
+  }, [selectedRoom]);
+
+  const tripHealthScore = isFixed ? 85 : liveScore;
 
   const getHealthColor = (score: number) => {
     if (score >= 80) return '#10b981';
-    if (score >= 60) return '#f59e0b';
+    if (score >= 50) return '#f59e0b';
     return '#ef4444';
   };
 
   const healthColor = getHealthColor(tripHealthScore);
+  const isLow = tripHealthScore < 50;
+  const isOptimal = tripHealthScore >= 80;
+  const activeConditions = selectedRoom.conditions.filter(c => c.active);
 
-  const toggleCondition = (conditionId: string) => {
-    setRoomConditions(prev => ({
-      ...prev,
-      [selectedRoomId]: prev[selectedRoomId].map(c =>
-        c.id === conditionId ? { ...c, active: !c.active } : c,
-      ),
-    }));
+  const runAutoFix = () => {
+    setAutoFixed(prev => ({ ...prev, [selectedRoomId]: true }));
+    setItineraryGlow(true);
+    setTimeout(() => setItineraryGlow(false), 1500);
   };
 
-  const activeConditions = currentConditions.filter(c => c.active);
-
-  const activityIcon = (type: TripActivity['type']) => {
-    switch (type) {
-      case 'flight': return 'airplane';
-      case 'hotel': return 'bed';
-      case 'food': return 'restaurant';
-      case 'attraction': return 'camera';
-      case 'transport': return 'bus';
-      default: return 'location';
-    }
-  };
+  if (view === 'simulator') {
+    return (
+      <WhatIfSimulatorScreen
+        topColor={topColor}
+        bottomColor={bottomColor}
+        onBack={() => setView('pivot')}
+        onApplyPlan={() => {
+          setAutoFixed(prev => ({ ...prev, [selectedRoomId]: true }));
+          setView('pivot');
+        }}
+      />
+    );
+  }
 
   return (
     <LinearGradient
@@ -371,594 +384,378 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
       locations={[0, 0.46, 1]}
       style={styles.container}
     >
-      {/* Toast Notification */}
-      {toastMessage && (
-        <View style={styles.toast}>
-          <Ionicons name="sparkles" size={14} color="#fff" />
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      )}
-
-      {/* Screen Header */}
       <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={onNavigateHome}
-            style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}
-          >
-            <Ionicons name="arrow-back" size={20} color="#0f172a" />
-          </Pressable>
-          <View style={styles.headerTitleCenter}>
-            <View style={styles.featureBadge}>
-              <Ionicons name="shield-checkmark" size={12} color="#1d4ed8" />
-              <Text style={styles.featureBadgeText}>FEATURE 4</Text>
-            </View>
-            <Text style={styles.headerTitle}>Self-Healing Pivot</Text>
-          </View>
-          <Pressable
-            onPress={() => showToast('Syncing real-time OpenWeather & Maps telemetry...')}
-            style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}
-          >
-            <Ionicons name="refresh-outline" size={19} color="#0f172a" />
-          </Pressable>
-        </View>
-
-        {/* Live telemetry bar */}
-        <View style={styles.telemetryRow}>
-          <View style={styles.telemetryPill}>
-            <Ionicons name="thunderstorm-outline" size={11} color="#fbbf24" />
-            <Text style={styles.telemetryLabel}>OpenWeather:</Text>
-            <Text style={styles.telemetryValue}>
-              {activeConditions.some(c => c.icon === 'thunderstorm' || c.icon === 'rainy')
-                ? 'Storm Alert'
-                : 'Clear · Good'}
-            </Text>
-          </View>
-          <View style={styles.telemetryPill}>
-            <Ionicons name="map-outline" size={11} color="#60a5fa" />
-            <Text style={styles.telemetryLabel}>Google Maps:</Text>
-            <Text style={styles.telemetryValue}>
-              {activeConditions.some(c => c.icon === 'car' || c.icon === 'train')
-                ? 'Disruptions'
-                : 'Traffic Normal'}
-            </Text>
-          </View>
-          <View style={[styles.livePulsePill]}>
-            <View style={styles.pulseDot} />
-            <Text style={styles.livePulseText}>LIVE</Text>
-          </View>
-        </View>
+        <Pressable onPress={onNavigateHome} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}>
+          <Ionicons name="arrow-back" size={20} color="#0f172a" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Self-Healing Pivot</Text>
+        <Pressable
+          onPress={() => {
+            setAutoFixed({});
+            setRoomMenuOpen(false);
+          }}
+          style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}
+        >
+          <Ionicons name="refresh-outline" size={19} color="#0f172a" />
+        </Pressable>
       </View>
 
-      {/* Main Scroll */}
       <ScrollView
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── SECTION 1: Room Selector ── */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Select Travel Room</Text>
-          <Text style={styles.sectionSub}>Each room has a unique plan, destination & conditions</Text>
-          <View style={styles.roomTabsRow}>
-            {ROOMS.map(room => (
-              <Pressable
-                key={room.id}
-                onPress={() => {
-                  setSelectedRoomId(room.id);
-                  setShowBackupModal(false);
-                }}
-                style={[
-                  styles.roomTab,
-                  selectedRoomId === room.id && {
-                    borderColor: room.accentColor,
-                    backgroundColor: `${room.accentColor}22`,
-                  },
-                ]}
-              >
-                <Text style={styles.roomEmoji}>{room.emoji}</Text>
-                <Text
-                  style={[
-                    styles.roomTabName,
-                    selectedRoomId === room.id && { color: room.accentColor },
-                  ]}
-                >
-                  {room.name}
-                </Text>
-                <Text style={styles.roomTabDest} numberOfLines={1}>
-                  {room.destination.split(' ').slice(0, 1).join(' ')}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {/* ── SECTION 2: Room Plan Summary ── */}
-        <View style={styles.sectionCard}>
-          <View style={styles.roomPlanHeader}>
-            <View style={styles.roomPlanLeft}>
-              <Text style={styles.roomPlanEmoji}>{selectedRoom.emoji}</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Select Travel Room</Text>
+          <Pressable onPress={() => setRoomMenuOpen(true)} style={styles.roomTrigger}>
+            <View style={styles.roomTriggerLeft}>
+              <Text style={styles.roomEmoji}>{selectedRoom.emoji}</Text>
               <View>
-                <Text style={styles.roomPlanTitle}>{selectedRoom.destination}</Text>
-                <Text style={styles.roomPlanDate}>{selectedRoom.dateRange}</Text>
+                <Text style={styles.roomName}>{selectedRoom.name}</Text>
+                <Text style={styles.roomCity}>{selectedRoom.city}</Text>
               </View>
             </View>
-            <View style={[styles.membersBadge, { backgroundColor: `${selectedRoom.accentColor}22` }]}>
-              <Ionicons name="people" size={13} color={selectedRoom.accentColor} />
-              <Text style={[styles.membersText, { color: selectedRoom.accentColor }]}>
-                {selectedRoom.members} members
-              </Text>
-            </View>
-          </View>
-          <View style={styles.memberNamesRow}>
-            {selectedRoom.memberNames.map(name => (
-              <View key={name} style={styles.memberPill}>
-                <Text style={styles.memberPillText}>{name}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Day plans */}
-          {selectedRoom.days.map(day => (
-            <View key={day.date} style={styles.dayBlock}>
-              <Pressable
-                onPress={() =>
-                  setExpandedDay(expandedDay === `${selectedRoomId}-${day.date}` ? null : `${selectedRoomId}-${day.date}`)
-                }
-                style={styles.dayHeader}
-              >
-                <View style={styles.dayHeaderLeft}>
-                  <Text style={styles.dayDate}>{day.date}</Text>
-                  <Text style={styles.dayLabel}>{day.label}</Text>
-                </View>
-                <Ionicons
-                  name={expandedDay === `${selectedRoomId}-${day.date}` ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  color="#94a3b8"
-                />
-              </Pressable>
-              {expandedDay === `${selectedRoomId}-${day.date}` && (
-                <View style={styles.activityList}>
-                  {day.activities.map((act, idx) => (
-                    <View key={idx} style={styles.activityRow}>
-                      <View style={[styles.activityIconBubble, { backgroundColor: `${selectedRoom.accentColor}22` }]}>
-                        <Ionicons name={activityIcon(act.type) as any} size={13} color={selectedRoom.accentColor} />
-                      </View>
-                      <View style={styles.activityInfo}>
-                        <View style={styles.activityTimePlaceRow}>
-                          <Text style={styles.activityTime}>{act.time}</Text>
-                          <Text style={styles.activityPlace}>{act.place}</Text>
-                        </View>
-                        {act.note && <Text style={styles.activityNote}>{act.note}</Text>}
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
+            <Ionicons name="chevron-down" size={16} color="#6b7280" />
+          </Pressable>
         </View>
 
-        {/* ── SECTION 3: Trip Health Score ── */}
-        <View style={[styles.sectionCard, styles.healthCard]}>
-          <View style={styles.healthHeaderRow}>
-            <View>
-              <Text style={styles.healthLabel}>TRIP HEALTH SCORE</Text>
-              <Text style={styles.healthTitle}>Current Equilibrium</Text>
+        <View style={[styles.card, itineraryGlow && styles.cardGlow]}>
+          <View style={styles.tripHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.tripTitle}>{selectedRoom.destination}</Text>
+              <Text style={styles.tripDate}>{selectedRoom.dateRange}</Text>
             </View>
+            <View style={styles.membersBadge}>
+              <Text style={styles.membersText}>👥 {selectedRoom.members} members</Text>
+            </View>
+          </View>
+
+          {isFixed ? (
+            <>
+              <View style={styles.optimizedPill}>
+                <Text style={styles.optimizedPillText}>✨  AI Plan Optimized</Text>
+              </View>
+
+              <View style={[styles.planBlock, styles.oldPlan]}>
+                <Text style={styles.oldPlanLabel}>PREVIOUS PLAN (DISRUPTED)</Text>
+                {selectedRoom.comparison.old.map(item => (
+                  <View key={`old-${item.date}`} style={styles.planItem}>
+                    <Text style={styles.oldPlanText}>
+                      {item.date} - {item.label}
+                    </Text>
+                    <Text style={styles.statusIcon}>
+                      {item.status === 'cancelled' ? '❌ Cancelled' : '🟢'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.aiArrow}>
+                <View style={styles.aiLine} />
+                <Text style={styles.aiArrowText}>AI Re-routed</Text>
+                <View style={styles.aiLine} />
+              </View>
+
+              <View style={[styles.planBlock, styles.newPlan]}>
+                <Text style={styles.newPlanLabel}>UPDATED PLAN (OPTIMAL)</Text>
+                {selectedRoom.comparison.next.map(item => (
+                  <View key={`new-${item.date}`} style={styles.planItem}>
+                    <Text style={styles.newPlanText}>
+                      {item.date} - {item.label}
+                    </Text>
+                    <Text style={styles.newCheck}>✅</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            selectedRoom.days.map(day => {
+              const key = `${selectedRoomId}-${day.date}`;
+              const open = expandedDay === key;
+              return (
+                <View key={day.date}>
+                  <Pressable
+                    onPress={() => setExpandedDay(open ? null : key)}
+                    style={styles.itineraryItem}
+                  >
+                    <Text style={styles.dayDate}>{day.date}</Text>
+                    <Text style={styles.dayLabel}>{day.label}</Text>
+                    <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={16} color="#6b7280" />
+                  </Pressable>
+                  {open
+                    ? day.activities.map((act, idx) => (
+                        <View key={idx} style={styles.activityRow}>
+                          <Text style={styles.activityTime}>{act.time}</Text>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.activityPlace}>{act.place}</Text>
+                            {act.note ? <Text style={styles.activityNote}>{act.note}</Text> : null}
+                          </View>
+                        </View>
+                      ))
+                    : null}
+                </View>
+              );
+            })
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.healthHeader}>
+            <Text style={styles.cardTitle}>Trip Health Score</Text>
             <View
               style={[
                 styles.statusBadge,
-                {
-                  backgroundColor:
-                    tripHealthScore >= 80
-                      ? 'rgba(16,185,129,0.2)'
-                      : tripHealthScore >= 60
-                      ? 'rgba(245,158,11,0.2)'
-                      : 'rgba(239,68,68,0.2)',
-                },
+                { backgroundColor: isOptimal ? '#d1fae5' : isLow ? '#fee2e2' : '#fef3c7' },
               ]}
             >
-              <Text
-                style={[
-                  styles.statusBadgeText,
-                  {
-                    color:
-                      tripHealthScore >= 80
-                        ? '#10b981'
-                        : tripHealthScore >= 60
-                        ? '#f59e0b'
-                        : '#ef4444',
-                  },
-                ]}
-              >
-                {tripHealthScore >= 80 ? '✅ OPTIMAL' : tripHealthScore >= 60 ? '⚠️ AT RISK' : '🚨 CRITICAL'}
+              <Text style={[styles.statusBadgeText, { color: healthColor }]}>
+                {isOptimal ? '🟢 OPTIMAL' : isLow ? '🔴 CRITICAL' : '🟠 AT RISK'}
               </Text>
             </View>
           </View>
 
-          {/* Score Dial */}
           <View style={styles.scoreRow}>
             <View style={[styles.scoreCircle, { borderColor: healthColor }]}>
-              <Text style={[styles.scoreValue, { color: healthColor }]}>{tripHealthScore}</Text>
-              <Text style={styles.scoreMax}>/ 100</Text>
+              <Text style={[styles.scoreNumber, { color: healthColor }]}>{tripHealthScore}</Text>
+              <Text style={styles.scoreTotal}>/ 100</Text>
             </View>
-            <View style={styles.scoreBreakdown}>
+            <View style={{ flex: 1 }}>
               <Text style={styles.breakdownTitle}>Active Disruptions:</Text>
-              {activeConditions.length === 0 ? (
-                <Text style={styles.noDisruption}>✅ No active disruptions</Text>
+              {isFixed || activeConditions.length === 0 ? (
+                <>
+                  <Text style={styles.noDisruption}>✔ No active disruptions</Text>
+                  {isFixed ? (
+                    <Text style={styles.noDisruptionSub}>Plan successfully adjusted for weather and traffic.</Text>
+                  ) : null}
+                </>
               ) : (
                 activeConditions.map(c => (
-                  <View key={c.id} style={styles.breakdownRow}>
-                    <Ionicons name={c.icon as any} size={12} color="#f87171" />
-                    <Text style={styles.breakdownText}>
-                      {c.label}: <Text style={styles.breakdownImpact}>{c.impactScore}</Text>
+                  <View key={c.id} style={styles.disruptionItem}>
+                    <Text style={styles.disruptionLabel}>
+                      {disruptionIcon(c.icon)} {c.label}:
                     </Text>
+                    <Text style={styles.disruptionImpact}>{c.impactScore}</Text>
                   </View>
                 ))
               )}
             </View>
           </View>
 
-          {/* Score bar */}
-          <View style={styles.scoreBarBg}>
-            <View
-              style={[
-                styles.scoreBarFill,
-                { width: `${tripHealthScore}%` as any, backgroundColor: healthColor },
-              ]}
-            />
+          <View style={styles.legend}>
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: '#10b981' }]} />
+              <Text style={styles.legendText}>High (80-100)</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: '#f59e0b' }]} />
+              <Text style={styles.legendText}>Med (50-79)</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />
+              <Text style={styles.legendText}>Low (0-49)</Text>
+            </View>
           </View>
 
-          {/* Low score warning banner */}
-          {tripHealthScore < 60 && (
-            <Pressable
-              onPress={() => setShowBackupModal(true)}
-              style={styles.criticalBanner}
-            >
-              <Ionicons name="warning" size={16} color="#f87171" />
-              <Text style={styles.criticalBannerText}>
-                Score below 60! Backup plan available — tap to view
+          {isLow && !isFixed ? (
+            <View style={styles.suggestionBox}>
+              <Text style={styles.suggestionText}>
+                ⚠️ Your trip score is <Text style={{ fontWeight: '700' }}>Low</Text>. The AI suggests adjusting your
+                itinerary to avoid the heavy rain and flight delays.
               </Text>
-              <Ionicons name="chevron-forward" size={14} color="#f87171" />
-            </Pressable>
-          )}
-
-          {tripHealthScore >= 60 && tripHealthScore < 80 && (
-            <View style={styles.warningBanner}>
-              <Ionicons name="alert-circle" size={15} color="#f59e0b" />
-              <Text style={styles.warningBannerText}>
-                Trip is at risk. Enable more disruptions below to stress-test.
-              </Text>
-            </View>
-          )}
-
-          {tripHealthScore >= 80 && (
-            <View style={styles.goodBanner}>
-              <Ionicons name="checkmark-circle" size={15} color="#10b981" />
-              <Text style={styles.goodBannerText}>
-                All systems optimal. Your trip is on track!
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* ── SECTION 4: Condition Toggles ── */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Live Disruption Conditions</Text>
-          <Text style={styles.sectionSub}>Toggle conditions to see their impact on your trip score</Text>
-          {currentConditions.map(condition => (
-            <Pressable
-              key={condition.id}
-              onPress={() => toggleCondition(condition.id)}
-              style={[styles.conditionRow, condition.active && styles.conditionRowActive]}
-            >
-              <View
-                style={[
-                  styles.conditionIconBubble,
-                  condition.active && { backgroundColor: 'rgba(239,68,68,0.15)' },
-                ]}
-              >
-                <Ionicons
-                  name={condition.icon as any}
-                  size={16}
-                  color={condition.active ? '#f87171' : '#94a3b8'}
-                />
-              </View>
-              <View style={styles.conditionInfo}>
-                <Text style={[styles.conditionLabel, condition.active && { color: '#f87171' }]}>
-                  {condition.label}
-                </Text>
-                <Text style={styles.conditionDetail}>{condition.detail}</Text>
-              </View>
-              <View style={styles.conditionRight}>
-                <Text style={[styles.conditionImpact, condition.active && { color: '#f87171' }]}>
-                  {condition.impactScore}
-                </Text>
-                <View style={[styles.toggleSwitch, condition.active && styles.toggleSwitchOn]}>
-                  <View style={[styles.toggleKnob, condition.active && styles.toggleKnobOn]} />
-                </View>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* ── SECTION 5: What-If Simulator CTA ── */}
-        <Pressable
-          onPress={() => onNavigate?.('what-if-simulator')}
-          style={({ pressed }) => [styles.whatIfCard, pressed && styles.pressedGlass]}
-        >
-          <LinearGradient
-            colors={['#1e3a5f', '#0f172a']}
-            style={styles.whatIfGradient}
-          >
-            <View style={styles.whatIfLeft}>
-              <View style={styles.whatIfIconWrap}>
-                <Ionicons name="options" size={22} color="#60a5fa" />
-              </View>
-              <View>
-                <Text style={styles.whatIfTitle}>"What-If" Simulator</Text>
-                <Text style={styles.whatIfSub}>Select conditions · See timeline effects</Text>
-              </View>
-            </View>
-            <View style={styles.whatIfArrow}>
-              <Ionicons name="arrow-forward-circle" size={26} color="#60a5fa" />
-            </View>
-          </LinearGradient>
-        </Pressable>
-
-        <View style={{ height: 24 }} />
-      </ScrollView>
-
-      {/* ── BACKUP PLAN MODAL ── */}
-      <Modal visible={showBackupModal} transparent animationType="slide">
-        <Pressable style={styles.modalBackdrop} onPress={() => setShowBackupModal(false)}>
-          <Pressable style={styles.backupModal} onPress={() => undefined}>
-            {/* Modal Header */}
-            <View style={styles.backupModalHeader}>
-              <View>
-                <Text style={styles.backupModalPill}>🛡️ BACKUP PLAN ACTIVATED</Text>
-                <Text style={styles.backupModalTitle}>Auto-Recovery Detected</Text>
-              </View>
-              <Pressable onPress={() => setShowBackupModal(false)} style={styles.closeBtn}>
-                <Ionicons name="close" size={18} color="#94a3b8" />
+              <Pressable onPress={runAutoFix} style={({ pressed }) => [styles.autoFixBtn, pressed && styles.pressed]}>
+                <Text style={styles.autoFixText}>⚡  Auto-Fix Plan</Text>
               </Pressable>
             </View>
+          ) : null}
+        </View>
 
-            {/* Current vs Backup Score */}
-            <View style={styles.scoreCompareRow}>
-              <View style={styles.scoreCompareItem}>
-                <Text style={styles.scoreCompareLabel}>Current Score</Text>
-                <Text style={[styles.scoreCompareValue, { color: '#ef4444' }]}>
-                  {tripHealthScore}
-                </Text>
-                <Text style={styles.scoreCompareSub}>⚠️ Critical</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={22} color="#60a5fa" style={{ marginTop: 12 }} />
-              <View style={styles.scoreCompareItem}>
-                <Text style={styles.scoreCompareLabel}>Backup Score</Text>
-                <Text style={[styles.scoreCompareValue, { color: '#10b981' }]}>
-                  {selectedRoom.backupPlan.score}
-                </Text>
-                <Text style={styles.scoreCompareSub}>✅ Recovered</Text>
-              </View>
-            </View>
+        <Pressable onPress={() => setView('simulator')} style={styles.whatIfEntry}>
+          <View>
+            <Text style={styles.whatIfTitle}>What-If Simulator</Text>
+            <Text style={styles.whatIfSub}>Try other disruption conditions</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#1e3a8a" />
+        </Pressable>
+      </ScrollView>
 
-            <Text style={styles.backupSummaryText}>{selectedRoom.backupPlan.summary}</Text>
-
-            {/* Backup Activities */}
-            <Text style={styles.backupActivitiesLabel}>Suggested Backup Schedule:</Text>
-            {selectedRoom.backupPlan.activities.map((act, idx) => (
-              <View key={idx} style={styles.backupActivityRow}>
-                <View style={styles.backupActivityBullet}>
-                  <Text style={styles.backupActivityIdx}>{idx + 1}</Text>
+      <Modal visible={roomMenuOpen} transparent animationType="fade">
+        <Pressable style={styles.menuBackdrop} onPress={() => setRoomMenuOpen(false)}>
+          <View style={styles.menuCard}>
+            <Text style={styles.cardTitle}>Select Travel Room</Text>
+            {ROOMS.map(room => (
+              <Pressable
+                key={room.id}
+                onPress={() => {
+                  setSelectedRoomId(room.id);
+                  setRoomMenuOpen(false);
+                  setExpandedDay(null);
+                }}
+                style={[styles.menuRow, selectedRoomId === room.id && styles.menuRowActive]}
+              >
+                <Text style={styles.roomEmoji}>{room.emoji}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.roomName}>{room.name}</Text>
+                  <Text style={styles.roomCity}>{room.city}</Text>
                 </View>
-                <View style={styles.backupActivityInfo}>
-                  <Text style={styles.backupActivityTime}>{act.time}</Text>
-                  <Text style={styles.backupActivityPlace}>{act.place}</Text>
-                  <Text style={styles.backupActivityNote}>{act.note}</Text>
-                </View>
-              </View>
+                {selectedRoomId === room.id ? <Ionicons name="checkmark" size={18} color="#3b82f6" /> : null}
+              </Pressable>
             ))}
-
-            <Pressable
-              onPress={() => {
-                setShowBackupModal(false);
-                showToast('✅ Backup plan accepted & synced to group!');
-              }}
-              style={styles.acceptBackupBtn}
-            >
-              <Ionicons name="shield-checkmark" size={16} color="#fff" />
-              <Text style={styles.acceptBackupText}>Accept Backup Plan</Text>
-            </Pressable>
-          </Pressable>
+          </View>
         </Pressable>
       </Modal>
     </LinearGradient>
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────
-// STYLES
-// ────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
-  // Toast
-  toast: {
-    position: 'absolute',
-    top: 14,
-    left: 20,
-    right: 20,
-    zIndex: 99,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(15,23,42,0.92)',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(96,165,250,0.3)',
-  },
-  toastText: { color: '#e2e8f0', fontSize: 12, flex: 1, fontWeight: '600' },
-
-  // Header
   header: {
     paddingTop: 12,
     paddingHorizontal: 16,
-    paddingBottom: 10,
-    backgroundColor: 'rgba(183,212,242,0.35)',
+    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   iconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.45)',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
-  pressedGlass: { opacity: 0.7 },
-  headerTitleCenter: { flex: 1, alignItems: 'center' },
-  featureBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(29,78,216,0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-    marginBottom: 2,
+  pressed: { opacity: 0.75 },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
   },
-  featureBadgeText: { fontSize: 9, color: '#1d4ed8', fontWeight: '800', letterSpacing: 1 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#0f172a' },
-  telemetryRow: {
-    flexDirection: 'row',
-    gap: 6,
-    flexWrap: 'wrap',
-  },
-  telemetryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(15,23,42,0.18)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  telemetryLabel: { fontSize: 10, color: '#94a3b8', fontWeight: '600' },
-  telemetryValue: { fontSize: 10, color: '#e2e8f0', fontWeight: '700' },
-  livePulsePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(16,185,129,0.18)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginLeft: 'auto',
-  },
-  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' },
-  livePulseText: { fontSize: 9, color: '#10b981', fontWeight: '800', letterSpacing: 1 },
-
-  // Scroll
   scrollArea: { flex: 1 },
-  scrollContent: { padding: 14, gap: 12 },
-
-  // Shared card
-  sectionCard: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 20, gap: 16 },
+  card: {
+    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  cardGlow: {
+    shadowColor: '#10b981',
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937', marginBottom: 12 },
+  roomTrigger: {
+    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a', marginBottom: 2 },
-  sectionSub: { fontSize: 11, color: '#475569', marginBottom: 12 },
-
-  // Room Tabs
-  roomTabsRow: { flexDirection: 'row', gap: 8 },
-  roomTab: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#e5e7eb',
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  roomEmoji: { fontSize: 20, marginBottom: 3 },
-  roomTabName: { fontSize: 12, fontWeight: '800', color: '#1e293b', marginBottom: 1 },
-  roomTabDest: { fontSize: 9, color: '#64748b', textAlign: 'center' },
-
-  // Room Plan Header
-  roomPlanHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  roomPlanLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  roomPlanEmoji: { fontSize: 28 },
-  roomPlanTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
-  roomPlanDate: { fontSize: 11, color: '#475569', marginTop: 1 },
-  membersBadge: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
+    justifyContent: 'space-between',
   },
-  membersText: { fontSize: 11, fontWeight: '700' },
-  memberNamesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 12 },
-  memberPill: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+  roomTriggerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  roomEmoji: { fontSize: 24 },
+  roomName: { fontSize: 14, fontWeight: '600', color: '#1f2937' },
+  roomCity: { fontSize: 12, color: '#6b7280', marginTop: 1 },
+  tripHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  tripTitle: { fontSize: 18, fontWeight: '700', color: '#1f2937' },
+  tripDate: { fontSize: 13, color: '#6b7280', marginTop: 4 },
+  membersBadge: {
+    backgroundColor: '#e0e7ff',
+    borderRadius: 12,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
+    paddingVertical: 4,
   },
-  memberPillText: { fontSize: 10, color: '#334155', fontWeight: '600' },
-
-  // Day blocks
-  dayBlock: {
-    marginBottom: 6,
-    borderRadius: 10,
+  membersText: { fontSize: 12, fontWeight: '500', color: '#3b82f6' },
+  itineraryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  dayDate: { fontSize: 14, fontWeight: '600', color: '#1f2937', width: 64 },
+  dayLabel: { flex: 1, fontSize: 14, color: '#1f2937' },
+  activityRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 8,
+    paddingBottom: 10,
+  },
+  activityTime: { fontSize: 11, color: '#6b7280', fontWeight: '600', width: 72, paddingTop: 2 },
+  activityPlace: { fontSize: 12, fontWeight: '600', color: '#1f2937' },
+  activityNote: { fontSize: 11, color: '#6b7280', marginTop: 2 },
+  optimizedPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#d1fae5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 16,
+  },
+  optimizedPillText: { fontSize: 14, fontWeight: '700', color: '#10b981' },
+  planBlock: {
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+  },
+  oldPlan: {
+    backgroundColor: '#f3f4f6',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    overflow: 'hidden',
+    borderColor: '#d1d5db',
+    borderStyle: 'dashed',
   },
-  dayHeader: {
+  newPlan: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  oldPlanLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9ca3af',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  newPlanLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#10b981',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  planItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    padding: 10,
+    paddingVertical: 8,
   },
-  dayHeaderLeft: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  dayDate: { fontSize: 12, fontWeight: '800', color: '#0f172a' },
-  dayLabel: { fontSize: 11, color: '#475569' },
-  activityList: { paddingHorizontal: 10, paddingVertical: 8, gap: 8 },
-  activityRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  activityIconBubble: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  activityInfo: { flex: 1 },
-  activityTimePlaceRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  activityTime: { fontSize: 10, color: '#64748b', fontWeight: '700' },
-  activityPlace: { fontSize: 11, color: '#1e293b', fontWeight: '700', flex: 1 },
-  activityNote: { fontSize: 10, color: '#64748b', marginTop: 1 },
-
-  // Health Card
-  healthCard: { borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' },
-  healthHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  healthLabel: { fontSize: 9, color: '#64748b', fontWeight: '800', letterSpacing: 1, marginBottom: 2 },
-  healthTitle: { fontSize: 16, fontWeight: '800', color: '#0f172a' },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  statusBadgeText: { fontSize: 11, fontWeight: '800' },
-  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 12 },
+  oldPlanText: { fontSize: 13, color: '#6b7280', textDecorationLine: 'line-through' },
+  newPlanText: { fontSize: 13, color: '#065f46', fontWeight: '500' },
+  statusIcon: { fontSize: 12, color: '#ef4444' },
+  newCheck: { fontSize: 14, color: '#10b981' },
+  aiArrow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  aiLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
+  aiArrowText: { fontSize: 12, fontWeight: '600', color: '#9ca3af' },
+  healthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statusBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 12 },
+  statusBadgeText: { fontSize: 11, fontWeight: '700' },
+  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 8 },
   scoreCircle: {
     width: 80,
     height: 80,
@@ -966,217 +763,78 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
   },
-  scoreValue: { fontSize: 26, fontWeight: '900', lineHeight: 28 },
-  scoreMax: { fontSize: 10, color: '#94a3b8', fontWeight: '600' },
-  scoreBreakdown: { flex: 1 },
-  breakdownTitle: { fontSize: 11, fontWeight: '700', color: '#334155', marginBottom: 6 },
-  breakdownRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
-  breakdownText: { fontSize: 10, color: '#475569', flex: 1 },
-  breakdownImpact: { color: '#ef4444', fontWeight: '800' },
-  noDisruption: { fontSize: 11, color: '#10b981', fontWeight: '600' },
-  scoreBarBg: {
-    height: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 3,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  scoreBarFill: { height: '100%', borderRadius: 3 },
-  criticalBanner: {
+  scoreNumber: { fontSize: 28, fontWeight: '700', lineHeight: 30 },
+  scoreTotal: { fontSize: 12, color: '#6b7280' },
+  breakdownTitle: { fontSize: 13, fontWeight: '600', color: '#1f2937', marginBottom: 8 },
+  disruptionItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  disruptionLabel: { fontSize: 13, color: '#1f2937', flex: 1, paddingRight: 8 },
+  disruptionImpact: { fontSize: 13, fontWeight: '600', color: '#ef4444' },
+  noDisruption: { fontSize: 13, color: '#10b981' },
+  noDisruptionSub: { fontSize: 12, color: '#10b981', marginTop: 4 },
+  legend: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(239,68,68,0.12)',
-    borderRadius: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.3)',
-    marginTop: 4,
-  },
-  criticalBannerText: { flex: 1, fontSize: 11, color: '#f87171', fontWeight: '700' },
-  warningBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(245,158,11,0.12)',
-    borderRadius: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(245,158,11,0.25)',
-    marginTop: 4,
-  },
-  warningBannerText: { flex: 1, fontSize: 11, color: '#fbbf24', fontWeight: '600' },
-  goodBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(16,185,129,0.12)',
-    borderRadius: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(16,185,129,0.25)',
-    marginTop: 4,
-  },
-  goodBannerText: { flex: 1, fontSize: 11, color: '#34d399', fontWeight: '600' },
-
-  // Conditions
-  conditionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-  },
-  conditionRowActive: {
-    backgroundColor: 'rgba(239,68,68,0.08)',
-    borderColor: 'rgba(239,68,68,0.25)',
-  },
-  conditionIconBubble: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  conditionInfo: { flex: 1 },
-  conditionLabel: { fontSize: 12, fontWeight: '700', color: '#334155', marginBottom: 2 },
-  conditionDetail: { fontSize: 10, color: '#64748b', lineHeight: 14 },
-  conditionRight: { alignItems: 'center', gap: 4 },
-  conditionImpact: { fontSize: 11, fontWeight: '800', color: '#94a3b8' },
-  toggleSwitch: {
-    width: 34,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    padding: 2,
-    justifyContent: 'center',
-  },
-  toggleSwitchOn: { backgroundColor: 'rgba(239,68,68,0.6)' },
-  toggleKnob: {
-    width: 16,
-    height: 16,
+    justifyContent: 'space-between',
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    alignSelf: 'flex-start',
+    marginTop: 16,
   },
-  toggleKnobOn: { alignSelf: 'flex-end' },
-
-  // What-If CTA
-  whatIfCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(96,165,250,0.3)',
-  },
-  whatIfGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  whatIfLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  whatIfIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(96,165,250,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  whatIfTitle: { fontSize: 16, fontWeight: '800', color: '#e2e8f0' },
-  whatIfSub: { fontSize: 11, color: '#64748b', marginTop: 1 },
-  whatIfArrow: {},
-
-  // Backup Modal
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  backupModal: {
-    backgroundColor: '#f8fafc',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    maxHeight: '85%',
-  },
-  backupModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  backupModalPill: { fontSize: 10, color: '#2563eb', fontWeight: '800', letterSpacing: 0.5 },
-  backupModalTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a', marginTop: 2 },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f1f5f9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreCompareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 14,
-  },
-  scoreCompareItem: { alignItems: 'center' },
-  scoreCompareLabel: { fontSize: 10, color: '#64748b', fontWeight: '700', marginBottom: 4 },
-  scoreCompareValue: { fontSize: 32, fontWeight: '900', lineHeight: 36 },
-  scoreCompareSub: { fontSize: 10, color: '#94a3b8', marginTop: 2 },
-  backupSummaryText: {
-    fontSize: 13,
-    color: '#334155',
-    lineHeight: 18,
-    backgroundColor: 'rgba(16,185,129,0.08)',
-    borderRadius: 10,
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 11, fontWeight: '500', color: '#6b7280' },
+  suggestionBox: {
+    marginTop: 12,
     padding: 12,
-    marginBottom: 14,
-    borderLeftWidth: 3,
-    borderLeftColor: '#10b981',
-  },
-  backupActivitiesLabel: { fontSize: 12, fontWeight: '800', color: '#0f172a', marginBottom: 10 },
-  backupActivityRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 10,
-  },
-  backupActivityBullet: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  backupActivityIdx: { fontSize: 11, fontWeight: '800', color: '#fff' },
-  backupActivityInfo: { flex: 1 },
-  backupActivityTime: { fontSize: 10, color: '#64748b', fontWeight: '700' },
-  backupActivityPlace: { fontSize: 12, fontWeight: '700', color: '#1e293b', marginBottom: 1 },
-  backupActivityNote: { fontSize: 10, color: '#10b981', fontWeight: '600' },
-  acceptBackupBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#fffbeb',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    borderRadius: 10,
     gap: 8,
-    backgroundColor: '#1d4ed8',
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 8,
   },
-  acceptBackupText: { fontSize: 14, fontWeight: '800', color: '#fff' },
+  suggestionText: { fontSize: 12, color: '#92400e', lineHeight: 18 },
+  autoFixBtn: {
+    backgroundColor: '#f59e0b',
+    borderRadius: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  autoFixText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  whatIfEntry: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  whatIfTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
+  whatIfSub: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  menuCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    gap: 8,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#f9fafb',
+  },
+  menuRowActive: { backgroundColor: '#eff6ff' },
 });

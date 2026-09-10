@@ -566,7 +566,7 @@ function HomeScreen({
       </View>
 
       <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent}>
-        {/* Live Trip Health & Disruption Banner - Feature 4 Entry Point */}
+        {/* Live Trip Health & Disruption Banner */}
         <Pressable
           onPress={onOpenSelfHealing}
           style={({ pressed }) => [styles.homeHealthBanner, pressed && styles.pressedGlass]}
@@ -765,7 +765,7 @@ function FeaturePreviewModal({
     'self-healing': {
       title: 'Self-Healing Pivot & "What-If" Simulator',
       subtitle: 'Dynamic Health Score & Instant Re-routing',
-      tag: 'Winning Feature 4 (Active)',
+      tag: 'Self-Healing Pivot (Active)',
       metric: 'Single-tap auto replan with B2B demand matching',
       desc: 'Monitors OpenWeather & Google Maps APIs. Simulates alternative timelines and reroutes to nearby partner businesses.',
     },
@@ -805,7 +805,7 @@ function FeaturePreviewModal({
               style={({ pressed }) => [styles.previewLaunchBtn, pressed && styles.pressedGlass]}
             >
               <Ionicons name="shield-checkmark" size={14} color="#0f172a" />
-              <Text style={styles.previewLaunchText}>Open Full Feature 4 Screen</Text>
+              <Text style={styles.previewLaunchText}>Open Self-Healing Pivot</Text>
             </Pressable>
           ) : (
             <Pressable onPress={onClose} style={styles.previewDismissBtn}>
