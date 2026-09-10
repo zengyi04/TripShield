@@ -28,12 +28,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "vite.config.ts",
-    "src/main.tsx",
-    "src/App.tsx",
-    "src/index.css",
-    "src/components/**",
-    "src/screens/**"
+    "vite.config.ts"
   ],
   "extends": "expo/tsconfig.base"
 }

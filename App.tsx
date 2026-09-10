@@ -13,7 +13,7 @@ import {
   View,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { SCREENSHOT_FEED_OFFERS, FeedOffer } from './src/data/mockOffers';
@@ -36,24 +36,26 @@ function App() {
   const buttonTones = useMemo(() => deriveButtonTones(bottomColor, 16), [bottomColor]);
 
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar style="light" />
-      <View style={styles.appShell}>
-        <View style={styles.appGlow1} />
-        <View style={styles.appGlow2} />
-        <PhoneMockup
-          activeScreen={activeScreen}
-          onNavigate={setActiveScreen}
-          topColor={topColor}
-          bottomColor={bottomColor}
-          buttonBg={buttonTones.bg}
-          buttonHover={buttonTones.hover}
-          buttonTextColor={buttonTones.text}
-          isHarmonized={true}
-          showPhoneFrame={false}
-        />
-      </View>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.root}>
+        <StatusBar style="light" />
+        <View style={styles.appShell}>
+          <View style={styles.appGlow1} />
+          <View style={styles.appGlow2} />
+          <PhoneMockup
+            activeScreen={activeScreen}
+            onNavigate={setActiveScreen}
+            topColor={topColor}
+            bottomColor={bottomColor}
+            buttonBg={buttonTones.bg}
+            buttonHover={buttonTones.hover}
+            buttonTextColor={buttonTones.text}
+            isHarmonized={true}
+            showPhoneFrame={false}
+          />
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

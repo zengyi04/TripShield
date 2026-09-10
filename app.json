@@ -24,6 +24,7 @@
     },
     "plugins": [
       "expo-status-bar"
-    ]
+    ],
+    "main": "index.js"
   }
 }
