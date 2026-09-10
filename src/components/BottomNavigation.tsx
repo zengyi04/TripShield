@@ -24,8 +24,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       id: 'buy-window' as FeatureTab,
       label: 'Buy Window',
       icon: Timer,
-      hasDot: true,
-      dotColor: 'bg-emerald-500',
+      hasDot: false,
     },
     {
       id: 'consensus' as FeatureTab,
@@ -43,8 +42,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       id: 'self-healing' as FeatureTab,
       label: 'Self-Healing',
       icon: ShieldCheck,
-      hasDot: true,
-      dotColor: 'bg-blue-500',
+      hasDot: false,
     },
   ];
 
@@ -82,7 +80,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
               {tab.hasDot && (
                 <span
                   className={`absolute -top-0.5 -right-1 w-2 h-2 rounded-full ${
-                    tab.dotColor || 'bg-red-500'
+                    'bg-red-500'
                   } border border-white`}
                 />
               )}

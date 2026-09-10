@@ -16,6 +16,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
+import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import { SCREENSHOT_FEED_OFFERS, FeedOffer } from './src/data/mockOffers';
 import type { ActiveScreen } from './src/types';
 
@@ -86,10 +87,12 @@ function PhoneMockup({
 
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
-    if (tab === 'home') {
+    if (tab === 'home' || tab === 'consensus') {
+      setActivePreviewFeature(null);
       onNavigate('home');
     } else {
-      setActivePreviewFeature(tab);
+      setActivePreviewFeature(null);
+      onNavigate('home');
     }
   };
 
@@ -98,13 +101,17 @@ function PhoneMockup({
       case 'home':
         return (
           <View style={styles.screenWrap}>
-            <HomeScreen
-              topColor={topColor}
-              bottomColor={bottomColor}
-              buttonBg={buttonBg}
-              buttonHover={buttonHover}
-              onNavigate={onNavigate}
-            />
+            {currentTab === 'consensus' ? (
+              <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
+            ) : (
+              <HomeScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigate={onNavigate}
+              />
+            )}
             <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
           </View>
         );
@@ -158,6 +165,11 @@ function PhoneMockup({
     return (
       <View style={styles.phoneFrameless}>
         <View style={styles.content}>{renderScreen()}</View>
+        <FeaturePreviewModal
+          featureTab={activePreviewFeature}
+          onClose={() => setActivePreviewFeature(null)}
+          accentColor={bottomColor}
+        />
       </View>
     );
   }
@@ -381,6 +393,101 @@ function DashboardScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHo
         </Pressable>
       </View>
     </LinearGradient>
+  );
+}
+
+function LegacyConsensusScreen({ topColor, bottomColor }: { topColor: string; bottomColor: string }) {
+  const [phase, setPhase] = useState<'dna' | 'radar' | 'tokens' | 'result'>('dna');
+  const [cardIndex, setCardIndex] = useState(0);
+  const [locked, setLocked] = useState(false);
+  const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
+  const [showWhy, setShowWhy] = useState(false);
+  const [memberCount, setMemberCount] = useState(4);
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const cards = [
+    { title: 'Street food crawl', subtitle: 'Late-night bites in Futian', budget: 'RM45', fit: '92%', color: '#FDE68A', icon: '🍜' },
+    { title: 'Rooftop dinner', subtitle: 'Skyline views and shared plates', budget: 'RM120', fit: '74%', color: '#BFDBFE', icon: '🌆' },
+    { title: 'Night market', subtitle: 'Local finds, flexible timing', budget: 'RM30', fit: '88%', color: '#BBF7D0', icon: '🏮' },
+  ];
+  const card = cards[cardIndex];
+
+  const nextCard = () => {
+    setCardIndex(index => (index + 1) % cards.length);
+  };
+
+  const inviteMember = () => {
+    setShowInvite(true);
+    setInviteCopied(false);
+  };
+
+  const simulateJoin = () => {
+    setMemberCount(count => Math.min(count + 1, 8));
+    setShowInvite(false);
+  };
+
+  const toggleToken = (token: string) => {
+    setSelectedTokens(current => current.includes(token) ? current.filter(item => item !== token) : current.length < 3 ? [...current, token] : current);
+  };
+
+  const advance = (nextPhase: 'radar' | 'tokens' | 'result') => {
+    setPhase(nextPhase);
+    if (nextPhase === 'result') setLocked(true);
+  };
+
+  return (
+    <View style={[styles.consensusPage, { backgroundColor: bottomColor }]}> 
+      <View style={[styles.consensusHero, { backgroundColor: topColor }]}> 
+        <View style={styles.consensusTopRow}>
+          <View style={styles.livePill}><View style={styles.liveDot} /><Text style={styles.livePillText}>LIVE GROUP PULSE</Text></View>
+          <Text style={styles.consensusTimer}>00:42</Text>
+        </View>
+        <Text style={styles.consensusTitle}>Compromise Engine</Text>
+        <Text style={styles.consensusSubtitle}>{phase === 'dna' ? 'Build the fairest plan for everyone.' : phase === 'radar' ? 'Conflict detected before the group chat.' : phase === 'tokens' ? 'Private trade-offs shape the plan.' : 'A plan built around everyone.'}</Text>
+        <View style={styles.memberRow}>
+          <View style={styles.memberAvatar}><Text style={styles.memberInitial}>AM</Text></View>
+          <View style={[styles.memberAvatar, styles.memberAvatarSecond]}><Text style={styles.memberInitial}>JL</Text></View>
+          <View style={[styles.memberAvatar, styles.memberAvatarThird]}><Text style={styles.memberInitial}>SK</Text></View>
+          <View style={[styles.memberAvatar, styles.memberAvatarFourth]}><Text style={styles.memberInitial}>+1</Text></View>
+          <View style={styles.memberCopy}><Text style={styles.memberText}>{memberCount} travelers · {memberCount * 3} preferences mapped</Text><Text style={styles.memberSubtext}>{memberCount < 5 ? 'Waiting for one more voice' : 'Everyone is in the pulse'}</Text></View>
+          <Pressable onPress={inviteMember} style={styles.addMemberButton}><Text style={styles.addMemberText}>+</Text></Pressable>
+        </View>
+      </View>
+
+      <View style={styles.consensusBody}>
+        <View style={styles.phaseRail}>
+          {(['dna', 'radar', 'tokens', 'result'] as const).map((item, index) => <View key={item} style={styles.phaseItem}><View style={[styles.phaseDot, phase === item && styles.phaseDotActive]}><Text style={styles.phaseDotText}>{index + 1}</Text></View><Text style={[styles.phaseLabel, phase === item && styles.phaseLabelActive]}>{item === 'dna' ? 'DNA' : item === 'radar' ? 'CLASH' : item === 'tokens' ? 'SACRIFICE' : 'LOCK'}</Text></View>)}
+        </View>
+
+        {phase === 'result' ? (
+          <View style={styles.lockedCard}>
+            <View style={styles.lockIcon}><Text style={styles.lockIconText}>✓</Text></View>
+            <Text style={styles.lockedKicker}>TRIPSHIELD DECISION</Text>
+            <Text style={styles.lockedTitle}>Louvre + food tour</Text>
+            <Text style={styles.lockedBody}>Not the most popular choice. The fairest choice.</Text>
+            <View style={styles.scoreRow}><Text style={styles.scoreLabel}>GROUP SATISFACTION</Text><Text style={styles.scoreValue}>91%</Text></View>
+            <Pressable onPress={() => setShowWhy(value => !value)} style={styles.whyButton}><Text style={styles.whyButtonText}>⌕ {showWhy ? 'Hide decision logic' : 'Why did AI choose this?'}</Text></Pressable>
+            {showWhy && <View style={styles.whyPanel}><Text style={styles.whyLine}>✓ Fits 3/4 budget limits</Text><Text style={styles.whyLine}>✓ Protects everyone&apos;s non-negotiable</Text><Text style={styles.whyLine}>✓ Combines Sarah&apos;s food priority with Jason&apos;s sightseeing</Text><Text style={styles.whyLine}>✓ Leaves 2 hours for shopping</Text></View>}
+          </View>
+        ) : phase === 'dna' ? (
+          <View style={styles.dnaPanel}>
+            <View style={styles.dnaHeader}><View><Text style={styles.sectionEyebrowDark}>PRIVATE TRAVEL DNA</Text><Text style={styles.dnaTitle}>Meet your group&apos;s instincts.</Text></View><Text style={styles.dnaTimer}>0:42</Text></View>
+            {[['Sarah', 'The Foodie', '95%', '#fb7185'], ['Jason', 'The Explorer', '95%', '#60a5fa'], ['Mei', 'The Planner', '80%', '#34d399']].map(person => <View key={person[0]} style={styles.dnaPerson}><View style={[styles.dnaAvatar, { backgroundColor: person[3] }]}><Text style={styles.dnaAvatarText}>{person[0][0]}</Text></View><View style={styles.dnaPersonCopy}><Text style={styles.dnaPersonName}>{person[0]} <Text style={styles.dnaPersonType}>{person[1]}</Text></Text><View style={styles.dnaBar}><View style={[styles.dnaBarFill, { width: person[2] as any, backgroundColor: person[3] }]} /></View></View><Text style={styles.dnaPercent}>{person[2]}</Text></View>)}
+            <Text style={styles.dnaHint}>Your group is high-energy, food-motivated, and budget-aware.</Text>
+            <Pressable onPress={() => advance('radar')} style={styles.nextStepButton}><Text style={styles.nextStepText}>Reveal conflict radar →</Text></Pressable>
+          </View>
+        ) : phase === 'radar' ? (
+          <View style={styles.radarPanel}><View style={styles.radarTop}><Text style={styles.radarIcon}>⚠</Text><View><Text style={styles.sectionEyebrowDark}>CONFLICT RADAR</Text><Text style={styles.radarTitle}>Budget × Experience</Text></View><Text style={styles.conflictScore}>82%</Text></View><Text style={styles.radarBody}>Jason wants Disneyland. Mei needs the day under RM350. The engine caught the clash before it becomes a chat argument.</Text><View style={styles.clashRow}><View><Text style={styles.clashName}>Jason</Text><Text style={styles.clashPreference}>Maximum experience</Text></View><Text style={styles.clashVs}>VS</Text><View style={styles.clashRight}><Text style={styles.clashName}>Mei</Text><Text style={styles.clashPreference}>Protect the budget</Text></View></View><Text style={styles.radarQuestion}>What should the group protect?</Text><View style={styles.radarChoices}><Pressable onPress={() => advance('tokens')} style={styles.radarChoice}><Text style={styles.radarChoiceEmoji}>⚖</Text><Text style={styles.radarChoiceTitle}>Balanced</Text><Text style={styles.radarChoiceBody}>Good day, no budget shock</Text></Pressable><Pressable onPress={() => advance('tokens')} style={styles.radarChoice}><Text style={styles.radarChoiceEmoji}>✨</Text><Text style={styles.radarChoiceTitle}>Experiences</Text><Text style={styles.radarChoiceBody}>Spend more, remember more</Text></Pressable></View></View>
+        ) : (
+          <View style={styles.tokenPanel}><View style={styles.tokenHeader}><View><Text style={styles.sectionEyebrowDark}>SACRIFICE TOKENS</Text><Text style={styles.dnaTitle}>What can you give up?</Text></View><Text style={styles.tokenCount}>{selectedTokens.length}/3</Text></View><Text style={styles.tokenBody}>Private choices. No one has to defend them in the group chat.</Text><View style={styles.tokenGrid}>{['Skip shopping', 'Eat cheaper', 'Walk further', 'Wake earlier', 'Skip one stop', 'Spend less'].map(token => <Pressable key={token} onPress={() => toggleToken(token)} style={[styles.tokenChoice, selectedTokens.includes(token) && styles.tokenChoiceActive]}><Text style={styles.tokenChoiceIcon}>{selectedTokens.includes(token) ? '✓' : '＋'}</Text><Text style={[styles.tokenChoiceText, selectedTokens.includes(token) && styles.tokenChoiceTextActive]}>{token}</Text></Pressable>)}</View><Pressable onPress={() => advance('result')} style={[styles.nextStepButton, selectedTokens.length === 0 && styles.nextStepDisabled]}><Text style={styles.nextStepText}>Build fair compromise →</Text></Pressable></View>
+        )}
+
+        <View style={styles.algorithmCard}><View style={styles.algorithmIcon}><Text style={styles.algorithmIconText}>✦</Text></View><View style={styles.algorithmCopy}><Text style={styles.algorithmTitle}>Deadlock breaker is active</Text><Text style={styles.algorithmBody}>When preferences clash, TripShield chooses the highest shared satisfaction score.</Text></View></View>
+        <Pressable onPress={inviteMember} style={styles.inviteCard}><View style={styles.inviteIcon}><Text style={styles.inviteIconText}>↗</Text></View><View style={styles.algorithmCopy}><Text style={styles.inviteTitle}>Bring the group in</Text><Text style={styles.inviteBody}>Invite friends to vote from their own phone.</Text></View><Text style={styles.inviteArrow}>›</Text></Pressable>
+      </View>
+
+      {showInvite && <View style={styles.inviteSheet}><View style={styles.inviteSheetTop}><View><Text style={styles.inviteSheetEyebrow}>GROUP INVITE</Text><Text style={styles.inviteSheetTitle}>Let everyone shape the plan.</Text></View><Pressable onPress={() => setShowInvite(false)} style={styles.inviteClose}><Text style={styles.inviteCloseText}>×</Text></Pressable></View><Text style={styles.inviteSheetBody}>Share this code with your travel crew. Their preferences will appear in the pulse instantly.</Text><View style={styles.joinCode}><Text style={styles.joinCodeLabel}>JOIN CODE</Text><Text style={styles.joinCodeValue}>VOYA-7K2</Text></View><Pressable onPress={() => setInviteCopied(true)} style={styles.copyInviteButton}><Text style={styles.copyInviteText}>{inviteCopied ? '✓ Code copied' : 'Copy invite code'}</Text></Pressable><Pressable onPress={simulateJoin} style={styles.simulateJoinButton}><Text style={styles.simulateJoinText}>Preview a friend joining</Text></Pressable></View>}
+    </View>
   );
 }
 
@@ -659,14 +766,108 @@ function HomeScreen({ topColor, bottomColor, buttonBg, buttonHover, onNavigate }
 }
 
 function FeaturePreviewModal({ featureTab, onClose, accentColor }: { featureTab: FeatureTab | null; onClose: () => void; accentColor: string; }) {
+  const [consensusStep, setConsensusStep] = useState(0);
+  const [consensusLocked, setConsensusLocked] = useState(false);
+  const [pivotSimulated, setPivotSimulated] = useState(false);
+  const [buyLocked, setBuyLocked] = useState(false);
+  const [receiptScanned, setReceiptScanned] = useState(false);
+
   if (!featureTab) return null;
+
+  const featureKey = featureTab as string;
+  const isConsensus = featureKey === 'consensus';
+  const isSelfHealing = featureKey === 'self-healing';
+  const isBuyWindow = featureKey === 'buy-window';
+  const isLedger = featureKey === 'ledger';
+  const consensusOptions = [
+    { title: 'Street food crawl', detail: 'RM45 - 92% group fit', color: '#FDE68A' },
+    { title: 'Rooftop dinner', detail: 'RM120 - 74% group fit', color: '#BFDBFE' },
+    { title: 'Night market', detail: 'RM30 - 88% group fit', color: '#BBF7D0' },
+  ];
+  const selectedOption = consensusOptions[consensusStep];
 
   return (
     <Modal visible transparent animationType="fade">
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
         <Pressable style={{ ...styles.previewCard, backgroundColor: accentColor }} onPress={() => undefined}>
-          <Text style={styles.previewTitle}>{featureTab.toUpperCase()}</Text>
-          <Text style={styles.previewText}>Preview feature coming soon.</Text>
+          <View style={styles.previewHeader}>
+            <View>
+              <Text style={styles.previewTitle}>{featureTab.toUpperCase()}</Text>
+              <Text style={styles.previewSubtitle}>{isConsensus ? 'Swipe-and-lock group decisions' : isSelfHealing ? 'Your trip adapts when plans break' : isBuyWindow ? 'Lock the best fare before it disappears' : 'Split bills without the awkward math'}</Text>
+            </View>
+            <Pressable onPress={onClose} style={styles.previewClose}><Text style={styles.closeText}>✕</Text></Pressable>
+          </View>
+
+          {isConsensus && (
+            <View style={styles.demoPanel}>
+              <View style={styles.demoRow}>
+                <View><Text style={styles.demoLabel}>GROUP PULSE</Text><Text style={styles.demoHeading}>4 travelers - 60 sec left</Text></View>
+                <Text style={styles.demoStatus}>{consensusLocked ? 'LOCKED' : `${consensusStep + 1}/3`}</Text>
+              </View>
+              {consensusLocked ? (
+                <View style={styles.successPanel}>
+                  <Text style={styles.successTitle}>✓ Consensus reached</Text>
+                  <Text style={styles.demoBody}>Night market wins with the highest shared satisfaction score.</Text>
+                </View>
+              ) : (
+                <>
+                  <View style={[styles.choiceCard, { backgroundColor: selectedOption.color }]}>
+                    <Text style={styles.choiceLabel}>TONIGHT&apos;S BEST OVERLAP</Text>
+                    <Text style={styles.choiceTitle}>{selectedOption.title}</Text>
+                    <Text style={styles.choiceDetail}>{selectedOption.detail}</Text>
+                  </View>
+                  <View style={styles.demoButtonRow}>
+                    <Pressable onPress={() => setConsensusStep(step => (step + 1) % consensusOptions.length)} style={styles.secondaryDemoButton}><Text style={styles.secondaryDemoText}>Pass</Text></Pressable>
+                    <Pressable onPress={() => consensusStep === consensusOptions.length - 1 ? setConsensusLocked(true) : setConsensusStep(step => step + 1)} style={styles.primaryDemoButton}><Text style={styles.primaryDemoText}>⚡ Lock fit</Text></Pressable>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+
+          {isSelfHealing && (
+            <View style={styles.demoPanel}>
+              <View style={styles.demoRow}>
+                <View><Text style={styles.demoLabel}>TRIP HEALTH</Text><Text style={styles.healthScore}>{pivotSimulated ? '91' : '94'}<Text style={styles.scoreSuffix}>/100</Text></Text></View>
+                <Text style={styles.weatherIcon}>☔</Text>
+              </View>
+              <Text style={styles.routeText}>⌖ Afternoon plan - Futian, Shenzhen</Text>
+              {pivotSimulated ? (
+                <View style={styles.successPanel}>
+                  <Text style={styles.successTitle}>✓ Plan recovered</Text>
+                  <Text style={styles.demoBody}>Rain rerouted your rooftop stop to an indoor market 8 minutes away.</Text>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.warningPanel}><Text style={styles.warningTitle}>Storm detected at 3:20 PM</Text><Text style={styles.demoBody}>Your rooftop booking is at risk.</Text></View>
+                  <Pressable onPress={() => setPivotSimulated(true)} style={styles.primaryDemoButton}><Text style={styles.primaryDemoText}>⚡ Simulate safer afternoon</Text></Pressable>
+                </>
+              )}
+              {pivotSimulated && <Pressable onPress={() => setPivotSimulated(false)}><Text style={styles.resetText}>Reset simulation</Text></Pressable>}
+            </View>
+          )}
+
+          {isBuyWindow && (
+            <View style={styles.demoPanel}>
+              <View style={styles.demoRow}>
+                <View><Text style={styles.demoLabel}>BEST FARE DETECTED</Text><Text style={styles.demoHeading}>KUL to Shenzhen</Text></View>
+                <Text style={styles.dealBadge}>-18%</Text>
+              </View>
+              <View style={styles.flightCard}>
+                <View><Text style={styles.flightAirline}>TRIPSHIELD SMART LINK</Text><Text style={styles.flightPrice}>RM450 <Text style={styles.flightOldPrice}>RM548</Text></Text><Text style={styles.flightDetail}>Direct flight · 4h 20m · 2 carry-ons</Text></View>
+                <Text style={styles.countdown}>{buyLocked ? 'LOCKED' : '47:12:08'}</Text>
+              </View>
+              {buyLocked ? <View style={styles.successPanel}><Text style={styles.successTitle}>✓ Group price locked</Text><Text style={styles.demoBody}>Everyone gets the same deep link before the 48-hour window closes.</Text></View> : <Pressable onPress={() => setBuyLocked(true)} style={styles.primaryDemoButton}><Text style={styles.primaryDemoText}>Lock this price for the group</Text></Pressable>}
+            </View>
+          )}
+
+          {isLedger && (
+            <View style={styles.demoPanel}>
+              <View style={styles.demoRow}><View><Text style={styles.demoLabel}>ADAPTIVE LEDGER</Text><Text style={styles.demoHeading}>Day 1 spend is recalculating</Text></View><Text style={styles.ledgerTotal}>RM186</Text></View>
+              <View style={styles.receiptCard}><Text style={styles.receiptTitle}>{receiptScanned ? 'Receipt scanned successfully' : 'Dinner receipt ready'}</Text><Text style={styles.demoBody}>{receiptScanned ? 'Line items assigned to 4 travelers. Net IOUs updated.' : 'OCR will split each line item by person and dietary choice.'}</Text></View>
+              {receiptScanned ? <View style={styles.successPanel}><Text style={styles.successTitle}>✓ Budget rebalanced</Text><Text style={styles.demoBody}>Days 2-5 target reduced to RM92 per person per day.</Text></View> : <Pressable onPress={() => setReceiptScanned(true)} style={styles.primaryDemoButton}><Text style={styles.primaryDemoText}>Scan receipt and split</Text></Pressable>}
+            </View>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -717,6 +918,139 @@ const styles = StyleSheet.create({
   innerContent: { flex: 1 },
   screenWrap: { flex: 1 },
   fullScreen: { flex: 1 },
+  consensusPage: { flex: 1 },
+  consensusHero: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+  consensusTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  livePill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 6 },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#10b981' },
+  livePillText: { color: '#164e63', fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
+  consensusTimer: { color: '#164e63', fontSize: 15, fontWeight: '900' },
+  consensusTitle: { color: '#0f172a', fontSize: 25, fontWeight: '900', marginTop: 16, letterSpacing: -0.5 },
+  consensusSubtitle: { color: '#334155', fontSize: 11, lineHeight: 16, marginTop: 3 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14 },
+  memberAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#0f172a', borderWidth: 2, borderColor: '#B7D4F2', alignItems: 'center', justifyContent: 'center' },
+  memberAvatarSecond: { backgroundColor: '#0f766e', marginLeft: -7 },
+  memberAvatarThird: { backgroundColor: '#b45309', marginLeft: -7 },
+  memberAvatarFourth: { backgroundColor: '#475569', marginLeft: -7 },
+  memberInitial: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  memberCopy: { flex: 1, marginLeft: 9 },
+  memberText: { color: '#475569', fontSize: 10, fontWeight: '700' },
+  memberSubtext: { color: '#64748b', fontSize: 9, marginTop: 2 },
+  addMemberButton: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center', marginLeft: 7 },
+  addMemberText: { color: '#fff', fontSize: 20, fontWeight: '400', lineHeight: 22 },
+  consensusBody: { flex: 1, paddingHorizontal: 16, paddingTop: 22, paddingBottom: 18 },
+  consensusSectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 },
+  sectionEyebrow: { color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
+  sectionHeadingDark: { color: '#fff', fontSize: 20, fontWeight: '900', marginTop: 4 },
+  progressText: { color: '#dbeafe', fontSize: 11, fontWeight: '900' },
+  swipeStage: { alignItems: 'center' },
+  swipeCard: { width: '100%', minHeight: 260, borderRadius: 26, padding: 20, justifyContent: 'space-between', shadowColor: '#061b2e', shadowOpacity: 0.22, shadowRadius: 16, elevation: 6 },
+  cardEmoji: { fontSize: 44 },
+  cardEyebrow: { color: '#475569', fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
+  swipeCardTitle: { color: '#0f172a', fontSize: 26, fontWeight: '900', marginTop: 4 },
+  swipeCardSubtitle: { color: '#334155', fontSize: 12, marginTop: 4 },
+  cardStats: { flexDirection: 'row', gap: 24, borderTopWidth: 1, borderTopColor: 'rgba(15,23,42,0.15)', paddingTop: 14 },
+  cardStatLabel: { color: '#64748b', fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
+  cardStatValue: { color: '#0f172a', fontSize: 16, fontWeight: '900', marginTop: 3 },
+  swipeHint: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '700', marginTop: 10 },
+  consensusActions: { flexDirection: 'row', gap: 10, marginTop: 16 },
+  passAction: { flex: 1, borderRadius: 14, paddingVertical: 14, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', alignItems: 'center' },
+  passActionText: { color: '#fff', fontSize: 11, fontWeight: '900' },
+  lockAction: { flex: 1.6, borderRadius: 14, paddingVertical: 14, backgroundColor: '#0f172a', alignItems: 'center' },
+  lockActionText: { color: '#fff', fontSize: 11, fontWeight: '900' },
+  algorithmCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', borderRadius: 16, padding: 12, marginTop: 18 },
+  algorithmIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#dbeafe', alignItems: 'center', justifyContent: 'center' },
+  algorithmIconText: { color: '#2563eb', fontSize: 16, fontWeight: '900' },
+  algorithmCopy: { flex: 1, marginLeft: 10 },
+  algorithmTitle: { color: '#fff', fontSize: 11, fontWeight: '900' },
+  algorithmBody: { color: 'rgba(255,255,255,0.7)', fontSize: 10, lineHeight: 15, marginTop: 2 },
+  inviteCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#dbeafe', borderRadius: 16, padding: 12, marginTop: 10 },
+  inviteIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' },
+  inviteIconText: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  inviteTitle: { color: '#1e3a8a', fontSize: 11, fontWeight: '900' },
+  inviteBody: { color: '#1d4ed8', fontSize: 10, lineHeight: 15, marginTop: 2 },
+  inviteArrow: { color: '#2563eb', fontSize: 24, fontWeight: '300' },
+  inviteSheet: { position: 'absolute', left: 12, right: 12, bottom: 12, backgroundColor: '#fff', borderRadius: 24, padding: 18, shadowColor: '#04111e', shadowOpacity: 0.3, shadowRadius: 18, elevation: 12 },
+  inviteSheetTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  inviteSheetEyebrow: { color: '#2563eb', fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  inviteSheetTitle: { color: '#0f172a', fontSize: 20, fontWeight: '900', marginTop: 4 },
+  inviteClose: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  inviteCloseText: { color: '#475569', fontSize: 22, lineHeight: 22 },
+  inviteSheetBody: { color: '#475569', fontSize: 12, lineHeight: 18, marginTop: 12 },
+  joinCode: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 16, alignItems: 'center', paddingVertical: 13, marginTop: 14 },
+  joinCodeLabel: { color: '#60a5fa', fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  joinCodeValue: { color: '#1e3a8a', fontSize: 25, fontWeight: '900', letterSpacing: 2, marginTop: 4 },
+  copyInviteButton: { backgroundColor: '#0f172a', borderRadius: 13, alignItems: 'center', paddingVertical: 13, marginTop: 12 },
+  copyInviteText: { color: '#fff', fontSize: 12, fontWeight: '900' },
+  simulateJoinButton: { alignItems: 'center', paddingVertical: 11, marginTop: 4 },
+  simulateJoinText: { color: '#2563eb', fontSize: 11, fontWeight: '800' },
+  lockedCard: { backgroundColor: '#ecfdf5', borderRadius: 24, padding: 22, minHeight: 260, justifyContent: 'center', alignItems: 'center' },
+  lockIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: '#10b981', alignItems: 'center', justifyContent: 'center' },
+  lockIconText: { color: '#fff', fontSize: 26, fontWeight: '900' },
+  lockedTitle: { color: '#065f46', fontSize: 21, fontWeight: '900', marginTop: 14, textAlign: 'center' },
+  lockedBody: { color: '#047857', fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: 7 },
+  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18 },
+  scoreLabel: { color: '#059669', fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
+  scoreValue: { color: '#065f46', fontSize: 16, fontWeight: '900' },
+  resetConsensus: { alignItems: 'center', marginTop: 15 },
+  resetConsensusText: { color: '#dbeafe', fontSize: 11, fontWeight: '800', textDecorationLine: 'underline' },
+  phaseRail: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
+  phaseItem: { alignItems: 'center', flex: 1 },
+  phaseDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
+  phaseDotActive: { backgroundColor: '#bfdbfe' },
+  phaseDotText: { color: '#1e3a8a', fontSize: 10, fontWeight: '900' },
+  phaseLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 8, fontWeight: '900', marginTop: 4 },
+  phaseLabelActive: { color: '#fff' },
+  sectionEyebrowDark: { color: '#64748b', fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  dnaPanel: { backgroundColor: '#fff', borderRadius: 24, padding: 18 },
+  dnaHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 },
+  dnaTitle: { color: '#0f172a', fontSize: 19, fontWeight: '900', marginTop: 4 },
+  dnaTimer: { color: '#2563eb', fontSize: 13, fontWeight: '900' },
+  dnaPerson: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  dnaAvatar: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  dnaAvatarText: { color: '#fff', fontSize: 13, fontWeight: '900' },
+  dnaPersonCopy: { flex: 1, marginLeft: 10 },
+  dnaPersonName: { color: '#0f172a', fontSize: 11, fontWeight: '900' },
+  dnaPersonType: { color: '#64748b', fontWeight: '600' },
+  dnaBar: { height: 7, borderRadius: 4, backgroundColor: '#e2e8f0', marginTop: 6, overflow: 'hidden' },
+  dnaBarFill: { height: '100%', borderRadius: 4 },
+  dnaPercent: { color: '#0f172a', fontSize: 11, fontWeight: '900', marginLeft: 9 },
+  dnaHint: { color: '#475569', backgroundColor: '#f8fafc', borderRadius: 12, padding: 10, fontSize: 10, lineHeight: 15, marginTop: 2 },
+  nextStepButton: { backgroundColor: '#0f172a', borderRadius: 13, alignItems: 'center', paddingVertical: 13, marginTop: 14 },
+  nextStepDisabled: { opacity: 0.45 },
+  nextStepText: { color: '#fff', fontSize: 11, fontWeight: '900' },
+  radarPanel: { backgroundColor: '#fff', borderRadius: 24, padding: 18 },
+  radarTop: { flexDirection: 'row', alignItems: 'center' },
+  radarIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fef3c7', textAlign: 'center', textAlignVertical: 'center', color: '#b45309', fontSize: 20, marginRight: 10 },
+  radarTitle: { color: '#0f172a', fontSize: 18, fontWeight: '900', marginTop: 4 },
+  conflictScore: { color: '#dc2626', fontSize: 18, fontWeight: '900', marginLeft: 'auto' },
+  radarBody: { color: '#475569', fontSize: 11, lineHeight: 17, marginTop: 15 },
+  clashRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc', borderRadius: 14, padding: 12, marginTop: 14 },
+  clashName: { color: '#0f172a', fontSize: 11, fontWeight: '900' },
+  clashPreference: { color: '#64748b', fontSize: 9, marginTop: 3 },
+  clashRight: { alignItems: 'flex-end' },
+  clashVs: { color: '#ef4444', fontSize: 10, fontWeight: '900' },
+  radarQuestion: { color: '#0f172a', fontSize: 12, fontWeight: '900', marginTop: 18 },
+  radarChoices: { flexDirection: 'row', gap: 8, marginTop: 9 },
+  radarChoice: { flex: 1, borderWidth: 1, borderColor: '#bfdbfe', backgroundColor: '#eff6ff', borderRadius: 13, padding: 10 },
+  radarChoiceEmoji: { fontSize: 18 },
+  radarChoiceTitle: { color: '#1e3a8a', fontSize: 11, fontWeight: '900', marginTop: 5 },
+  radarChoiceBody: { color: '#475569', fontSize: 9, lineHeight: 13, marginTop: 3 },
+  tokenPanel: { backgroundColor: '#fff', borderRadius: 24, padding: 18 },
+  tokenHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  tokenCount: { color: '#2563eb', fontSize: 18, fontWeight: '900' },
+  tokenBody: { color: '#475569', fontSize: 11, lineHeight: 17, marginTop: 10 },
+  tokenGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 15 },
+  tokenChoice: { width: '31%', minHeight: 68, borderRadius: 13, borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#f8fafc', padding: 9 },
+  tokenChoiceActive: { backgroundColor: '#dbeafe', borderColor: '#60a5fa' },
+  tokenChoiceIcon: { color: '#2563eb', fontSize: 16, fontWeight: '900' },
+  tokenChoiceText: { color: '#475569', fontSize: 9, fontWeight: '800', lineHeight: 12, marginTop: 5 },
+  tokenChoiceTextActive: { color: '#1e3a8a' },
+  lockedKicker: { color: '#059669', fontSize: 9, fontWeight: '900', letterSpacing: 1.1, marginTop: 14 },
+  whyButton: { backgroundColor: '#dbeafe', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginTop: 15 },
+  whyButtonText: { color: '#1e3a8a', fontSize: 10, fontWeight: '900' },
+  whyPanel: { backgroundColor: '#f0fdf4', borderRadius: 12, padding: 10, marginTop: 9, alignSelf: 'stretch' },
+  whyLine: { color: '#047857', fontSize: 10, lineHeight: 17 },
   pressedGlass: { backgroundColor: 'rgba(24, 58, 96, 0.42)', borderColor: 'rgba(255,255,255,0.5)' },
   welcomeTop: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 24, backgroundColor: 'rgba(255,255,255,0.05)' },
   welcomeBottom: { borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 32, paddingTop: 36, paddingBottom: 40, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.24)', shadowColor: '#17365f', shadowOpacity: 0.2, shadowRadius: 12 },
@@ -874,8 +1208,45 @@ const styles = StyleSheet.create({
   aiSubRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 },
   aiHint: { color: '#64748b', fontSize: 10 },
   previewCard: { marginHorizontal: 18, marginBottom: 30, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)', padding: 16, backgroundColor: 'rgba(35,91,140,0.76)' },
+  previewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
   previewTitle: { color: '#fff', fontSize: 12, fontWeight: '900', letterSpacing: 1.2 },
+  previewSubtitle: { color: '#dbeafe', fontSize: 11, marginTop: 4 },
+  previewClose: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   previewText: { color: '#e0f2fe', fontSize: 11, marginTop: 8 },
+  demoPanel: { backgroundColor: '#fff', borderRadius: 16, padding: 13 },
+  demoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  demoLabel: { color: '#94a3b8', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  demoHeading: { color: '#0f172a', fontSize: 12, fontWeight: '900', marginTop: 3 },
+  demoStatus: { color: '#059669', fontSize: 10, fontWeight: '900' },
+  dealBadge: { color: '#047857', backgroundColor: '#d1fae5', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, fontSize: 10, fontWeight: '900' },
+  flightCard: { backgroundColor: '#eff6ff', borderColor: '#bfdbfe', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between' },
+  flightAirline: { color: '#64748b', fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
+  flightPrice: { color: '#0f172a', fontSize: 22, fontWeight: '900', marginTop: 4 },
+  flightOldPrice: { color: '#94a3b8', fontSize: 10, fontWeight: '700', textDecorationLine: 'line-through' },
+  flightDetail: { color: '#475569', fontSize: 10, marginTop: 3 },
+  countdown: { color: '#b45309', fontSize: 12, fontWeight: '900', alignSelf: 'center' },
+  choiceCard: { minHeight: 88, borderRadius: 12, padding: 12, justifyContent: 'flex-end', marginBottom: 10 },
+  choiceLabel: { color: '#475569', fontSize: 9, fontWeight: '800' },
+  choiceTitle: { color: '#0f172a', fontSize: 16, fontWeight: '900', marginTop: 3 },
+  choiceDetail: { color: '#334155', fontSize: 10, fontWeight: '700', marginTop: 2 },
+  demoButtonRow: { flexDirection: 'row', gap: 8 },
+  secondaryDemoButton: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: '#f1f5f9', alignItems: 'center' },
+  secondaryDemoText: { color: '#475569', fontSize: 11, fontWeight: '900' },
+  primaryDemoButton: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+  primaryDemoText: { color: '#fff', fontSize: 11, fontWeight: '900' },
+  successPanel: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', borderWidth: 1, borderRadius: 12, padding: 12 },
+  successTitle: { color: '#047857', fontSize: 12, fontWeight: '900', marginBottom: 4 },
+  demoBody: { color: '#475569', fontSize: 11, lineHeight: 17 },
+  healthScore: { color: '#059669', fontSize: 26, fontWeight: '900', marginTop: 2 },
+  scoreSuffix: { color: '#94a3b8', fontSize: 11, fontWeight: '700' },
+  weatherIcon: { fontSize: 24 },
+  routeText: { color: '#475569', fontSize: 11, fontWeight: '700', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#e2e8f0', paddingVertical: 10, marginBottom: 10 },
+  warningPanel: { backgroundColor: '#fffbeb', borderColor: '#fde68a', borderWidth: 1, borderRadius: 12, padding: 12 },
+  warningTitle: { color: '#92400e', fontSize: 11, fontWeight: '900', marginBottom: 3 },
+  resetText: { color: '#94a3b8', fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 9 },
+  ledgerTotal: { color: '#dc2626', fontSize: 15, fontWeight: '900' },
+  receiptCard: { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 10 },
+  receiptTitle: { color: '#0f172a', fontSize: 12, fontWeight: '900', marginBottom: 4 },
   statusBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 12, paddingBottom: 8 },
   statusText: { color: '#fff', fontSize: 15, fontWeight: '800', letterSpacing: -0.4 },
   statusIcons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
