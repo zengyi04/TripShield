@@ -25,10 +25,20 @@
       "react-native"
     ]
   },
+  "include": [
+    "App.tsx",
+    "index.js",
+    "src/types.ts",
+    "src/utils/**/*",
+    "src/data/**/*",
+    "src/components/screens/SelfHealingScreen.tsx"
+  ],
   "exclude": [
     "node_modules",
     "dist",
-    "vite.config.ts"
+    "vite.config.ts",
+    "src/main.tsx",
+    "src/App.tsx"
   ],
   "extends": "expo/tsconfig.base"
 }
