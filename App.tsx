@@ -18,6 +18,7 @@ import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { SCREENSHOT_FEED_OFFERS, FeedOffer } from './src/data/mockOffers';
 import type { ActiveScreen } from './src/types';
+import { SelfHealingScreen } from './src/components/screens/SelfHealingScreen';
 
 const SAFE_TOP_COLOR = '#B7D4F2';
 
@@ -87,7 +88,15 @@ function PhoneMockup({
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
     if (tab === 'home') {
-      onNavigate('home');
+      setActivePreviewFeature(null);
+      if (activeScreen !== 'home') {
+        onNavigate('home');
+      }
+    } else if (tab === 'self-healing') {
+      setActivePreviewFeature(null);
+      if (activeScreen !== 'home' && activeScreen !== 'self-healing') {
+        onNavigate('home');
+      }
     } else {
       setActivePreviewFeature(tab);
     }
@@ -95,16 +104,29 @@ function PhoneMockup({
 
   const renderScreen = () => {
     switch (activeScreen) {
+      case 'self-healing':
       case 'home':
         return (
           <View style={styles.screenWrap}>
-            <HomeScreen
-              topColor={topColor}
-              bottomColor={bottomColor}
-              buttonBg={buttonBg}
-              buttonHover={buttonHover}
-              onNavigate={onNavigate}
-            />
+            {currentTab === 'self-healing' ? (
+              <SelfHealingScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigateHome={() => handleTabChange('home')}
+                onNavigate={onNavigate}
+              />
+            ) : (
+              <HomeScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigate={onNavigate}
+                onOpenSelfHealing={() => handleTabChange('self-healing')}
+              />
+            )}
             <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
           </View>
         );
@@ -154,20 +176,17 @@ function PhoneMockup({
     }
   };
 
-  if (!showPhoneFrame) {
-    return (
-      <View style={styles.phoneFrameless}>
-        <View style={styles.content}>{renderScreen()}</View>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.phoneFrame}>
-      <View style={[styles.phoneInner, { backgroundColor: topColor }]}>
+    <View style={showPhoneFrame ? styles.phoneFrame : styles.phoneFrameless}>
+      <View style={[styles.phoneInner, showPhoneFrame && { backgroundColor: topColor }]}>
         <View style={styles.innerContent}>{renderScreen()}</View>
 
-        <FeaturePreviewModal featureTab={activePreviewFeature} onClose={() => setActivePreviewFeature(null)} accentColor={bottomColor} />
+        <FeaturePreviewModal
+          featureTab={activePreviewFeature}
+          onClose={() => setActivePreviewFeature(null)}
+          accentColor={bottomColor}
+          onOpenSelfHealing={() => handleTabChange('self-healing')}
+        />
 
         {showAccountModal && (
           <Modal visible transparent animationType="fade">
@@ -190,7 +209,7 @@ function PhoneMockup({
                   </View>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Active Group</Text>
-                    <Text style={styles.infoValue}>Shenzhen & Tokyo '26</Text>
+                    <Text style={styles.infoValue}>Shenzhen & Tokyo &apos;26</Text>
                   </View>
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Decision Engine</Text>
@@ -386,11 +405,11 @@ function DashboardScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHo
 
 function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab: FeatureTab; onTabChange: (tab: FeatureTab) => void; barBgColor?: string }) {
   const tabs = [
-    { id: 'home' as FeatureTab, label: 'Home', icon: 'home' },
-    { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer' },
-    { id: 'consensus' as FeatureTab, label: 'Consensus', icon: 'sparkles' },
-    { id: 'ledger' as FeatureTab, label: 'Ledger', icon: 'receipt' },
-    { id: 'self-healing' as FeatureTab, label: 'Self-Healing', icon: 'shield-checkmark' },
+    { id: 'home' as FeatureTab, label: 'Home', icon: 'home', hasDot: false },
+    { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer', hasDot: false },
+    { id: 'consensus' as FeatureTab, label: 'Consensus', icon: 'sparkles', hasDot: false },
+    { id: 'ledger' as FeatureTab, label: 'Ledger', icon: 'receipt', hasDot: false },
+    { id: 'self-healing' as FeatureTab, label: 'Self-Healing', icon: 'shield-checkmark', hasDot: true },
   ];
 
   return (
@@ -400,7 +419,10 @@ function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab:
         const iconName = tab.icon as any;
         return (
           <Pressable key={tab.id} onPress={() => onTabChange(tab.id)} style={({ pressed }) => [styles.navItem, pressed && styles.pressedGlass]}>
-            <View style={styles.navIconWrap}><Ionicons name={iconName} size={22} color={isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)'} /></View>
+            <View style={styles.navIconWrap}>
+              <Ionicons name={iconName} size={22} color={isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)'} />
+              {tab.hasDot && !isActive && <View style={styles.navDot} />}
+            </View>
             <Text style={[styles.navLabel, { color: isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)', fontWeight: isActive ? '800' : '600' }]}>{tab.label}</Text>
           </Pressable>
         );
@@ -409,7 +431,21 @@ function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab:
   );
 }
 
-function HomeScreen({ topColor, bottomColor, buttonBg, buttonHover, onNavigate }: { topColor: string; bottomColor: string; buttonBg: string; buttonHover: string; onNavigate?: (screen: ActiveScreen) => void; }) {
+function HomeScreen({
+  topColor,
+  bottomColor,
+  buttonBg,
+  buttonHover,
+  onNavigate,
+  onOpenSelfHealing,
+}: {
+  topColor: string;
+  bottomColor: string;
+  buttonBg: string;
+  buttonHover: string;
+  onNavigate?: (screen: ActiveScreen) => void;
+  onOpenSelfHealing?: () => void;
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeChip, setActiveChip] = useState<ChipCategory>('deals');
   const [likedOffers, setLikedOffers] = useState<Record<string, boolean>>({ 'feed-3': true, 'feed-4': false });
@@ -530,6 +566,36 @@ function HomeScreen({ topColor, bottomColor, buttonBg, buttonHover, onNavigate }
       </View>
 
       <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent}>
+        {/* Live Trip Health & Disruption Banner */}
+        <Pressable
+          onPress={onOpenSelfHealing}
+          style={({ pressed }) => [styles.homeHealthBanner, pressed && styles.pressedGlass]}
+        >
+          <View style={styles.homeHealthLeft}>
+            <View style={styles.homeHealthDial}>
+              <Text style={styles.homeHealthDialText}>34</Text>
+              <Text style={styles.homeHealthDialSub}>/100</Text>
+            </View>
+            <View style={styles.homeHealthInfo}>
+              <View style={styles.homeHealthBadgeRow}>
+                <View style={styles.criticalBadge}>
+                  <Ionicons name="warning" size={9} color="#fff" />
+                  <Text style={styles.criticalBadgeText}>DISRUPTION DETECTED</Text>
+                </View>
+                <Text style={styles.homeHealthApiTag}>OpenWeather · Google Maps</Text>
+              </View>
+              <Text style={styles.homeHealthTitle}>Flight CZ3028 Delayed 3h 15m</Text>
+              <Text style={styles.homeHealthDesc}>
+                Afternoon schedule broken · Tap to Auto-Reroute to Partner Businesses
+              </Text>
+            </View>
+          </View>
+          <View style={styles.homeHealthArrow}>
+            <Ionicons name="shield-checkmark" size={20} color="#93c5fd" />
+            <Text style={styles.homeHealthActionText}>Self-Heal ➔</Text>
+          </View>
+        </Pressable>
+
         <View style={styles.grid}>
           {displayedOffers.map(offer => {
             const isLiked = likedOffers[offer.id];
@@ -658,15 +724,94 @@ function HomeScreen({ topColor, bottomColor, buttonBg, buttonHover, onNavigate }
   );
 }
 
-function FeaturePreviewModal({ featureTab, onClose, accentColor }: { featureTab: FeatureTab | null; onClose: () => void; accentColor: string; }) {
-  if (!featureTab) return null;
+function FeaturePreviewModal({
+  featureTab,
+  onClose,
+  accentColor,
+  onOpenSelfHealing,
+}: {
+  featureTab: FeatureTab | null;
+  onClose: () => void;
+  accentColor: string;
+  onOpenSelfHealing?: () => void;
+}) {
+  if (!featureTab || featureTab === 'home') return null;
+
+  const featureInfo: Record<
+    string,
+    { title: string; subtitle: string; tag: string; metric: string; desc: string }
+  > = {
+    'buy-window': {
+      title: 'Decisive Buy Window & Smart Link Aggregator',
+      subtitle: 'LLM Link Extraction & AI Price Countdown Lock',
+      tag: 'Winning Feature 1',
+      metric: 'Reduces deliberation from 4 days to 40 seconds',
+      desc: 'LLMs extract flight/hotel data from pasted TikTok/IG links into itinerary cards. Dynamic deep-link redirects bypass gatekeeping for instant affiliate checkout.',
+    },
+    consensus: {
+      title: 'Swipe-and-Lock Consensus Engine',
+      subtitle: '60-Second Travel DNA Mapping & Deadlock Breaker',
+      tag: 'Winning Feature 2',
+      metric: 'Resolves 4 conflicting preferences in 30 seconds',
+      desc: 'Group members swipe to mathematically map travel DNA. A constraint-satisfaction algorithm locks collective schedules without chat debates.',
+    },
+    ledger: {
+      title: 'Adaptive Ledger & Dynamic Budget Splitter',
+      subtitle: 'OCR Receipt Scanning & Reactive Balance Math',
+      tag: 'Winning Feature 3',
+      metric: 'Zero manual spreadsheets, 100% dispute elimination',
+      desc: 'OCR receipt scanning parses paper bills, auto-splitting line items. If overspent on Day 1, TripShield dynamically recalibrates daily targets for Days 2–5.',
+    },
+    'self-healing': {
+      title: 'Self-Healing Pivot & "What-If" Simulator',
+      subtitle: 'Dynamic Health Score & Instant Re-routing',
+      tag: 'Self-Healing Pivot (Active)',
+      metric: 'Single-tap auto replan with B2B demand matching',
+      desc: 'Monitors OpenWeather & Google Maps APIs. Simulates alternative timelines and reroutes to nearby partner businesses.',
+    },
+  };
+
+  const current = featureInfo[featureTab] || {
+    title: featureTab.toUpperCase(),
+    subtitle: 'TripShield Innovation Module',
+    tag: 'Feature Preview',
+    metric: 'Real-time Travel Intelligence',
+    desc: 'Advanced decision engine module under active deployment.',
+  };
 
   return (
     <Modal visible transparent animationType="fade">
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <Pressable style={{ ...styles.previewCard, backgroundColor: accentColor }} onPress={() => undefined}>
-          <Text style={styles.previewTitle}>{featureTab.toUpperCase()}</Text>
-          <Text style={styles.previewText}>Preview feature coming soon.</Text>
+        <Pressable style={[styles.previewCard, { backgroundColor: accentColor }]} onPress={() => undefined}>
+          <View style={styles.previewHeaderRow}>
+            <View style={styles.previewTagPill}>
+              <Text style={styles.previewTagText}>{current.tag}</Text>
+            </View>
+            <Pressable onPress={onClose} style={styles.previewCloseBtn}>
+              <Text style={styles.previewCloseText}>✕</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.previewTitle}>{current.title}</Text>
+          <Text style={styles.previewMetric}>⚡ {current.metric}</Text>
+          <Text style={styles.previewSubtitle}>{current.subtitle}</Text>
+          <Text style={styles.previewDesc}>{current.desc}</Text>
+
+          {featureTab === 'self-healing' && onOpenSelfHealing ? (
+            <Pressable
+              onPress={() => {
+                onClose();
+                onOpenSelfHealing();
+              }}
+              style={({ pressed }) => [styles.previewLaunchBtn, pressed && styles.pressedGlass]}
+            >
+              <Ionicons name="shield-checkmark" size={14} color="#0f172a" />
+              <Text style={styles.previewLaunchText}>Open Self-Healing Pivot</Text>
+            </Pressable>
+          ) : (
+            <Pressable onPress={onClose} style={styles.previewDismissBtn}>
+              <Text style={styles.previewDismissText}>Back to Journey</Text>
+            </Pressable>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -901,6 +1046,175 @@ const styles = StyleSheet.create({
   logoBase: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', borderWidth: 0, borderColor: 'transparent', shadowOpacity: 0 },
   logoCore: { alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: 'rgba(95,145,202,0.72)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.9)', overflow: 'hidden' },
   logoPlaneIcon: { position: 'absolute', left: '38%', top: '36%', transform: [{ rotate: '35deg' }] },
+  homeHealthBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(18,50,86,0.85)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    padding: 12,
+    marginBottom: 14,
+    shadowColor: '#0b2344',
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+  },
+  homeHealthLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  homeHealthDial: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 3,
+    borderColor: '#ef4444',
+    backgroundColor: 'rgba(15,23,42,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  homeHealthDialText: {
+    color: '#f87171',
+    fontSize: 16,
+    fontWeight: '900',
+    lineHeight: 18,
+  },
+  homeHealthDialSub: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 7,
+    fontWeight: '700',
+  },
+  homeHealthInfo: {
+    flex: 1,
+  },
+  homeHealthBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  criticalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#dc2626',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  criticalBadgeText: {
+    color: '#fff',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.3,
+  },
+  homeHealthApiTag: {
+    color: '#93c5fd',
+    fontSize: 8,
+    fontWeight: '700',
+  },
+  homeHealthTitle: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  homeHealthDesc: {
+    color: '#e0f2fe',
+    fontSize: 9,
+    lineHeight: 12,
+    marginTop: 1,
+  },
+  homeHealthArrow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  homeHealthActionText: {
+    color: '#93c5fd',
+    fontSize: 9,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  previewHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  previewTagPill: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  previewTagText: {
+    color: '#D9EEFF',
+    fontSize: 9,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  previewCloseBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewCloseText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  previewMetric: {
+    color: '#34d399',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+  previewSubtitle: {
+    color: '#e0f2fe',
+    fontSize: 11,
+    marginTop: 4,
+    fontWeight: '700',
+  },
+  previewDesc: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 6,
+  },
+  previewLaunchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginTop: 14,
+  },
+  previewLaunchText: {
+    color: '#0f172a',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  previewDismissBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    paddingVertical: 9,
+    marginTop: 14,
+  },
+  previewDismissText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+  },
 });
 
 export default App;
