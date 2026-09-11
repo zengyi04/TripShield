@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "expo start --tunnel",
+    "start": "expo start",
     "start:lan": "expo start",
     "dev": "expo start --web",
     "android": "expo start --android",
