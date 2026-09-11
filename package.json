@@ -11,7 +11,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "tunnel": "expo start --tunnel",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "reinstall": "rm -rf node_modules && npm install",
+    "clean:install": "rm -rf node_modules && npm ci"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",
