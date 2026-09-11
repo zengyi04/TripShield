@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import type { ActiveScreen } from '../../types';
 import { WhatIfSimulatorScreen } from './WhatIfSimulatorScreen';
-import { ROOMS, type TripActivity, type TripDay } from '../../data/tripRooms';
+import { ROOMS, type RoomPlan, type TripActivity, type TripDay } from '../../data/tripRooms';
 import { fetchPlaceWeather, type WeatherSnapshot } from '../../utils/weather';
 import { RouteMapPreview } from '../RouteMapPreview';
 import {
@@ -70,6 +70,18 @@ const modeLabel: Record<string, string> = {
   rail: 'Rail',
 };
 
+/** First itinerary accordion key — opens day 1 by default for live, old, or new plan blocks. */
+function firstPlanDayKey(roomId: string, isFixed: boolean, room: RoomPlan): string | null {
+  if (isFixed) {
+    const firstNew = room.optimizedDays[0];
+    if (firstNew) return `${roomId}-new-${firstNew.date}`;
+    const firstOld = room.days[0];
+    return firstOld ? `${roomId}-old-${firstOld.date}` : null;
+  }
+  const firstLive = room.days[0];
+  return firstLive ? `${roomId}-live-${firstLive.date}` : null;
+}
+
 export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   topColor,
   bottomColor,
@@ -82,7 +94,11 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const [autoFixed, setAutoFixed] = useState<Record<string, boolean>>(() => ({ ...savedAutoFixed }));
   const [mediumKeptOriginal, setMediumKeptOriginal] = useState<Record<string, boolean>>({});
   const [mediumAwaitingConfirm, setMediumAwaitingConfirm] = useState<Record<string, boolean>>({});
-  const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [expandedDay, setExpandedDay] = useState<string | null>(() => {
+    const room = ROOMS.find(r => r.id === savedRoomId) ?? ROOMS[0]!;
+    const fixed = !!savedAutoFixed[savedRoomId];
+    return firstPlanDayKey(savedRoomId, fixed, room);
+  });
   const [itineraryGlow, setItineraryGlow] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [weatherTarget, setWeatherTarget] = useState<{
@@ -107,13 +123,8 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const visibleDays = isFixed ? selectedRoom.optimizedDays : selectedRoom.days;
 
   useEffect(() => {
-    const days = isFixed ? selectedRoom.optimizedDays : selectedRoom.days;
-    const prefix = isFixed ? 'new' : 'live';
-    const first = days[0];
-    if (first) {
-      setExpandedDay(`${selectedRoomId}-${prefix}-${first.date}`);
-    }
-  }, [selectedRoomId, isFixed, selectedRoom.optimizedDays, selectedRoom.days]);
+    setExpandedDay(firstPlanDayKey(selectedRoomId, isFixed, selectedRoom));
+  }, [selectedRoomId, isFixed, selectedRoom]);
 
   const tripHealthScore = useMemo(
     () => computeTripHealthScore(selectedRoomId, autoFixed),
@@ -153,7 +164,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const revertToPreviousPlan = () => {
     setAutoFixed(prev => ({ ...prev, [selectedRoomId]: false }));
     setMediumAwaitingConfirm(prev => ({ ...prev, [selectedRoomId]: false }));
-    setExpandedDay(null);
+    setExpandedDay(firstPlanDayKey(selectedRoomId, false, selectedRoom));
   };
 
   const confirmOptimizedPlan = () => {
@@ -466,7 +477,8 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                 onPress={() => {
                   setSelectedRoomId(room.id);
                   setRoomMenuOpen(false);
-                  setExpandedDay(null);
+                  const fixed = !!autoFixed[room.id];
+                  setExpandedDay(firstPlanDayKey(room.id, fixed, room));
                 }}
                 style={[styles.menuRow, selectedRoomId === room.id && styles.menuRowActive]}
               >
