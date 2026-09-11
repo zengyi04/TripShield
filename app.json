@@ -19,9 +19,6 @@
     },
     "plugins": [
       "expo-status-bar",
-      "expo-font"
-    ],
-    "main": "index.js"
       "expo-font",
       [
         "expo-splash-screen",

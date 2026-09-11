@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,7 +18,6 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
-import { SCREENSHOT_FEED_OFFERS, FeedOffer } from './src/data/mockOffers';
 import type { ActiveScreen } from './src/types';
 import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
 
@@ -109,15 +108,19 @@ function PhoneMockup({
       }
     } else if (tab === 'consensus') {
       setActivePreviewFeature(null);
-      onNavigate('home');
+      if (activeScreen !== 'home') {
+        onNavigate('home');
+      }
     } else if (tab === 'self-healing') {
       setActivePreviewFeature(null);
       if (activeScreen !== 'home' && activeScreen !== 'self-healing') {
         onNavigate('home');
       }
     } else {
-      setActivePreviewFeature(null);
-      onNavigate('home');
+      setActivePreviewFeature(tab);
+      if (activeScreen !== 'home') {
+        onNavigate('home');
+      }
     }
   };
 
@@ -146,6 +149,7 @@ function PhoneMockup({
                 buttonBg={buttonBg}
                 buttonHover={buttonHover}
                 onNavigate={onNavigate}
+                onOpenSelfHealing={() => handleTabChange('self-healing')}
               />
             )}
             <BottomNavigation
@@ -206,6 +210,12 @@ function PhoneMockup({
     return (
       <View style={styles.phoneFrameless}>
         <View style={styles.content}>{renderScreen()}</View>
+        <FeaturePreviewModal
+          featureTab={activePreviewFeature}
+          onClose={() => setActivePreviewFeature(null)}
+          accentColor={bottomColor}
+          onOpenSelfHealing={() => handleTabChange('self-healing')}
+        />
       </View>
     );
   }
@@ -219,6 +229,7 @@ function PhoneMockup({
           featureTab={activePreviewFeature}
           onClose={() => setActivePreviewFeature(null)}
           accentColor={bottomColor}
+          onOpenSelfHealing={() => handleTabChange('self-healing')}
         />
 
         {showAccountModal && (
@@ -531,7 +542,6 @@ function LegacyConsensusScreen({ topColor, bottomColor }: { topColor: string; bo
   );
 }
 
-function BottomNavigation({ currentTab, onTabChange, barBgColor }: { currentTab: FeatureTab; onTabChange: (tab: FeatureTab) => void; barBgColor?: string }) {
 function BottomNavigation({
   currentTab,
   onTabChange,
@@ -684,15 +694,94 @@ function HomeScreen({
   );
 }
 
-function FeaturePreviewModal({ featureTab, onClose, accentColor }: { featureTab: FeatureTab | null; onClose: () => void; accentColor: string; }) {
-  if (!featureTab) return null;
+function FeaturePreviewModal({
+  featureTab,
+  onClose,
+  accentColor,
+  onOpenSelfHealing,
+}: {
+  featureTab: FeatureTab | null;
+  onClose: () => void;
+  accentColor: string;
+  onOpenSelfHealing?: () => void;
+}) {
+  if (!featureTab || featureTab === 'home') return null;
+
+  const featureInfo: Record<
+    string,
+    { title: string; subtitle: string; tag: string; metric: string; desc: string }
+  > = {
+    'buy-window': {
+      title: 'Decisive Buy Window & Smart Link Aggregator',
+      subtitle: 'LLM Link Extraction & AI Price Countdown Lock',
+      tag: 'Winning Feature 1',
+      metric: 'Reduces deliberation from 4 days to 40 seconds',
+      desc: 'LLMs extract flight/hotel data from pasted TikTok/IG links into itinerary cards. Dynamic deep-link redirects bypass gatekeeping for instant affiliate checkout.',
+    },
+    consensus: {
+      title: 'Swipe-and-Lock Consensus Engine',
+      subtitle: '60-Second Travel DNA Mapping & Deadlock Breaker',
+      tag: 'Winning Feature 2',
+      metric: 'Resolves 4 conflicting preferences in 30 seconds',
+      desc: 'Group members swipe to mathematically map travel DNA. A constraint-satisfaction algorithm locks collective schedules without chat debates.',
+    },
+    ledger: {
+      title: 'Adaptive Ledger & Dynamic Budget Splitter',
+      subtitle: 'OCR Receipt Scanning & Reactive Balance Math',
+      tag: 'Winning Feature 3',
+      metric: 'Zero manual spreadsheets, 100% dispute elimination',
+      desc: 'OCR receipt scanning parses paper bills, auto-splitting line items. If overspent on Day 1, TripShield dynamically recalibrates daily targets for Days 2–5.',
+    },
+    'self-healing': {
+      title: 'Self-Healing Pivot & "What-If" Simulator',
+      subtitle: 'Dynamic Health Score & Instant Re-routing',
+      tag: 'Self-Healing Pivot (Active)',
+      metric: 'Single-tap auto replan with B2B demand matching',
+      desc: 'Monitors OpenWeather & Google Maps APIs. Simulates alternative timelines and reroutes to nearby partner businesses.',
+    },
+  };
+
+  const current = featureInfo[featureTab] || {
+    title: featureTab.toUpperCase(),
+    subtitle: 'TripShield Innovation Module',
+    tag: 'Feature Preview',
+    metric: 'Real-time Travel Intelligence',
+    desc: 'Advanced decision engine module under active deployment.',
+  };
 
   return (
     <Modal visible transparent animationType="fade">
       <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <Pressable style={{ ...styles.previewCard, backgroundColor: accentColor }} onPress={() => undefined}>
-          <Text style={styles.previewTitle}>{featureTab.toUpperCase()}</Text>
-          <Text style={styles.previewText}>Preview feature coming soon.</Text>
+        <Pressable style={[styles.previewCard, { backgroundColor: accentColor }]} onPress={() => undefined}>
+          <View style={styles.previewHeaderRow}>
+            <View style={styles.previewTagPill}>
+              <Text style={styles.previewTagText}>{current.tag}</Text>
+            </View>
+            <Pressable onPress={onClose} style={styles.previewCloseBtn}>
+              <Text style={styles.previewCloseText}>✕</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.previewTitle}>{current.title}</Text>
+          <Text style={styles.previewMetric}>⚡ {current.metric}</Text>
+          <Text style={styles.previewSubtitle}>{current.subtitle}</Text>
+          <Text style={styles.previewDesc}>{current.desc}</Text>
+
+          {featureTab === 'self-healing' && onOpenSelfHealing ? (
+            <Pressable
+              onPress={() => {
+                onClose();
+                onOpenSelfHealing();
+              }}
+              style={({ pressed }) => [styles.previewLaunchBtn, pressed && styles.pressedGlass]}
+            >
+              <Ionicons name="shield-checkmark" size={14} color="#0f172a" />
+              <Text style={styles.previewLaunchText}>Open Self-Healing Pivot</Text>
+            </Pressable>
+          ) : (
+            <Pressable onPress={onClose} style={styles.previewDismissBtn}>
+              <Text style={styles.previewDismissText}>Back to Journey</Text>
+            </Pressable>
+          )}
         </Pressable>
       </Pressable>
     </Modal>

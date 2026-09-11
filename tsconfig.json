@@ -23,8 +23,7 @@
     "noEmit": true,
     "types": [
       "react",
-      "react-native",
-      "react-dom"
+      "react-native"
     ]
   },
   "include": [
@@ -33,14 +32,22 @@
     "src/types.ts",
     "src/utils/**/*",
     "src/data/**/*",
-    "src/components/screens/SelfHealingScreen.tsx"
+    "src/components/screens/SelfHealingScreen.tsx",
+    "src/components/screens/WhatIfSimulatorScreen.tsx",
+    "src/components/screens/ConsensusScreen.tsx",
+    "src/data/mockUsers.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "vite.config.ts",
     "src/main.tsx",
-    "src/App.tsx"
+    "src/App.tsx",
+    "src/components/screens/HomeScreen.tsx",
+    "src/components/screens/DashboardScreen.tsx",
+    "src/components/screens/LoginScreen.tsx",
+    "src/components/screens/SignUpScreen.tsx",
+    "src/components/screens/WelcomeScreen.tsx"
   ],
   "extends": "./node_modules/expo/tsconfig.base.json"
 }

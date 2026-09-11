@@ -60,7 +60,6 @@ export interface RoomPlan {
   baseScore: number;
   days: TripDay[];
   optimizedDays: TripDay[];
-  extraDays: TripDay[];
   conditions: RoomCondition[];
 }
 
