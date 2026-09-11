@@ -1,94 +1,58 @@
 flowchart TD
 
-  subgraph DEV["1 · Devices"]
-    DV1["iOS / Android<br/>Expo Go, no build step"]
-    DV2["Browser<br/>React Native Web + Vite"]
+  DEV["<b>Devices</b><br/>iOS · Android via Expo Go &nbsp;|&nbsp; Web via React Native Web"]
+
+  subgraph CLIENT["Expo / React Native client &nbsp;—&nbsp; BUILT TODAY"]
+    direction TB
+    APP["<b>App shell</b><br/>bottom navigation · shared theme tokens"]
+
+    F1["<b>Buy Window</b><br/>link to bookable card<br/>price risk · countdown"]
+    F2["<b>Consensus</b><br/>Travel DNA swipe<br/>constraint solver"]
+    F3["<b>Adaptive Ledger</b><br/>line-item split<br/>budget rebalance"]
+    F4["<b>Trip Fix / What-If</b><br/>health score<br/>repaired plan"]
+
+    DATA["<b>Data layer</b><br/>typed trip data · service clients · offline fallback"]
   end
 
-  subgraph UI["2 · Presentation layer &nbsp;—&nbsp; built"]
-    U1["App shell<br/>App.tsx · bottom navigation<br/>Buy Window · Plan · Budget · Fix Trip"]
-    U2["Shared components<br/>ScreenTopBar · LedgerHeader<br/>RouteMapPreview"]
-    U3["Design tokens<br/>src/utils/appTheme.ts<br/>gradient · type · spacing"]
+  subgraph SERVER["Backend &nbsp;—&nbsp; PLANNED"]
+    direction TB
+    PROXY["<b>Serverless proxy</b><br/>/extract · /ocr<br/>keeps the API key off the device"]
+    SUPA["<b>Supabase</b><br/>Postgres · Auth · Storage<br/>trips · votes · expenses · receipts"]
   end
 
-  subgraph FEAT["3 · Feature modules &nbsp;—&nbsp; built"]
-    F1["Buy Window<br/>link to bookable card<br/>price-risk meter · countdown"]
-    F2["Consensus<br/>Travel DNA swipe deck<br/>constraint solver · vote tally"]
-    F3["Adaptive Ledger<br/>line-item split · uneven tax<br/>forward budget rebalance"]
-    F4["Trip Fix / What-If<br/>trip health score<br/>repaired plan · simulation"]
+  subgraph EXT["External services"]
+    direction TB
+    GEM["<b>Google Gemini</b><br/>link extraction · receipt OCR"]
+    METEO["<b>Open-Meteo</b><br/>hourly weather · keyless"]
+    MAPS["<b>ArcGIS static maps</b><br/>route previews · keyless"]
+    BOOK["<b>Booking partner</b><br/>deep link to checkout"]
   end
 
-  subgraph DL["4 · Data access layer &nbsp;—&nbsp; built"]
-    D1["Typed domain data<br/>src/data/tripRooms.ts<br/>trips · stops · expenses"]
-    D2["Service clients<br/>weather · static maps<br/>link extraction (mocked)"]
-    D3["Cache + graceful fallback<br/>bundled weather snapshot<br/>manual-entry path"]
-  end
+  DEV --> APP
+  APP --> F1
+  APP --> F2
+  APP --> F3
+  APP --> F4
+  F1 --> DATA
+  F2 --> DATA
+  F3 --> DATA
+  F4 --> DATA
 
-  subgraph EDGE["5 · Serverless API proxy &nbsp;—&nbsp; planned"]
-    P1["POST /extract<br/>social link to itinerary card"]
-    P2["POST /ocr<br/>receipt image to line items"]
-    P3["Key vault + rate limiting<br/>the Gemini key never ships<br/>inside the client bundle"]
-  end
-
-  subgraph BACK["6 · Supabase &nbsp;—&nbsp; planned"]
-    B1["Postgres<br/>trips · votes · expenses<br/>settlements"]
-    B2["Auth + row-level security<br/>group membership"]
-    B3["Storage<br/>receipt images"]
-  end
-
-  subgraph EXT["7 · External services"]
-    X2["Open-Meteo<br/>hourly forecast by lat/lng<br/>keyless · live today"]
-    X3["ArcGIS World Street Map<br/>static route previews<br/>keyless · live today"]
-    X1["Google Gemini<br/>link extraction · vision OCR"]
-    X4["Flight price source<br/>history for the risk meter"]
-    X5["Booking partner site<br/>deep link to checkout"]
-  end
-
-  DV1 --> U1
-  DV2 --> U1
-  U2 --> U1
-  U3 --> U1
-
-  U1 --> F1
-  U1 --> F2
-  U1 --> F3
-  U1 --> F4
-
-  F1 --> D2
-  F2 --> D1
-  F3 --> D1
-  F4 --> D1
-  F4 --> D2
-  D2 --> D3
-
-  D2 -->|HTTPS · no key| X2
-  D2 -->|static image URL| X3
-  F1 -->|hand off · we never take payment| X5
-
-  D2 -.->|planned| P1
-  F3 -.->|planned| P2
-  D2 -.->|planned| X4
-  D1 -.->|planned · replaces mock data| B1
-  F2 -.->|planned| B2
-
-  P3 --> P1
-  P3 --> P2
-  P1 --> X1
-  P2 --> X1
-  P2 -.-> B3
+  DATA -->|live today| METEO
+  DATA -->|live today| MAPS
+  F1 -->|we hand off, never take payment| BOOK
+  DATA -.->|planned| PROXY
+  DATA -.->|planned| SUPA
+  PROXY --> GEM
 
   classDef built fill:#DCEBFA,stroke:#2C6FAD,stroke-width:2px,color:#10283D;
   classDef planned fill:#FFF3D6,stroke:#C79A2E,stroke-width:2px,color:#3D3110,stroke-dasharray:5 4;
   classDef external fill:#E6F4EA,stroke:#3C8A57,stroke-width:2px,color:#123322;
 
-  class DV1,DV2,U1,U2,U3,F1,F2,F3,F4,D1,D2,D3 built;
-  class P1,P2,P3,B1,B2,B3 planned;
-  class X1,X2,X3,X4,X5 external;
+  class DEV,APP,F1,F2,F3,F4,DATA built;
+  class PROXY,SUPA planned;
+  class GEM,METEO,MAPS,BOOK external;
 
-  style DEV fill:#FFFFFF,stroke:#8A94A6
-  style UI fill:#F4F9FE,stroke:#2C6FAD,stroke-width:2px
-  style FEAT fill:#F4F9FE,stroke:#2C6FAD,stroke-width:2px
-  style DL fill:#F4F9FE,stroke:#2C6FAD,stroke-width:2px
-  style EDGE fill:#FFFBF2,stroke:#C79A2E,stroke-width:2px,stroke-dasharray:6 5
-  style BACK fill:#FFFBF2,stroke:#C79A2E,stroke-width:2px,stroke-dasharray:6 5
+  style CLIENT fill:#F4F9FE,stroke:#2C6FAD,stroke-width:2px
+  style SERVER fill:#FFFBF2,stroke:#C79A2E,stroke-width:2px,stroke-dasharray:6 5
   style EXT fill:#F3FAF5,stroke:#3C8A57,stroke-width:2px
