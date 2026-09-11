@@ -23,7 +23,7 @@ import {
   screenGradientStops,
 } from '../../utils/appTheme';
 import { appThemeStyles } from '../../utils/appThemeStyles';
-import { HeaderBackButton, HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
+import { HeaderBackButton, ScreenTopBar } from '../ScreenTopBar';
 
 interface SelfHealingScreenProps {
   topColor: string;

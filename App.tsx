@@ -579,7 +579,7 @@ function BottomNavigation({
 }) {
   const tabs = [
     { id: 'home' as FeatureTab, label: 'Home', icon: 'home' },
-    { id: 'buy-window' as FeatureTab, label: 'Deals', icon: 'timer' },
+    { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer' },
     { id: 'consensus' as FeatureTab, label: 'Plan', icon: 'sparkles' },
     { id: 'ledger' as FeatureTab, label: 'Budget', icon: 'receipt' },
     { id: 'self-healing' as FeatureTab, label: 'Fix Trip', icon: 'shield-checkmark' },
