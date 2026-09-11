@@ -74,6 +74,8 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const [selectedRoomId, setSelectedRoomId] = useState<string>(savedRoomId);
   const [roomMenuOpen, setRoomMenuOpen] = useState(false);
   const [autoFixed, setAutoFixed] = useState<Record<string, boolean>>(() => ({ ...savedAutoFixed }));
+  const [mediumKeptOriginal, setMediumKeptOriginal] = useState<Record<string, boolean>>({});
+  const [mediumAwaitingConfirm, setMediumAwaitingConfirm] = useState<Record<string, boolean>>({});
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [itineraryGlow, setItineraryGlow] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
@@ -110,6 +112,9 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const healthColor = getHealthColor(tripHealthScore);
   const isLow = tripHealthScore < LOW_TRIP_HEALTH;
   const isOptimal = tripHealthScore >= 80;
+  const isMedium = !isFixed && !isLow && !isOptimal;
+  const keptOriginalPlan = !!mediumKeptOriginal[selectedRoomId];
+  const awaitingMediumConfirm = !!mediumAwaitingConfirm[selectedRoomId];
   const activeConditions = selectedRoom.conditions.filter(c => c.active);
 
   const runAutoFix = () => {
@@ -117,6 +122,27 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
     setItineraryGlow(true);
     setExpandedDay(`${selectedRoomId}-new-${selectedRoom.optimizedDays[0]?.date}`);
     setTimeout(() => setItineraryGlow(false), 1500);
+  };
+
+  const applyMediumReplacement = () => {
+    runAutoFix();
+    setMediumAwaitingConfirm(prev => ({ ...prev, [selectedRoomId]: true }));
+    setMediumKeptOriginal(prev => ({ ...prev, [selectedRoomId]: false }));
+  };
+
+  const keepCurrentPlan = () => {
+    setMediumKeptOriginal(prev => ({ ...prev, [selectedRoomId]: true }));
+    setMediumAwaitingConfirm(prev => ({ ...prev, [selectedRoomId]: false }));
+  };
+
+  const revertToPreviousPlan = () => {
+    setAutoFixed(prev => ({ ...prev, [selectedRoomId]: false }));
+    setMediumAwaitingConfirm(prev => ({ ...prev, [selectedRoomId]: false }));
+    setExpandedDay(null);
+  };
+
+  const confirmOptimizedPlan = () => {
+    setMediumAwaitingConfirm(prev => ({ ...prev, [selectedRoomId]: false }));
   };
 
   const openWeather = async (activity: TripActivity, day: TripDay) => {
@@ -335,6 +361,66 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
               <Pressable onPress={runAutoFix} style={({ pressed }) => [styles.autoFixBtn, pressed && styles.pressed]}>
                 <Text style={styles.autoFixText}>⚡  Auto-Fix Plan</Text>
               </Pressable>
+            </View>
+          ) : null}
+
+          {isMedium && !keptOriginalPlan ? (
+            <View style={[styles.suggestionBox, styles.mediumSuggestionBox]}>
+              <Text style={styles.mediumSuggestionText}>
+                Your trip score is <Text style={{ fontWeight: '700' }}>Medium</Text>. Minor disruptions are building
+                up — you can keep your current plan or let TripShield suggest a stronger replacement itinerary.
+              </Text>
+              <View style={styles.mediumActionRow}>
+                <Pressable
+                  onPress={applyMediumReplacement}
+                  style={({ pressed }) => [styles.mediumPrimaryBtn, pressed && styles.pressed]}
+                >
+                  <Text style={styles.mediumPrimaryBtnText}>Change plan</Text>
+                </Pressable>
+                <Pressable
+                  onPress={keepCurrentPlan}
+                  style={({ pressed }) => [styles.mediumSecondaryBtn, pressed && styles.pressed]}
+                >
+                  <Text style={styles.mediumSecondaryBtnText}>Don&apos;t change plan</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+
+          {isMedium && keptOriginalPlan ? (
+            <View style={styles.keptPlanBox}>
+              <Text style={styles.keptPlanText}>
+                ✓ You chose to keep your current plan. We&apos;ll keep monitoring OpenWeather and Google Maps.
+              </Text>
+              <Pressable
+                onPress={() => setMediumKeptOriginal(prev => ({ ...prev, [selectedRoomId]: false }))}
+                style={({ pressed }) => [styles.mediumLinkBtn, pressed && styles.pressed]}
+              >
+                <Text style={styles.mediumLinkBtnText}>Review replacement plan anyway</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {isFixed && awaitingMediumConfirm ? (
+            <View style={[styles.suggestionBox, styles.mediumConfirmBox]}>
+              <Text style={styles.mediumSuggestionText}>
+                Here is your AI replacement plan above. If it looks good, keep it — or switch back to your previous
+                itinerary anytime.
+              </Text>
+              <View style={styles.mediumActionRow}>
+                <Pressable
+                  onPress={confirmOptimizedPlan}
+                  style={({ pressed }) => [styles.mediumPrimaryBtn, pressed && styles.pressed]}
+                >
+                  <Text style={styles.mediumPrimaryBtnText}>Keep optimized plan</Text>
+                </Pressable>
+                <Pressable
+                  onPress={revertToPreviousPlan}
+                  style={({ pressed }) => [styles.mediumSecondaryBtn, pressed && styles.pressed]}
+                >
+                  <Text style={styles.mediumSecondaryBtnText}>Don&apos;t change plan</Text>
+                </Pressable>
+              </View>
             </View>
           ) : null}
         </View>
@@ -728,6 +814,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   autoFixText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  mediumSuggestionBox: {
+    backgroundColor: '#fff7ed',
+    borderColor: '#fdba74',
+  },
+  mediumSuggestionText: { fontSize: 12, color: '#9a3412', lineHeight: 18 },
+  mediumActionRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  mediumPrimaryBtn: {
+    flex: 1,
+    backgroundColor: '#ea580c',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  mediumPrimaryBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  mediumSecondaryBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#fdba74',
+  },
+  mediumSecondaryBtnText: { color: '#c2410c', fontSize: 12, fontWeight: '700' },
+  keptPlanBox: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: 10,
+    gap: 8,
+  },
+  keptPlanText: { fontSize: 12, color: '#166534', lineHeight: 18 },
+  mediumLinkBtn: { alignSelf: 'flex-start' },
+  mediumLinkBtnText: { fontSize: 12, fontWeight: '700', color: '#2563eb', textDecorationLine: 'underline' },
+  mediumConfirmBox: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#93c5fd',
+  },
   whatIfEntry: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
