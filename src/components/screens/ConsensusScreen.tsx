@@ -1,20 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_USERS, MockUser } from '../../data/mockUsers';
+
+const modeLabel: Record<string, string> = { walk: 'Walk', metro: 'Subway', bus: 'Bus', taxi: 'Taxi', flight: 'Flight', ferry: 'Ferry', rail: 'Rail' };
+const mapsDir = (from: string, to: string) => `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&travelmode=transit`;
+const osmMap = (lat: number, lng: number) => `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=640x280&markers=${lat},${lng},red-pushpin`;
+const openMaps = (url: string) => { Linking.openURL(url).catch(() => undefined); };
 
 interface ConsensusScreenProps {
   topColor: string;
   bottomColor: string;
 }
 
- type ConsensusPhase = 'hub' | 'setup' | 'join' | 'questions' | 'group' | 'suggestions' | 'itinerary' | 'dna' | 'radar' | 'tokens' | 'result';
+ type ConsensusPhase = 'hub' | 'setup' | 'join' | 'questions' | 'group' | 'itinerary' | 'dna' | 'radar' | 'tokens' | 'result';
 
 export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps) {
   const [phase, setPhase] = useState<ConsensusPhase>('hub');
   const [roomCreated, setRoomCreated] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [questionAnswers, setQuestionAnswers] = useState<string[]>([]);
+  const [currentSelection, setCurrentSelection] = useState<string | null>(null);
   const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
   const [showWhy, setShowWhy] = useState(false);
   const [tripName, setTripName] = useState('');
@@ -43,6 +50,10 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
     'Hongdae Nightlife Tour': { 'Hui Min': 'maybe', 'Sarah': 'skip', 'Jason': 'want', 'Mei': 'skip' },
   });
   const [selectedSuggestion, setSelectedSuggestion] = useState<string | null>(null);
+  const [selectedStop, setSelectedStop] = useState<any | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [tripComplete, setTripComplete] = useState(false);
+  const [viewingCompleted, setViewingCompleted] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const [aiThinkingProgress, setAiThinkingProgress] = useState(0);
 
@@ -185,12 +196,17 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
     );
   };
 
-  const answerQuestion = (answer: string) => {
-    const nextAnswers = [...questionAnswers, answer];
+  const selectAnswer = (answer: string) => {
+    setCurrentSelection(answer);
+  };
+
+  const goToNextQuestion = () => {
+    if (!currentSelection) return;
+    const nextAnswers = [...questionAnswers];
+    nextAnswers[questionIndex] = currentSelection;
     setQuestionAnswers(nextAnswers);
-    if (questionIndex === 5) {
-      setPhase('group');
-    } else {
+    setCurrentSelection(null);
+    if (questionIndex < 5) {
       setQuestionIndex(index => index + 1);
     }
   };
@@ -205,8 +221,8 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
 
   const goBackQuestion = () => {
     if (questionIndex > 0) {
+      setCurrentSelection(questionAnswers[questionIndex] || null);
       setQuestionIndex(index => index - 1);
-      setQuestionAnswers(current => current.slice(0, -1));
     }
   };
 
@@ -218,6 +234,20 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
     { label: 'What do you absolutely not want?', emoji: '🚫', options: [{ text: 'Early mornings', emoji: '⏰' }, { text: 'Long walking', emoji: '🦶' }, { text: 'Expensive activities', emoji: '💸' }, { text: 'Outdoor plans in rain', emoji: '🌧️' }] },
     { label: 'Pick your top priority', emoji: '⭐', options: [{ text: 'Food', emoji: '🍜' }, { text: 'Shopping', emoji: '🛍️' }, { text: 'Culture', emoji: '🏯' }, { text: 'Nature', emoji: '🌿' }, { text: 'Nightlife', emoji: '🎵' }] },
   ];
+  const tripInfo = {
+    destination: 'Shenzhen Tech Tour',
+    city: 'Shenzhen',
+    dates: 'Sep 12 - Sep 14, 2026',
+    hotel: 'Renaissance Shenzhen Hotel',
+    hotelPrice: 'RM380/night',
+    hotelRating: '4.6',
+    hotelAddress: 'Futian CBD, Shenzhen',
+    totalBudget: 'RM2,450',
+    budgetPerPerson: 'RM612',
+    currency: '¥',
+    satisfaction: 91,
+  };
+
   const itineraryData: Record<number, Array<{
     time: string;
     place: string;
@@ -229,249 +259,375 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
     transportTime: string;
     rating: string;
     type: string;
+    address: string;
     tips?: string;
+    highlights?: string[];
+    image?: string;
+    lat: number;
+    lng: number;
+    routeFrom: string;
+    routeSummary: string;
+    routeFare: string;
+    routeLegs: { mode: string; instruction: string; line?: string; durationMin: number }[];
+    photoUrl: string;
   }>> = {
     1: [
       {
-        time: '09:00 AM',
-        place: 'Gyeongbokgung Palace',
-        emoji: '🏯',
-        description: 'Main royal palace of the Joseon dynasty. Watch the changing of the guard ceremony.',
-        duration: '2 hours',
-        price: '₩3,000',
-        transport: 'Walk from hotel',
-        transportTime: '5 min',
-        rating: '4.7',
-        type: 'Culture',
-        tips: 'Free entry with hanbok rental'
-      },
-      {
         time: '11:30 AM',
-        place: 'Bukchon Hanok Village',
-        emoji: '🏘️',
-        description: 'Traditional Korean village with historic hanok houses and tea houses.',
-        duration: '1.5 hours',
-        price: 'Free',
-        transport: 'Walk',
-        transportTime: '10 min',
+        place: 'Flight CZ3028 \u2192 SZX Airport',
+        emoji: '\u2708\ufe0f',
+        description: 'Direct flight from Kuala Lumpur to Shenzhen Baoan International Airport. Terminal 3 arrival.',
+        duration: '3h 35m',
+        price: 'RM450',
+        transport: 'Flight CZ3028',
+        transportTime: '3h 35m',
         rating: '4.5',
-        type: 'Culture'
+        type: 'Flight',
+        address: 'Shenzhen Baoan International Airport, Terminal 3',
+        tips: 'Check in at KLIA T1, gate B22',
+        highlights: ['Direct flight', 'Terminal 3', 'Metro connection'],
+        image: 'flight',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8d/Shenzhen_Bao%27an_Airport.jpg',
+        lat: 22.6393, lng: 113.8107,
+        routeFrom: 'Kuala Lumpur International Airport (KUL)',
+        routeSummary: 'Direct flight CZ3028, then Airport Metro Line 11 into Futian.',
+        routeFare: 'Flight booked + Metro \u00a510',
+        routeLegs: [{ mode: 'flight', instruction: 'Check in at KLIA T1, board CZ3028 to SZX T3.', line: 'CZ3028', durationMin: 215 }, { mode: 'walk', instruction: 'Follow signs to Airport East Metro (Line 11), 8 min walk inside T3.', durationMin: 8 }, { mode: 'metro', instruction: 'Ride Line 11 (toward Futian) to Futian Station.', line: 'Metro Line 11', durationMin: 32 }],
       },
       {
         time: '01:00 PM',
-        place: 'Insadong Street',
-        emoji: '',
-        description: 'Traditional arts and crafts street. Great for souvenirs and Korean tea.',
-        duration: '1 hour',
-        price: '₩15,000',
-        transport: 'Walk',
-        transportTime: '8 min',
-        rating: '4.3',
-        type: 'Shopping',
-        tips: 'Try the traditional Korean tea at a tea house'
-      },
-      {
-        time: '02:30 PM',
-        place: 'Myeongdong Street Food',
-        emoji: '🍜',
-        description: 'Famous street food district. Try tteokbokki, hotteok, and Korean fried chicken.',
-        duration: '1.5 hours',
-        price: '₩20,000',
-        transport: 'Metro Line 3',
-        transportTime: '15 min',
+        place: 'Renaissance Shenzhen Hotel',
+        emoji: '\ud83c\udfe8',
+        description: 'Premium 5-star hotel in Futian CBD. Modern rooms with city skyline views, rooftop pool and fitness center.',
+        duration: 'Check-in',
+        price: 'RM380/night',
+        transport: 'Metro Line 11',
+        transportTime: '38 min',
         rating: '4.6',
-        type: 'Food'
+        type: 'Hotel',
+        address: 'Renaissance Shenzhen Hotel, Futian',
+        tips: '3F lobby for check-in, free WiFi',
+        highlights: ['5-star hotel', 'Rooftop pool', 'City views', 'Free breakfast'],
+        image: 'hotel',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/9f/SZ_%E6%B7%B1%E5%9C%B3_Shenzhen_%E7%BE%85%E6%B9%96_Luohu_Dongmen_South_Road_Jiabin_Road_%E5%BD%AD%E5%B9%B4%E8%90%AC%E9%BA%97%E9%85%92%E5%BA%97_Panglin_Renaissance_Hotel_Hotel_1252pm_February_2025_R12S_08.jpg',
+        lat: 22.5369, lng: 114.058,
+        routeFrom: 'SZX Airport T3',
+        routeSummary: 'Airport Metro Line 11 to Futian, then 6-min walk to hotel.',
+        routeFare: '\u00a510 metro',
+        routeLegs: [{ mode: 'metro', instruction: 'Line 11 Airport East \u2192 Futian. Stay in car 4 for the B2 exit.', line: 'Metro Line 11', durationMin: 32 }, { mode: 'walk', instruction: 'Exit 15, walk 450m along Zhongxin 4th Rd to Renaissance lobby.', durationMin: 6 }],
       },
       {
-        time: '04:30 PM',
-        place: 'Namsan Tower (N Seoul Tower)',
-        emoji: '🗼',
-        description: 'Iconic tower with panoramic views of Seoul. Love locks and observation deck.',
-        duration: '2 hours',
-        price: '₩16,000',
-        transport: 'Cable car + walk',
-        transportTime: '20 min',
-        rating: '4.4',
-        type: 'Sightseeing',
-        tips: 'Best views at sunset'
+        time: '03:00 PM',
+        place: 'OCT-LOFT Creative Park',
+        emoji: '\ud83c\udfa8',
+        description: 'Vibrant arts district in converted industrial warehouses. Gallery tours, indie caf\u00e9s, street art, and design studios.',
+        duration: '2.5 hours',
+        price: '\u00a50 (Free)',
+        transport: 'Metro Line 3',
+        transportTime: '36 min',
+        rating: '4.7',
+        type: 'Culture',
+        address: 'OCT-LOFT, Nanshan, Shenzhen',
+        tips: 'North District has the best galleries',
+        highlights: ['Art galleries', 'Street art', 'Indie caf\u00e9s', 'Photo spots'],
+        image: 'octloft',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/59/OCT_LOFT%2C_SHENZHEN_%2822%29.jpg',
+        lat: 22.5362, lng: 113.9854,
+        routeFrom: 'Renaissance Shenzhen Hotel',
+        routeSummary: 'Metro Line 3 + 10-min walk into the loft lanes.',
+        routeFare: '\u00a54 metro',
+        routeLegs: [{ mode: 'walk', instruction: 'Walk to Shopping Park Station (Line 1/3), Exit C.', durationMin: 8 }, { mode: 'metro', instruction: 'Line 3 toward Yitian, alight at Qiaocheng East.', line: 'Metro Line 3', durationMin: 18 }, { mode: 'walk', instruction: 'Exit B, walk Enping St into North District galleries.', durationMin: 10 }],
       },
       {
         time: '07:00 PM',
-        place: 'Dongdaemun Night Market',
-        emoji: '🛍️',
-        description: 'Late-night shopping and street food. Open until 2 AM.',
-        duration: '2 hours',
-        price: '₩30,000',
-        transport: 'Metro Line 4',
-        transportTime: '25 min',
-        rating: '4.2',
-        type: 'Shopping'
+        place: 'Bistro 1873 Cantonese Fusion',
+        emoji: '\ud83c\udf7d\ufe0f',
+        description: 'Award-winning Cantonese fusion restaurant in Xiangmihu. Signature dishes include truffle dim sum and wagyu char siu.',
+        duration: '1.5 hours',
+        price: '\u00a5280/person',
+        transport: 'Metro Line 2',
+        transportTime: '20 min',
+        rating: '4.8',
+        type: 'Food',
+        address: 'Bistro 1873, Xiangmihu, Futian',
+        tips: 'Reservation for 4 pax confirmed',
+        highlights: ['Truffle dim sum', 'Wagyu char siu', 'Ambient lighting', 'Group friendly'],
+        image: 'dinner',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Summer_Pavilion_restaurant%2C_The_Ritz-Carlton_Millenia_Singapore_-_20110928.jpg',
+        lat: 22.547, lng: 114.034,
+        routeFrom: 'OCT-LOFT Creative Park',
+        routeSummary: 'Line 2 to Xiangmihu, then 4-min walk. Taxi backup if rain peaks.',
+        routeFare: '\u00a55 metro / taxi ~\u00a522',
+        routeLegs: [{ mode: 'metro', instruction: 'Walk to Qiaocheng East, Line 2 toward Xinxiu, alight Xiangmihu.', line: 'Metro Line 2', durationMin: 16 }, { mode: 'walk', instruction: 'Exit A, 280m to restaurant porch (covered walkway).', durationMin: 4 }],
       }
     ],
     2: [
       {
-        time: '09:30 AM',
-        place: 'Changdeokgung Palace',
-        emoji: '🏯',
-        description: 'UNESCO World Heritage palace with beautiful secret garden.',
+        time: '09:00 AM',
+        place: 'Huaqiangbei Electronics Market',
+        emoji: '\ud83d\udcbb',
+        description: 'World\'s largest electronics market. Explore SEG Plaza\'s 7 floors of tech gadgets, drones, components, and accessories.',
         duration: '2.5 hours',
-        price: '₩8,000',
-        transport: 'Walk from hotel',
-        transportTime: '10 min',
-        rating: '4.8',
-        type: 'Culture',
-        tips: 'Secret garden tour requires separate booking'
+        price: '\u00a5200 (shopping)',
+        transport: 'Metro Line 7',
+        transportTime: '22 min',
+        rating: '4.5',
+        type: 'Tech',
+        address: 'Huaqiangbei Road, Futian',
+        tips: 'SEG Plaza floors 1-3 are best for gadgets',
+        highlights: ['7 floors of tech', 'Drone demos', 'Custom PC builds', 'Best prices'],
+        image: 'huaqiangbei',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Entrance_of_Huaqiangbei%2C_2017.jpg',
+        lat: 22.546, lng: 114.0857,
+        routeFrom: 'Renaissance Shenzhen Hotel',
+        routeSummary: 'Line 7 direct to Huaqiang North. Covered mall access.',
+        routeFare: '\u00a53 metro',
+        routeLegs: [{ mode: 'walk', instruction: 'Walk to Futian Station, transfer hall to Line 7.', durationMin: 6 }, { mode: 'metro', instruction: 'Line 7 toward Tai\u0101n, alight Huaqiang North.', line: 'Metro Line 7', durationMin: 12 }, { mode: 'walk', instruction: 'Exit A1 into SEG Plaza (fully indoor).', durationMin: 4 }],
       },
       {
-        time: '12:30 PM',
-        place: 'Gwangjang Market',
-        emoji: '',
-        description: 'Historic market famous for bindaetteok (mung bean pancakes) and mayak gimbap.',
+        time: '12:00 PM',
+        place: 'Lianhuashan Park',
+        emoji: '\ud83c\udf3f',
+        description: 'Beautiful urban park with Deng Xiaoping statue at the peak. Panoramic views of Shenzhen\'s skyline and CBD.',
         duration: '1.5 hours',
-        price: '₩18,000',
-        transport: 'Metro Line 1',
-        transportTime: '15 min',
+        price: '\u00a50 (Free)',
+        transport: 'Metro Line 3',
+        transportTime: '24 min',
         rating: '4.6',
-        type: 'Food'
+        type: 'Nature',
+        address: 'Lianhuashan Park, Futian',
+        tips: 'Hike to the statue for the best city view',
+        highlights: ['Deng Xiaoping statue', 'City panorama', 'Peaceful trails', 'Photo ops'],
+        image: 'park',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/dc/Statue_of_Deng_Xiaoping_in_Lianhuashan_Park_Shenzen_China_1310759.jpg',
+        lat: 22.5536, lng: 114.0542,
+        routeFrom: 'Huaqiangbei Electronics Market',
+        routeSummary: "Line 3 to Children\u2019s Palace, then 12-min uphill walk.",
+        routeFare: '\u00a53 metro',
+        routeLegs: [{ mode: 'metro', instruction: "Line 3 one stop to Children\u2019s Palace.", line: 'Metro Line 3', durationMin: 6 }, { mode: 'walk', instruction: 'Exit B, enter south gate, hike main trail to the statue.', durationMin: 18 }],
       },
       {
         time: '02:30 PM',
-        place: 'Dongdaemun Design Plaza',
-        emoji: '🏛️',
-        description: 'Futuristic architecture by Zaha Hadid. Fashion shows and design exhibitions.',
-        duration: '1.5 hours',
-        price: 'Free',
-        transport: 'Walk',
-        transportTime: '12 min',
-        rating: '4.4',
-        type: 'Culture'
-      },
-      {
-        time: '04:30 PM',
-        place: 'Hongdae Shopping District',
-        emoji: '️',
-        description: 'Trendy area with indie brands, street performances, and cafes.',
+        place: 'Tencent HQ Visitor Center',
+        emoji: '\ud83c\udfe2',
+        description: 'Visit the iconic Tencent Binhai Building. Tech exhibition hall, AI demos, and WeChat ecosystem showcase.',
         duration: '2 hours',
-        price: '₩40,000',
-        transport: 'Metro Line 2',
-        transportTime: '20 min',
-        rating: '4.5',
-        type: 'Shopping'
+        price: '\u00a50 (Free)',
+        transport: 'Metro + Bus M486',
+        transportTime: '47 min',
+        rating: '4.4',
+        type: 'Tech',
+        address: 'Tencent Binhai Building, Nanshan',
+        tips: 'Booking required \u2014 confirm at front desk',
+        highlights: ['AI demos', 'WeChat showcase', 'Tech gallery', 'Souvenir shop'],
+        image: 'tencent',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/Tencent_binghai_building202012.jpg',
+        lat: 22.525, lng: 113.935,
+        routeFrom: 'Lianhuashan Park',
+        routeSummary: 'Line 2 to Window of the World, then Bus M486 to Tencent.',
+        routeFare: '\u00a56 metro + \u00a52 bus',
+        routeLegs: [{ mode: 'metro', instruction: "Children\u2019s Palace Line 4 \u2192 Convention & Exhibition Center, transfer Line 2.", line: 'Metro Line 4 + 2', durationMin: 28 }, { mode: 'bus', instruction: 'At Window of the World Exit H, board M486 toward Qianhai.', line: 'Bus M486', durationMin: 14 }, { mode: 'walk', instruction: 'Alight Tencent Binhai, security desk on L1.', durationMin: 5 }],
       },
       {
-        time: '07:00 PM',
-        place: 'Korean BBQ Dinner',
-        emoji: '',
-        description: 'Premium samgyeopsal (pork belly) with soju. Local favorite spot.',
-        duration: '1.5 hours',
-        price: '₩35,000',
-        transport: 'Walk',
-        transportTime: '5 min',
+        time: '06:00 PM',
+        place: 'Shenzhen Bay Seafood Dinner',
+        emoji: '\ud83e\udd90',
+        description: 'Fresh seafood at Sea World plaza in Shekou. Pick your seafood live, cooked to your style. Stunning waterfront sunset views.',
+        duration: '2 hours',
+        price: '\u00a5350/person',
+        transport: 'Bus 72',
+        transportTime: '20 min',
         rating: '4.7',
         type: 'Food',
-        tips: 'Reserve ahead for weekends'
-      },
-      {
-        time: '09:00 PM',
-        place: 'Hongdae Club Street',
-        emoji: '🎵',
-        description: 'Live music bars and clubs. Great nightlife scene.',
-        duration: '2 hours',
-        price: '₩25,000',
-        transport: 'Walk',
-        transportTime: '3 min',
-        rating: '4.3',
-        type: 'Nightlife'
+        address: 'Sea World, Shekou, Nanshan',
+        tips: 'Pick seafood live at the tanks',
+        highlights: ['Live seafood selection', 'Waterfront dining', 'Sunset views', 'Local beer'],
+        image: 'seafood',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6a/Sea_World_in_Shekou_Shenzhen2021.jpg',
+        lat: 22.4818, lng: 113.913,
+        routeFrom: 'Tencent Binhai Building',
+        routeSummary: 'Bus 72 to Sea World Station, 3-min walk to the plaza.',
+        routeFare: '\u00a52 bus',
+        routeLegs: [{ mode: 'bus', instruction: 'Board Bus 72 toward Shekou, alight Sea World Metro.', line: 'Bus 72', durationMin: 16 }, { mode: 'walk', instruction: 'Cross the plaza to the outdoor seafood street.', durationMin: 4 }],
       }
     ],
     3: [
       {
-        time: '10:00 AM',
-        place: 'DMZ Tour',
-        emoji: '🎖️',
-        description: 'Guided tour to the Demilitarized Zone. Visit the 3rd Infiltration Tunnel.',
-        duration: '4 hours',
-        price: '₩65,000',
-        transport: 'Tour bus pickup',
-        transportTime: '60 min',
+        time: '09:30 AM',
+        place: 'Shenzhen Museum of Contemporary Art',
+        emoji: '\ud83c\udfdb\ufe0f',
+        description: 'Stunning modern art museum with rotating exhibitions. Digital art installations and interactive galleries.',
+        duration: '2 hours',
+        price: '\u00a50 (Free)',
+        transport: 'Metro Line 3',
+        transportTime: '12 min',
+        rating: '4.6',
+        type: 'Culture',
+        address: 'Shenzhen Museum of Contemporary Art, Futian',
+        tips: 'VIP fast-pass available at entrance',
+        highlights: ['Digital art', 'Interactive galleries', 'Rotating exhibits', 'Gift shop'],
+        image: 'museum',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/75/SZ_%E6%B7%B1%E5%9C%B3_Shenzhen_Futian_Fuzhong_Road_MOCAPE_Museum_of_Contemporary_Art_%26_Planning_Exhibition_facade_Sept_2017_IX1_03.jpg',
+        lat: 22.5478, lng: 114.0595,
+        routeFrom: 'Renaissance Shenzhen Hotel',
+        routeSummary: "Line 3 two stops to Children\u2019s Palace, Exit D into MOCAE.",
+        routeFare: '\u00a52 metro',
+        routeLegs: [{ mode: 'metro', instruction: "Shopping Park Line 3 \u2192 Children\u2019s Palace.", line: 'Metro Line 3', durationMin: 8 }, { mode: 'walk', instruction: 'Exit D, 3 min through Civic Center underpass (dry).', durationMin: 4 }],
+      },
+      {
+        time: '12:00 PM',
+        place: 'Ping An Finance Center Observation',
+        emoji: '\ud83c\udfd9\ufe0f',
+        description: '116th floor observation deck with 360\u00b0 views of Shenzhen. One of the tallest buildings in the world at 599m.',
+        duration: '1.5 hours',
+        price: '\u00a5200/person',
+        transport: 'Walk',
+        transportTime: '5 min',
         rating: '4.8',
         type: 'Sightseeing',
-        tips: 'Bring passport for ID check'
+        address: 'Ping An Finance Center, 116F, Futian',
+        tips: 'Go on clear day for best views',
+        highlights: ['360\u00b0 city views', '599m height', 'Glass floor section', 'Sky caf\u00e9'],
+        image: 'observation',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fd/%E4%BA%91%E9%99%85%E8%A7%82%E5%85%89%E5%B1%82_2019_-_03.jpg',
+        lat: 22.533, lng: 114.055,
+        routeFrom: 'Shenzhen Museum of Contemporary Art',
+        routeSummary: 'Short walk to Ping An Finance Center.',
+        routeFare: 'Walk',
+        routeLegs: [{ mode: 'walk', instruction: 'Exit museum, walk 5 min along Zhongxin 4th Rd to PAFC tower lobby.', durationMin: 5 }],
       },
       {
-        time: '02:30 PM',
-        place: 'Itaewon International Food',
-        emoji: '',
-        description: 'Diverse international cuisine. Try Middle Eastern or Western food.',
-        duration: '1.5 hours',
-        price: '₩28,000',
-        transport: 'Metro Line 6',
-        transportTime: '30 min',
-        rating: '4.4',
-        type: 'Food'
-      },
-      {
-        time: '04:30 PM',
-        place: 'Gangnam Shopping',
-        emoji: '️',
-        description: 'Upscale shopping district. COEX Mall and luxury brands.',
-        duration: '2 hours',
-        price: '₩50,000',
-        transport: 'Metro Line 9',
-        transportTime: '25 min',
+        time: '02:00 PM',
+        place: 'Coco Park Shopping Mall',
+        emoji: '\ud83d\udecd\ufe0f',
+        description: 'Premium shopping destination with international brands, local designers, and a vibrant food court.',
+        duration: '2.5 hours',
+        price: '\u00a5500 (shopping)',
+        transport: 'Walk',
+        transportTime: '10 min',
         rating: '4.3',
-        type: 'Shopping'
+        type: 'Shopping',
+        address: 'Coco Park, Futian',
+        tips: 'Tax refund available for tourists',
+        highlights: ['International brands', 'Local designers', 'Food court', 'Tax refund'],
+        image: 'shopping',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/0c/SZ_Shenzhen_Futian_Galaxy_CoCo_Park_Shopping_mall_shop_SnowWhite_Wig_July_2025_R12S.jpg',
+        lat: 22.5345, lng: 114.0565,
+        routeFrom: 'Ping An Finance Center',
+        routeSummary: 'Walk to Shopping Park / Coco Park link.',
+        routeFare: 'Walk',
+        routeLegs: [{ mode: 'walk', instruction: 'Walk through the mall link-bridge into Coco Park.', durationMin: 10 }],
       },
       {
-        time: '07:00 PM',
-        place: 'Han River Park',
-        emoji: '',
-        description: 'Rent a bike and enjoy the river views. Chicken and beer picnic.',
+        time: '05:30 PM',
+        place: 'Farewell Dinner \u2014 Hai Di Lao Hotpot',
+        emoji: '\ud83c\udf72',
+        description: 'China\'s most famous hotpot chain. Premium broth bases, fresh ingredients, and interactive dining experience.',
         duration: '2 hours',
-        price: '₩22,000',
-        transport: 'Metro Line 2',
-        transportTime: '20 min',
-        rating: '4.6',
-        type: 'Nature',
-        tips: 'Rent bikes at the park entrance'
-      },
-      {
-        time: '09:30 PM',
-        place: 'Farewell Dinner',
-        emoji: '️',
-        description: 'Fine dining Korean fusion restaurant. Perfect end to the trip.',
-        duration: '2 hours',
-        price: '₩80,000',
-        transport: 'Taxi',
-        transportTime: '15 min',
-        rating: '4.9',
-        type: 'Food'
+        price: '\u00a5180/person',
+        transport: 'Metro Line 1+2',
+        transportTime: '25 min',
+        rating: '4.7',
+        type: 'Food',
+        address: 'Hai Di Lao, MixC, Luohu',
+        tips: 'Try the tomato broth base \u2014 signature',
+        highlights: ['Premium broth', 'Fresh ingredients', 'Interactive dining', 'Group fun'],
+        image: 'hotpot',
+        photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/SZ_%E6%B7%B1%E5%9C%B3_Shenzhen_%E7%A6%8F%E7%94%B0_Futian_%E7%9F%B3%E5%BB%88%E6%99%82%E4%BB%A3%E5%BB%A3%E5%A0%B4_Shixia_Times_Square_mall_shop_%E6%B5%B7%E5%BA%95%E6%92%88_Hai_Hot_Pot_Restaurant_July_2025_R12S_02.jpg',
+        lat: 22.5465, lng: 114.112,
+        routeFrom: 'Coco Park Shopping Mall',
+        routeSummary: 'Line 1 to Grand Theater, transfer Line 2 to Luohu / MixC link.',
+        routeFare: '\u00a56 metro',
+        routeLegs: [{ mode: 'metro', instruction: 'Shopping Park Line 1 \u2192 Grand Theater, transfer Line 2.', line: 'Metro Line 1 + 2', durationMin: 22 }, { mode: 'walk', instruction: 'Exit B, walk 200m to Hai Di Lao MixC entrance.', durationMin: 3 }],
       }
     ]
   };
 
   return (
-    <View style={[styles.page, { backgroundColor: bottomColor }]}> 
-      <View style={[styles.hero, { backgroundColor: topColor }]}> 
-        <View style={styles.heroTitleRow}><Text style={styles.title}>{phase === 'hub' ? 'Trip rooms' : phase === 'setup' ? 'Create a room' : phase === 'join' ? 'Join a room' : phase === 'questions' ? 'Discover your Travel DNA' : phase === 'group' ? 'Your group, understood' : phase === 'suggestions' ? 'Made for your group' : phase === 'itinerary' ? 'Your trip, together' : 'Compromise Engine'}</Text>{phase === 'setup' && <Pressable onPress={() => setPhase('hub')} style={styles.backButton}><Ionicons name="arrow-back" size={17} color="#1e3a8a" /><Text style={styles.backButtonText}>Rooms</Text></Pressable>}</View>
-      </View>
+    <LinearGradient colors={[topColor, bottomColor]} locations={[0, 1]} style={styles.page}> 
+      {/* Header - only show for hub */}
+      {phase === 'hub' && (
+        <View style={styles.hero}>
+          <View style={styles.heroTitleRow}>
+            <Text style={styles.title}>Trip rooms</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Floating back button for room phases */}
+      {phase !== 'hub' && phase !== 'join' && !viewingCompleted && (
+        <Pressable onPress={() => { setPhase('hub'); setViewingCompleted(false); }} style={styles.floatingBack}>
+          <Ionicons name="arrow-back" size={18} color="#1e3a8a" />
+        </Pressable>
+      )}
+
+      {/* Back button for join page */}
+      {phase === 'join' && (
+        <Pressable onPress={() => setPhase('hub')} style={styles.floatingBack}>
+          <Ionicons name="arrow-back" size={18} color="#1e3a8a" />
+        </Pressable>
+      )}
 
       <View style={styles.body}>
-        {phase !== 'hub' && phase !== 'join' && <View style={styles.phaseRail}>
-          {(['setup', 'questions', 'group', 'suggestions', 'itinerary'] as const).map((item, index) => <View key={item} style={styles.phaseItem}><View style={[styles.phaseDot, phase === item && styles.phaseDotActive]}><Text style={styles.phaseDotText}>{index + 1}</Text></View><Text style={[styles.phaseLabel, phase === item && styles.phaseLabelActive]}>{item === 'setup' ? 'TRIP' : item === 'questions' ? 'DNA' : item === 'group' ? 'GROUP' : item === 'suggestions' ? 'OPTIONS' : 'PLAN'}</Text></View>)}
-        </View>}
+        {phase !== 'hub' && phase !== 'join' && (
+          <View style={styles.phaseRail}>
+            {(['setup', 'questions', 'group', 'itinerary'] as const).map((item, index) => {
+              const phases = ['setup', 'questions', 'group', 'itinerary'];
+              const currentIndex = phases.indexOf(phase);
+              const isCompleted = index < currentIndex;
+              const isActive = index === currentIndex;
+              return (
+                <View key={item} style={styles.phaseItem}>
+                  <View style={styles.phaseDotWrapper}>
+                    {index > 0 && <View style={[styles.phaseLine, isCompleted ? styles.phaseLineCompleted : styles.phaseLineInactive]} />}
+                    <View style={[styles.phaseDot, isActive ? styles.phaseDotActive : isCompleted ? styles.phaseDotCompleted : styles.phaseDotInactive]}>
+                      <Text style={[styles.phaseDotText, isActive ? styles.phaseDotTextActive : isCompleted ? styles.phaseDotTextCompleted : styles.phaseDotTextInactive]}>{isCompleted ? '✓' : index + 1}</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.phaseLabel, isActive ? styles.phaseLabelActive : isCompleted ? styles.phaseLabelCompleted : styles.phaseLabelInactive]}>{item === 'setup' ? 'TRIP' : item === 'questions' ? 'DNA' : item === 'group' ? 'GROUP' : 'PLAN'}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {phase === 'hub' ? (
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
           <View style={styles.hubPanel}>
             <Text style={styles.eyebrowDark}>YOUR TRIP ROOMS</Text>
             <Text style={styles.panelTitle}>Pick up where you left off.</Text>
-            <Text style={styles.panelHint}>Create a new room or join a friend before sharing your Travel DNA.</Text>
+
+            {/* Action Buttons */}
+            <View style={styles.hubActions}>
+              <Pressable onPress={() => setPhase('setup')} style={styles.hubActionButton}>
+                <View style={styles.hubActionIcon}><Ionicons name="add" size={20} color="#fff" /></View>
+                <View style={styles.hubActionText}>
+                  <Text style={styles.hubActionTitle}>Create new room</Text>
+                  <Text style={styles.hubActionSub}>Start a new trip</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+              </Pressable>
+              <Pressable onPress={() => setPhase('join')} style={styles.hubActionButton}>
+                <View style={[styles.hubActionIcon, { backgroundColor: '#7c3aed' }]}><Ionicons name="key-outline" size={20} color="#fff" /></View>
+                <View style={styles.hubActionText}>
+                  <Text style={styles.hubActionTitle}>Join a room</Text>
+                  <Text style={styles.hubActionSub}>Enter referral code</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+              </Pressable>
+            </View>
+
+            {/* History Rooms */}
+            <Text style={styles.sectionDivider}>RECENT ROOMS</Text>
             <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Seoul Friends Trip</Text><Text style={styles.historyMeta}>Seoul · 12 - 16 December 2026</Text></View><Text style={styles.statusDone}>PLANNING</Text></View><View style={styles.historyProgress}><View style={[styles.historyProgressFill, { width: '64%' }]} /></View><Text style={styles.historyStatus}>3 of 4 preferences collected · AI analysis ready soon</Text><Pressable onPress={() => { setTripName('Seoul Friends Trip'); setRoomCreated(true); setPhase('questions'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>Continue planning →</Text></Pressable></View>
-            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Tokyo 2025</Text><Text style={styles.historyMeta}>Tokyo · Completed itinerary</Text></View><Text style={styles.statusComplete}>COMPLETE</Text></View><Text style={styles.historyStatus}>91% group satisfaction · 4 travellers</Text></View>
-            <Text style={styles.sectionDivider}>START SOMETHING NEW</Text>
-            <Pressable onPress={() => setPhase('setup')} style={styles.primaryRoomButton}><Ionicons name="add" size={18} color="#fff" /><Text style={styles.primaryRoomButtonText}>Create a new room</Text></Pressable>
-            <Pressable onPress={() => setPhase('join')} style={styles.secondaryRoomButton}><Ionicons name="key-outline" size={17} color="#2563eb" /><Text style={styles.secondaryRoomButtonText}>Join with referral code</Text></Pressable>
+            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Tokyo 2025</Text><Text style={styles.historyMeta}>Tokyo · Completed itinerary</Text></View><Text style={styles.statusComplete}>COMPLETE</Text></View><Text style={styles.historyStatus}>91% group satisfaction · 4 travellers</Text><Pressable onPress={() => { setTripName('Tokyo 2025'); setViewingCompleted(true); setPhase('itinerary'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>View plan →</Text></Pressable></View>
+            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Bali Beach Escape</Text><Text style={styles.historyMeta}>Bali · 8 - 14 March 2026</Text></View><Text style={styles.statusDone}>PLANNING</Text></View><View style={styles.historyProgress}><View style={[styles.historyProgressFill, { width: '40%' }]} /></View><Text style={styles.historyStatus}>2 of 5 preferences collected · Waiting on 3 members</Text><Pressable onPress={() => { setTripName('Bali Beach Escape'); setRoomCreated(true); setPhase('questions'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>Continue planning →</Text></Pressable></View>
+            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>London Weekend</Text><Text style={styles.historyMeta}>London · 20 - 22 January 2026</Text></View><Text style={styles.statusComplete}>COMPLETE</Text></View><Text style={styles.historyStatus}>87% group satisfaction · 2 travellers</Text><Pressable onPress={() => { setTripName('London Weekend'); setViewingCompleted(true); setPhase('itinerary'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>View plan →</Text></Pressable></View>
+            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Singapore Food Trail</Text><Text style={styles.historyMeta}>Singapore · 5 - 7 February 2026</Text></View><Text style={styles.statusDone}>PLANNING</Text></View><View style={styles.historyProgress}><View style={[styles.historyProgressFill, { width: '80%' }]} /></View><Text style={styles.historyStatus}>4 of 5 preferences collected · AI analysis ready soon</Text><Pressable onPress={() => { setTripName('Singapore Food Trail'); setRoomCreated(true); setPhase('questions'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>Continue planning →</Text></Pressable></View>
+            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Bangkok Adventure</Text><Text style={styles.historyMeta}>Bangkok · 10 - 15 April 2025</Text></View><Text style={styles.statusComplete}>COMPLETE</Text></View><Text style={styles.historyStatus}>95% group satisfaction · 6 travellers</Text><Pressable onPress={() => { setTripName('Bangkok Adventure'); setViewingCompleted(true); setPhase('itinerary'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>View plan →</Text></Pressable></View>
+            <View style={styles.historyCard}><View style={styles.historyTop}><View><Text style={styles.historyTitle}>Paris Honeymoon</Text><Text style={styles.historyMeta}>Paris · 18 - 25 June 2025</Text></View><Text style={styles.statusComplete}>COMPLETE</Text></View><Text style={styles.historyStatus}>98% group satisfaction · 2 travellers</Text><Pressable onPress={() => { setTripName('Paris Honeymoon'); setViewingCompleted(true); setPhase('itinerary'); }} style={styles.resumeButton}><Text style={styles.resumeButtonText}>View plan →</Text></Pressable></View>
           </View>
+          </ScrollView>
         ) : phase === 'join' ? (
           <View style={styles.joinPanel}><Text style={styles.eyebrowDark}>JOIN A TRIP ROOM</Text><Text style={styles.panelTitle}>Your friend saved you a seat.</Text><Text style={styles.panelHint}>Enter the referral code from your invite link to join the room and answer your own Travel DNA quiz.</Text><Text style={styles.fieldLabel}>REFERRAL CODE</Text><TextInput autoCapitalize="characters" value={referralCode} onChangeText={setReferralCode} placeholder="e.g. SEOU-2026" placeholderTextColor="#94a3b8" style={styles.textInput} /><View style={styles.referralHint}><Ionicons name="link-outline" size={16} color="#2563eb" /><Text style={styles.referralHintText}>You can find this code after /join/ in the shared link.</Text></View><Pressable disabled={!referralCode.trim()} onPress={joinExistingRoom} style={[styles.nextStepButton, !referralCode.trim() && styles.nextStepDisabled]}><Text style={styles.nextStepText}>Join room and start quiz →</Text></Pressable><Pressable onPress={() => setPhase('hub')} style={styles.backToRooms}><Text style={styles.backToRoomsText}>Back to trip rooms</Text></Pressable></View>
         ) : phase === 'setup' ? (
@@ -561,7 +717,7 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
               <View style={styles.questionCardInner}>
                 <View style={styles.questionProgressRow}>
                   {[0,1,2,3,4,5].map(i => (
-                    <Pressable key={i} onPress={() => { if (i < questionIndex || questionAnswers[i]) { setQuestionIndex(i); setQuestionAnswers(current => current.slice(0, i)); } }} style={[styles.progressDotOuter, i <= questionIndex && { backgroundColor: getQuestionColor(questionIndex) }]}>
+                    <Pressable key={i} onPress={() => { if (i < questionIndex || questionAnswers[i]) { setCurrentSelection(questionAnswers[i] || null); setQuestionIndex(i); } }} style={[styles.progressDotOuter, i <= questionIndex && { backgroundColor: getQuestionColor(questionIndex) }]}>
                       <Text style={[styles.progressDotInner, i <= questionIndex && styles.progressDotInnerActive]}>{i + 1}</Text>
                     </Pressable>
                   ))}
@@ -573,30 +729,43 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
               </View>
             </View>
             <View style={styles.answerGrid}>
-              {questions[questionIndex].options.map((option, idx) => (
-                <Pressable key={option.text} onPress={() => answerQuestion(option.text)} style={[styles.answerChoiceNew, { borderLeftColor: getQuestionColor(questionIndex) }]}>
-                  <View style={[styles.answerEmojiCircle, { backgroundColor: getQuestionColor(questionIndex) + '18' }]}>
-                    <Text style={styles.answerEmoji}>{option.emoji}</Text>
-                  </View>
-                  <Text style={styles.answerChoiceText}>{option.text}</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />
-                </Pressable>
-              ))}
+              {questions[questionIndex].options.map((option, idx) => {
+                const isSelected = currentSelection === option.text;
+                return (
+                  <Pressable key={option.text} onPress={() => selectAnswer(option.text)} style={[styles.answerChoiceNew, { backgroundColor: isSelected ? '#eff6ff' : '#fff', borderColor: isSelected ? '#2563eb' : '#e2e8f0', borderWidth: isSelected ? 2 : 1 }]}>
+                    <View style={[styles.answerEmojiCircle, { backgroundColor: isSelected ? '#2563eb' : '#f1f5f9' }]}>
+                      <Text style={styles.answerEmoji}>{option.emoji}</Text>
+                    </View>
+                    <Text style={[styles.answerChoiceText, isSelected && { color: '#1e40af', fontWeight: '700' }]}>{option.text}</Text>
+                    {isSelected ? <Ionicons name="checkmark-circle" size={22} color="#2563eb" /> : <Ionicons name="chevron-forward" size={16} color="#cbd5e1" />}
+                  </Pressable>
+                );
+              })}
             </View>
             <View style={styles.questionNavRow}>
               <Pressable onPress={goBackQuestion} disabled={questionIndex === 0} style={[styles.questionNavButton, questionIndex === 0 && styles.questionNavDisabled]}>
                 <Ionicons name="arrow-back" size={16} color={questionIndex === 0 ? '#cbd5e1' : '#0f172a'} />
                 <Text style={[styles.questionNavText, questionIndex === 0 && styles.questionNavTextDisabled]}>Back</Text>
               </Pressable>
-              <Text style={styles.questionNavHint}>{questionAnswers.length} of 6 answered</Text>
+              <Text style={styles.questionNavHint}>{questionAnswers.filter(a => a).length + (currentSelection ? 1 : 0)} of 6 answered</Text>
               {questionIndex < 5 && (
-                <Pressable onPress={() => {}} disabled style={styles.questionNavButton}>
-                  <Text style={styles.questionNavText}>Next</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#0f172a" />
+                <Pressable onPress={goToNextQuestion} disabled={!currentSelection} style={[styles.questionNavButton, !currentSelection && styles.questionNavDisabled]}>
+                  <Text style={[styles.questionNavText, !currentSelection && styles.questionNavTextDisabled]}>Next</Text>
+                  <Ionicons name="arrow-forward" size={16} color={!currentSelection ? '#cbd5e1' : '#0f172a'} />
                 </Pressable>
               )}
               {questionIndex === 5 && <View style={{ width: 80 }} />}
             </View>
+            {(questionAnswers.filter(a => a).length === 6 || (questionIndex === 5 && currentSelection)) && (
+              <Pressable onPress={() => {
+                const finalAnswers = [...questionAnswers];
+                finalAnswers[5] = currentSelection || finalAnswers[5];
+                setQuestionAnswers(finalAnswers);
+                setPhase('group');
+              }} style={[styles.nextStepButton, { backgroundColor: '#2563eb', marginTop: 16 }]}>
+                <Text style={styles.nextStepText}>✓ Submit my Travel DNA →</Text>
+              </Pressable>
+            )}
           </View>
           </ScrollView>
         ) : phase === 'group' ? (
@@ -736,160 +905,127 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
               </View>
             </View>
 
-            <Pressable onPress={() => advance('suggestions')} style={styles.nextStepButton}><Text style={styles.nextStepText}>Generate group options →</Text></Pressable>
+            <View style={{ gap: 10 }}>
+              <Pressable onPress={() => advance('itinerary')} style={styles.nextStepButton}><Text style={styles.nextStepText}>Build trip plan →</Text></Pressable>
+              <Pressable onPress={() => {
+                setTripComplete(true);
+                Alert.alert('Analysis saved!', 'This group analysis has been saved to your trip room. You can always come back to review it.', [
+                  { text: 'Continue to plan', onPress: () => advance('itinerary') },
+                  { text: 'Back to rooms', onPress: () => { setPhase('hub'); setViewingCompleted(true); } },
+                ]);
+              }} style={[styles.nextStepButton, { backgroundColor: '#2563eb' }]}><Text style={styles.nextStepText}>💾 Keep this analysis</Text></Pressable>
+            </View>
             </>}
           </View>
           </ScrollView>
-        ) : phase === 'suggestions' ? (
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-          <View style={styles.suggestionsPanel}>
-            <Text style={styles.eyebrowDark}>AI-CURATED OPTIONS</Text>
-            <Text style={styles.panelTitle}>Built from your group DNA.</Text>
-            <Text style={styles.panelHint}>Each member can vote on every option. TripShield finds the fairest compromise.</Text>
-
-            {/* Consensus Overview */}
-            <View style={styles.consensusOverview}>
-              <View style={styles.consensusStat}>
-                <Text style={styles.consensusStatValue}>5</Text>
-                <Text style={styles.consensusStatLabel}>Options</Text>
-              </View>
-              <View style={styles.consensusDivider} />
-              <View style={styles.consensusStat}>
-                <Text style={styles.consensusStatValue}>4</Text>
-                <Text style={styles.consensusStatLabel}>Members</Text>
-              </View>
-              <View style={styles.consensusDivider} />
-              <View style={styles.consensusStat}>
-                <Text style={styles.consensusStatValue}>18</Text>
-                <Text style={styles.consensusStatLabel}>Votes Cast</Text>
-              </View>
-            </View>
-
-            {/* Option Cards */}
-            {[
-              { emoji: '🍜', name: 'Korean Food Tour', score: 94, tags: ['Food', 'Low Walking', 'Budget-Friendly'], detail: 'Guided food crawl through Gwangjang Market & Myeongdong. 6 stops, 3 hours.', budget: '₩25,000', duration: '3 hours', walking: 'Low' },
-              { emoji: '🛍️', name: 'Myeongdong + Street Food', score: 88, tags: ['Shopping', 'Food', 'Moderate Walking'], detail: 'Shopping district with street food alleys. Mix of brands and local snacks.', budget: '₩40,000', duration: '4 hours', walking: 'Moderate' },
-              { emoji: '🏯', name: 'Palace + Traditional Village', score: 72, tags: ['Culture', 'History', 'Higher Walking'], detail: 'Gyeongbokgung Palace, Bukchon Hanok Village, and Insadong tea houses.', budget: '₩15,000', duration: '5 hours', walking: 'High' },
-              { emoji: '🎖️', name: 'DMZ + Han River Experience', score: 68, tags: ['Sightseeing', 'Nature', 'Full Day'], detail: 'Morning DMZ tour, afternoon Han River Park bike ride and picnic.', budget: '₩70,000', duration: '8 hours', walking: 'Moderate' },
-              { emoji: '🎵', name: 'Hongdae Nightlife Tour', score: 55, tags: ['Nightlife', 'Music', 'Late Night'], detail: 'Live music bars, indie performances, and club scene in Hongdae.', budget: '₩35,000', duration: '4 hours', walking: 'Low' },
-            ].map(option => {
-              const votes = memberVotes[option.name] || {};
-              const wantCount = Object.values(votes).filter(v => v === 'want').length;
-              const maybeCount = Object.values(votes).filter(v => v === 'maybe').length;
-              const skipCount = Object.values(votes).filter(v => v === 'skip').length;
-              const totalVotes = Object.keys(votes).length;
-              const isExpanded = selectedSuggestion === option.name;
-              return (
-                <View key={option.name} style={styles.optionCard}>
-                  <Pressable onPress={() => setSelectedSuggestion(isExpanded ? null : option.name)}>
-                    <View style={styles.optionHeader}>
-                      <Text style={styles.optionEmoji}>{option.emoji}</Text>
-                      <View style={styles.optionInfo}>
-                        <Text style={styles.optionName}>{option.name}</Text>
-                        <View style={styles.optionTags}>
-                          {option.tags.map(tag => <Text key={tag} style={styles.optionTag}>{tag}</Text>)}
-                        </View>
-                      </View>
-                      <View style={styles.optionScoreWrap}>
-                        <Text style={[styles.optionScore, { color: option.score >= 80 ? '#059669' : option.score >= 65 ? '#d97706' : '#dc2626' }]}>{option.score}%</Text>
-                        <Text style={styles.optionScoreLabel}>match</Text>
-                      </View>
-                    </View>
-                  </Pressable>
-
-                  {/* Vote Summary Bar */}
-                  <View style={styles.voteSummary}>
-                    <View style={styles.voteBarBg}>
-                      {totalVotes > 0 && <View style={[styles.voteBarWant, { width: `${(wantCount / totalVotes) * 100}%` }]} />}
-                      {totalVotes > 0 && <View style={[styles.voteBarMaybe, { width: `${(maybeCount / totalVotes) * 100}%` }]} />}
-                    </View>
-                    <View style={styles.voteCounts}>
-                      <Text style={styles.voteCountWant}>{wantCount} want</Text>
-                      <Text style={styles.voteCountMaybe}>{maybeCount} maybe</Text>
-                      <Text style={styles.voteCountSkip}>{skipCount} skip</Text>
-                    </View>
-                  </View>
-
-                  {/* Expanded Details */}
-                  {isExpanded && (
-                    <View style={styles.optionDetails}>
-                      <Text style={styles.optionDetailText}>{option.detail}</Text>
-                      <View style={styles.optionMetaRow}>
-                        <View style={styles.optionMetaItem}><Ionicons name="cash-outline" size={13} color="#64748b" /><Text style={styles.optionMetaText}>{option.budget}</Text></View>
-                        <View style={styles.optionMetaItem}><Ionicons name="time-outline" size={13} color="#64748b" /><Text style={styles.optionMetaText}>{option.duration}</Text></View>
-                        <View style={styles.optionMetaItem}><Ionicons name="walk-outline" size={13} color="#64748b" /><Text style={styles.optionMetaText}>{option.walking}</Text></View>
-                      </View>
-
-                      {/* Per-Member Votes */}
-                      <Text style={styles.memberVoteTitle}>MEMBER VOTES</Text>
-                      {Object.entries(votes).map(([member, vote]) => (
-                        <View key={member} style={styles.memberVoteRow}>
-                          <View style={styles.memberVoteAvatar}><Text style={styles.memberVoteAvatarText}>{member[0]}</Text></View>
-                          <Text style={styles.memberVoteName}>{member}</Text>
-                          <View style={styles.voteButtons}>
-                            {(['want', 'maybe', 'skip'] as const).map(v => (
-                              <Pressable key={v} onPress={() => castVote(option.name, member, v)} style={[styles.voteButton, vote === v && (v === 'want' ? styles.voteButtonWant : v === 'maybe' ? styles.voteButtonMaybe : styles.voteButtonSkip)]}>
-                                <Text style={[styles.voteButtonText, vote === v && styles.voteButtonTextActive]}>{v === 'want' ? '❤️' : v === 'maybe' ? '🤔' : '❌'}</Text>
-                              </Pressable>
-                            ))}
-                          </View>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-
-            <Text style={styles.swipeNote}>Tap any option to see details and adjust member votes.</Text>
-            <Pressable onPress={() => advance('itinerary')} style={styles.nextStepButton}><Text style={styles.nextStepText}>Build itinerary from top picks →</Text></Pressable>
-          </View>
-          </ScrollView>
         ) : phase === 'itinerary' ? (
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
           <View style={styles.itineraryPanel}>
-            <Text style={styles.eyebrowDark}>AI COMPROMISE PLAN</Text>
-            <View style={styles.itineraryTitleRow}>
-              <Text style={styles.panelTitle}>Seoul Trip</Text>
-              <Text style={styles.satisfaction}>91% fit</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Text style={styles.eyebrowDark}>AI-CURATED TRIP PLAN</Text>
+              {viewingCompleted && <View style={{ backgroundColor: '#059669', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 }}><Text style={{ color: '#fff', fontSize: 9, fontWeight: '900' }}>✓ COMPLETED</Text></View>}
             </View>
+            <View style={styles.itineraryHeader}>
+              <View>
+                <Text style={styles.itineraryDestination}>{tripInfo.destination}</Text>
+                <Text style={styles.itineraryDates}>{tripInfo.dates}</Text>
+              </View>
+              <View style={styles.itineraryBadge}>
+                <Text style={styles.itineraryBadgeValue}>{tripInfo.satisfaction}%</Text>
+                <Text style={styles.itineraryBadgeLabel}>group fit</Text>
+              </View>
+            </View>
+
+            {/* Hotel Card */}
+            <View style={styles.hotelCard}>
+              <View style={styles.hotelHeader}>
+                <View style={styles.hotelIcon}><Ionicons name="bed-outline" size={18} color="#2563eb" /></View>
+                <View style={styles.hotelInfo}>
+                  <Text style={styles.hotelName}>{tripInfo.hotel}</Text>
+                  <Text style={styles.hotelAddress}>{tripInfo.hotelAddress}</Text>
+                </View>
+                <View style={styles.hotelRating}>
+                  <Ionicons name="star" size={14} color="#f59e0b" />
+                  <Text style={styles.hotelRatingText}>{tripInfo.hotelRating}</Text>
+                </View>
+              </View>
+              <View style={styles.hotelPriceRow}>
+                <Text style={styles.hotelPrice}>{tripInfo.hotelPrice}</Text>
+                <Text style={styles.hotelPriceNote}>per night · 2 rooms</Text>
+              </View>
+            </View>
+
+            {/* Day Selector */}
             <View style={styles.daySelector}>
               {[1, 2, 3].map(day => (
                 <Pressable key={day} onPress={() => setSelectedDay(day)} style={[styles.dayButton, selectedDay === day && styles.dayButtonActive]}>
                   <Text style={[styles.dayButtonText, selectedDay === day && styles.dayButtonTextActive]}>Day {day}</Text>
+                  <Text style={[styles.dayButtonSub, selectedDay === day && styles.dayButtonTextActive]}>{day === 1 ? 'Arrival' : day === 2 ? 'Tech Tour' : 'Culture'}</Text>
                 </Pressable>
               ))}
             </View>
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.itineraryScroll}>
-              {itineraryData[selectedDay].map((stop, index) => (
-                <View key={index}>
-                  {index > 0 && <View style={styles.transportConnector}><Ionicons name="navigate" size={12} color="#2563eb" /><Text style={styles.transportText}>{stop.transport} · {stop.transportTime}</Text></View>}
+
+            {/* Stops */}
+            {itineraryData[selectedDay].map((stop, index) => (
+              <View key={index}>
+                {index > 0 && <View style={styles.transportConnector}><Ionicons name="navigate" size={12} color="#2563eb" /><Text style={styles.transportText}>{stop.transport} · {stop.transportTime}</Text></View>}
+                <Pressable onPress={() => setSelectedStop(stop)}>
                   <View style={styles.stopCard}>
                     <View style={styles.stopHeader}>
-                      <Text style={styles.stopEmoji}>{stop.emoji}</Text>
+                      <View style={styles.stopPhotoWrap}>
+                        {failedImages.has(stop.photoUrl) ? (
+                          <View style={[styles.stopPhotoThumb, { backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 24 }}>{stop.emoji}</Text></View>
+                        ) : (
+                          <Image source={{ uri: stop.photoUrl }} style={styles.stopPhotoThumb} onError={() => setFailedImages(prev => new Set(prev).add(stop.photoUrl))} />
+                        )}
+                      </View>
                       <View style={styles.stopInfo}>
                         <Text style={styles.stopTime}>{stop.time}</Text>
                         <Text style={styles.stopTitle}>{stop.place}</Text>
+                        <Text style={styles.stopAddress}>{stop.address}</Text>
                       </View>
-                      <View style={styles.stopTypeBadge}><Text style={styles.stopTypeText}>{stop.type}</Text></View>
+                      <View style={[styles.stopTypeBadge, stop.type === 'Flight' ? styles.badgeFlight : stop.type === 'Hotel' ? styles.badgeHotel : stop.type === 'Food' ? styles.badgeFood : stop.type === 'Tech' ? styles.badgeTech : stop.type === 'Culture' ? styles.badgeCulture : stop.type === 'Nature' ? styles.badgeNature : stop.type === 'Shopping' ? styles.badgeShopping : styles.badgeDefault]}><Text style={styles.stopTypeText}>{stop.type}</Text></View>
                     </View>
                     <Text style={styles.stopDescription}>{stop.description}</Text>
+                    {stop.highlights && (
+                      <View style={styles.stopHighlights}>
+                        {stop.highlights.map((h, hi) => <Text key={hi} style={styles.stopHighlightTag}>{h}</Text>)}
+                      </View>
+                    )}
                     <View style={styles.stopDetails}>
                       <View style={styles.stopDetailItem}><Ionicons name="time-outline" size={14} color="#64748b" /><Text style={styles.stopDetailText}>{stop.duration}</Text></View>
                       <View style={styles.stopDetailItem}><Ionicons name="cash-outline" size={14} color="#64748b" /><Text style={styles.stopDetailText}>{stop.price}</Text></View>
                       <View style={styles.stopDetailItem}><Ionicons name="star" size={14} color="#f59e0b" /><Text style={styles.stopDetailText}>{stop.rating}</Text></View>
                     </View>
                     {stop.tips && <View style={styles.stopTips}><Ionicons name="bulb" size={12} color="#2563eb" /><Text style={styles.stopTipsText}>{stop.tips}</Text></View>}
+                    <View style={styles.stopViewDetails}><Ionicons name="chevron-forward" size={14} color="#2563eb" /><Text style={styles.stopViewDetailsText}>Tap for details</Text></View>
                   </View>
-                </View>
-              ))}
-            </ScrollView>
+                </Pressable>
+              </View>
+            ))}
+
+            {/* Day Summary */}
             <View style={styles.daySummary}>
-              <View style={styles.summaryRow}><Text style={styles.summaryLabel}>Total estimated cost</Text><Text style={styles.summaryValue}>₩{itineraryData[selectedDay].reduce((sum, stop) => sum + (parseInt(stop.price.replace(/[^0-9]/g, '')) || 0), 0).toLocaleString()}</Text></View>
+              <View style={styles.summaryRow}><Text style={styles.summaryLabel}>Day estimated cost</Text><Text style={styles.summaryValue}>{tripInfo.currency}{itineraryData[selectedDay].reduce((sum, stop) => sum + (parseInt(stop.price.replace(/[^0-9]/g, '')) || 0), 0).toLocaleString()}</Text></View>
               <View style={styles.summaryRow}><Text style={styles.summaryLabel}>Total duration</Text><Text style={styles.summaryValue}>{itineraryData[selectedDay].reduce((sum, stop) => sum + (parseFloat(stop.duration) || 0), 0).toFixed(1)} hours</Text></View>
             </View>
-            <View style={styles.planReason}><Text style={styles.planReasonTitle}>Why this works</Text><Text style={styles.planReasonText}>Food matches the group&apos;s top priority, walking stays low, and shopping gets a flexible afternoon slot.</Text></View>
-            <Pressable onPress={() => setPhase('setup')} style={styles.nextStepButton}><Text style={styles.nextStepText}>Plan another day →</Text></Pressable>
+
+            {/* Trip Budget Overview */}
+            <View style={styles.budgetCard}>
+              <Text style={styles.budgetTitle}>TRIP BUDGET OVERVIEW</Text>
+              <View style={styles.budgetRow}><Text style={styles.budgetLabel}>Total estimated budget</Text><Text style={styles.budgetValue}>{tripInfo.totalBudget}</Text></View>
+              <View style={styles.budgetRow}><Text style={styles.budgetLabel}>Per person (4 travellers)</Text><Text style={styles.budgetValue}>{tripInfo.budgetPerPerson}</Text></View>
+              <View style={styles.budgetRow}><Text style={styles.budgetLabel}>Accommodation</Text><Text style={styles.budgetValue}>{tripInfo.hotelPrice} x 2 nights</Text></View>
+            </View>
+
+            <View style={styles.planReason}><Text style={styles.planReasonTitle}>Why this plan works</Text><Text style={styles.planReasonText}>Tech visits match the group\'s interests, food experiences are prioritized, and walking stays comfortable. Indoor options available for rainy days.</Text></View>
+            {!tripComplete ? (
+              <Pressable onPress={() => setTripComplete(true)} style={[styles.nextStepButton, { backgroundColor: '#059669' }]}><Text style={styles.nextStepText}>✓ Mark trip as complete</Text></Pressable>
+            ) : (
+              <Pressable onPress={() => { setPhase('hub'); setViewingCompleted(true); }} style={styles.nextStepButton}><Text style={styles.nextStepText}>Back to rooms →</Text></Pressable>
+            )}
           </View>
+          </ScrollView>
         ) : phase === 'result' ? (
           <View style={styles.lockedCard}>
             <View style={styles.lockIcon}><Text style={styles.lockIconText}>✓</Text></View>
@@ -929,7 +1065,102 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+
+      {/* Place Detail Modal */}
+      <Modal visible={selectedStop !== null} transparent animationType="slide" onRequestClose={() => setSelectedStop(null)}>
+        <Pressable style={styles.detailBackdrop} onPress={() => setSelectedStop(null)}>
+          <Pressable style={styles.detailSheet} onPress={() => undefined}>
+            <View style={styles.detailHandle} />
+            <Pressable onPress={() => setSelectedStop(null)} style={styles.detailClose}><Ionicons name="close" size={20} color="#475569" /></Pressable>
+            {selectedStop && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Place Image Placeholder */}
+                {/* Real Place Photo */}
+                {failedImages.has(selectedStop.photoUrl) ? (
+                  <View style={[styles.detailPhoto, { backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 64 }}>{selectedStop.emoji}</Text></View>
+                ) : (
+                  <Image source={{ uri: selectedStop.photoUrl }} style={styles.detailPhoto} onError={() => setFailedImages(prev => new Set(prev).add(selectedStop.photoUrl))} />
+                )}
+                <View style={[styles.detailImageStrip, selectedStop.type === 'Flight' ? { backgroundColor: '#1e3a8a' } : selectedStop.type === 'Hotel' ? { backgroundColor: '#7c3aed' } : selectedStop.type === 'Food' ? { backgroundColor: '#dc2626' } : selectedStop.type === 'Tech' ? { backgroundColor: '#0891b2' } : selectedStop.type === 'Culture' ? { backgroundColor: '#b45309' } : selectedStop.type === 'Nature' ? { backgroundColor: '#059669' } : selectedStop.type === 'Shopping' ? { backgroundColor: '#db2777' } : { backgroundColor: '#2563eb' }]}>
+                  <Text style={styles.detailImageEmoji}>{selectedStop.emoji}</Text>
+                  <Text style={styles.detailImageLabel}>{selectedStop.type} · {selectedStop.time}</Text>
+                </View>
+
+                {/* Title & Type */}
+                <View style={styles.detailTitleSection}>
+                  <View style={styles.detailTitleRow}>
+                    <Text style={styles.detailPlaceName}>{selectedStop.place}</Text>
+                    <View style={styles.detailRating}><Ionicons name="star" size={14} color="#f59e0b" /><Text style={styles.detailRatingText}>{selectedStop.rating}</Text></View>
+                  </View>
+                  <View style={styles.detailTypeRow}>
+                    <Text style={styles.detailAddress}>{selectedStop.address}</Text>
+                  </View>
+                </View>
+
+                {/* Description */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>About this place</Text>
+                  <Text style={styles.detailDescription}>{selectedStop.description}</Text>
+                </View>
+
+                {/* Highlights */}
+                {selectedStop.highlights && (
+                  <View style={styles.detailSection}>
+                    <Text style={styles.detailSectionTitle}>Highlights</Text>
+                    <View style={styles.detailHighlightGrid}>
+                      {selectedStop.highlights.map((h: string, i: number) => (
+                        <View key={i} style={styles.detailHighlightCard}>
+                          <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                          <Text style={styles.detailHighlightText}>{h}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {/* Details Grid */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>Details</Text>
+                  <View style={styles.detailGrid}>
+                    <View style={styles.detailGridItem}><Ionicons name="location-outline" size={18} color="#2563eb" /><Text style={styles.detailGridLabel}>Address</Text><Text style={styles.detailGridValue}>{selectedStop.address}</Text></View>
+                    <View style={styles.detailGridItem}><Ionicons name="time-outline" size={18} color="#2563eb" /><Text style={styles.detailGridLabel}>Duration</Text><Text style={styles.detailGridValue}>{selectedStop.duration}</Text></View>
+                    <View style={styles.detailGridItem}><Ionicons name="cash-outline" size={18} color="#2563eb" /><Text style={styles.detailGridLabel}>Cost</Text><Text style={styles.detailGridValue}>{selectedStop.price}</Text></View>
+                    <View style={styles.detailGridItem}><Ionicons name="navigate-outline" size={18} color="#2563eb" /><Text style={styles.detailGridLabel}>Getting there</Text><Text style={styles.detailGridValue}>{selectedStop.transport} · {selectedStop.transportTime}</Text></View>
+                  </View>
+                </View>
+
+                {/* How to get there */}
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailSectionTitle}>How to get there</Text>
+                  <Text style={styles.detailRouteSummary}>{selectedStop.routeSummary}</Text>
+                  <Text style={styles.detailRouteFrom}>From {selectedStop.routeFrom} · {selectedStop.routeFare}</Text>
+                  {selectedStop.routeLegs.map((leg: any, idx: number) => (
+                    <View key={idx} style={styles.detailLegCard}>
+                      <View style={styles.detailLegBadge}><Text style={styles.detailLegBadgeText}>{modeLabel[leg.mode] || leg.mode}</Text></View>
+                      {leg.line ? <Text style={styles.detailLegLine}>{leg.line}</Text> : null}
+                      <Text style={styles.detailLegInstruction}>{leg.instruction}</Text>
+                      <Text style={styles.detailLegDuration}>{leg.durationMin} min</Text>
+                    </View>
+                  ))}
+                  <Pressable onPress={() => openMaps(mapsDir(selectedStop.routeFrom, selectedStop.address))} style={styles.detailMapsButton}>
+                    <Ionicons name="navigate" size={16} color="#fff" />
+                    <Text style={styles.detailMapsButtonText}>Open in Google Maps</Text>
+                  </Pressable>
+                </View>
+
+                {/* Tips */}
+                {selectedStop.tips && (
+                  <View style={styles.detailTips}>
+                    <Ionicons name="bulb-outline" size={16} color="#2563eb" />
+                    <Text style={styles.detailTipsText}>{selectedStop.tips}</Text>
+                  </View>
+                )}
+              </ScrollView>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </LinearGradient>
   );
 }
 
@@ -942,6 +1173,7 @@ const styles = StyleSheet.create({
   title: { color: '#0f172a', fontSize: 20, fontWeight: '900', letterSpacing: -0.2 },
   backButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 },
   backButtonText: { color: '#1e3a8a', fontSize: 10, fontWeight: '900' },
+  floatingBack: { position: 'absolute', top: 20, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.95)', alignItems: 'center', justifyContent: 'center', zIndex: 100, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 6, elevation: 4 },
   memberRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
   avatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#0f172a', borderWidth: 2, borderColor: '#B7D4F2', alignItems: 'center', justifyContent: 'center' },
   avatarSecond: { backgroundColor: '#0f766e', marginLeft: -7 },
@@ -953,14 +1185,25 @@ const styles = StyleSheet.create({
   memberSubtext: { color: '#64748b', fontSize: 9, marginTop: 2 },
   addMemberButton: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center', marginLeft: 7 },
   addMemberText: { color: '#fff', fontSize: 20, fontWeight: '400', lineHeight: 22 },
-  body: { flex: 1, paddingHorizontal: 16, paddingTop: 22, paddingBottom: 18 },
-  phaseRail: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
+  body: { flex: 1, paddingHorizontal: 16, paddingTop: 72, paddingBottom: 18 },
+  phaseRail: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, paddingHorizontal: 12 },
   phaseItem: { alignItems: 'center', flex: 1 },
-  phaseDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
-  phaseDotActive: { backgroundColor: '#bfdbfe' },
-  phaseDotText: { color: '#1e3a8a', fontSize: 10, fontWeight: '900' },
-  phaseLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 8, fontWeight: '900', marginTop: 4 },
+  phaseDotWrapper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' },
+  phaseLine: { position: 'absolute', left: -32, width: 64, height: 2, borderRadius: 1 },
+  phaseLineCompleted: { backgroundColor: '#2563eb' },
+  phaseLineInactive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  phaseDot: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  phaseDotActive: { backgroundColor: '#fff', borderWidth: 2.5, borderColor: '#2563eb', shadowColor: '#2563eb', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+  phaseDotCompleted: { backgroundColor: '#2563eb' },
+  phaseDotInactive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  phaseDotText: { fontSize: 12, fontWeight: '900' },
+  phaseDotTextActive: { color: '#2563eb' },
+  phaseDotTextCompleted: { color: '#fff', fontSize: 14 },
+  phaseDotTextInactive: { color: 'rgba(255,255,255,0.6)' },
+  phaseLabel: { fontSize: 9, fontWeight: '800', marginTop: 6, letterSpacing: 0.5 },
   phaseLabelActive: { color: '#fff' },
+  phaseLabelCompleted: { color: 'rgba(255,255,255,0.75)' },
+  phaseLabelInactive: { color: 'rgba(255,255,255,0.45)' },
   eyebrowDark: { color: '#64748b', fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
   dnaPanel: { backgroundColor: '#fff', borderRadius: 24, padding: 18 },
   dnaHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 },
@@ -1007,6 +1250,12 @@ const styles = StyleSheet.create({
   tokenChoiceText: { color: '#475569', fontSize: 9, fontWeight: '800', lineHeight: 12, marginTop: 5 },
   tokenChoiceTextActive: { color: '#1e3a8a' },
   hubPanel: { backgroundColor: '#fff', borderRadius: 24, padding: 18 },
+  hubActions: { marginTop: 14, gap: 10 },
+  hubActionButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#e2e8f0' },
+  hubActionIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' },
+  hubActionText: { flex: 1, marginLeft: 12 },
+  hubActionTitle: { color: '#0f172a', fontSize: 14, fontWeight: '800' },
+  hubActionSub: { color: '#94a3b8', fontSize: 11, marginTop: 1 },
   historyCard: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 17, padding: 14, marginTop: 14 },
   historyTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   historyTitle: { color: '#0f172a', fontSize: 14, fontWeight: '900' },
@@ -1248,7 +1497,7 @@ const styles = StyleSheet.create({
   transportConnector: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingLeft: 20 },
   transportText: { color: '#2563eb', fontSize: 10, fontWeight: '700' },
   stopCard: { backgroundColor: '#f8fafc', borderRadius: 16, padding: 14, marginTop: 8, borderWidth: 1, borderColor: '#e2e8f0' },
-  stopHeader: { flexDirection: 'row', alignItems: 'flex-start' },
+  stopHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   stopEmoji: { fontSize: 28, width: 40 },
   stopInfo: { flex: 1 },
   stopTypeBadge: { backgroundColor: '#dbeafe', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
@@ -1333,4 +1582,91 @@ const styles = StyleSheet.create({
   inviteCount: { color: '#2563eb', fontSize: 10, fontWeight: '900' },
   invitePreviewBox: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eff6ff', borderRadius: 10, padding: 8, marginTop: 6 },
   invitePreviewText: { flex: 1, color: '#1e3a8a', fontSize: 10, fontWeight: '600' },
+  // Itinerary header & hotel
+  itineraryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 10 },
+  itineraryDestination: { color: '#0f172a', fontSize: 22, fontWeight: '900' },
+  itineraryDates: { color: '#64748b', fontSize: 11, marginTop: 3 },
+  itineraryBadge: { backgroundColor: '#eff6ff', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center' },
+  itineraryBadgeValue: { color: '#2563eb', fontSize: 18, fontWeight: '900' },
+  itineraryBadgeLabel: { color: '#3b82f6', fontSize: 9, fontWeight: '700' },
+  hotelCard: { backgroundColor: '#f5f3ff', borderRadius: 16, padding: 14, marginTop: 16, borderWidth: 1, borderColor: '#e9d5ff' },
+  hotelHeader: { flexDirection: 'row', alignItems: 'center' },
+  hotelIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#ede9fe', alignItems: 'center', justifyContent: 'center' },
+  hotelInfo: { flex: 1, marginLeft: 12 },
+  hotelName: { color: '#1e1b4b', fontSize: 13, fontWeight: '800' },
+  hotelAddress: { color: '#6b7280', fontSize: 10, marginTop: 2 },
+  hotelRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  hotelRatingText: { color: '#92400e', fontSize: 12, fontWeight: '800' },
+  hotelPriceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 10, gap: 6 },
+  hotelPrice: { color: '#5b21b6', fontSize: 16, fontWeight: '900' },
+  hotelPriceNote: { color: '#7c3aed', fontSize: 10 },
+  // Day button sub label
+  dayButtonSub: { color: '#94a3b8', fontSize: 8, fontWeight: '700', marginTop: 1 },
+  // Stop card enhancements
+  stopEmojiWrap: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' },
+  stopPhotoWrap: { width: 52, height: 52, borderRadius: 12, overflow: 'hidden' },
+  stopPhotoThumb: { width: 52, height: 52, borderRadius: 12 },
+  stopAddress: { color: '#94a3b8', fontSize: 9, marginTop: 2 },
+  stopHighlights: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  stopHighlightTag: { backgroundColor: '#f0fdf4', color: '#166534', fontSize: 9, fontWeight: '700', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, overflow: 'hidden' },
+  stopViewDetails: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 3 },
+  stopViewDetailsText: { color: '#2563eb', fontSize: 10, fontWeight: '700' },
+  // Type badges
+  badgeFlight: { backgroundColor: '#dbeafe' },
+  badgeHotel: { backgroundColor: '#ede9fe' },
+  badgeFood: { backgroundColor: '#fef2f2' },
+  badgeTech: { backgroundColor: '#ecfeff' },
+  badgeCulture: { backgroundColor: '#fef3c7' },
+  badgeNature: { backgroundColor: '#ecfdf5' },
+  badgeShopping: { backgroundColor: '#fdf2f8' },
+  badgeDefault: { backgroundColor: '#f1f5f9' },
+  // Budget card
+  budgetCard: { backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, marginTop: 18, borderWidth: 1, borderColor: '#bbf7d0' },
+  budgetTitle: { color: '#166534', fontSize: 10, fontWeight: '900', letterSpacing: 0.8, marginBottom: 10 },
+  budgetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 },
+  budgetLabel: { color: '#475569', fontSize: 11 },
+  budgetValue: { color: '#059669', fontSize: 12, fontWeight: '800' },
+  // Place detail modal
+  detailBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  detailSheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', paddingBottom: 30 },
+  detailHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#cbd5e1', alignSelf: 'center', marginTop: 10 },
+  detailClose: { position: 'absolute', top: 14, right: 16, zIndex: 10 },
+  detailImage: { height: 180, alignItems: 'center', justifyContent: 'center', marginTop: 14, marginHorizontal: 16, borderRadius: 18 },
+  detailImageEmoji: { fontSize: 52 },
+  detailImageLabel: { color: '#fff', fontSize: 16, fontWeight: '900', marginTop: 8, textAlign: 'center', paddingHorizontal: 20 },
+  detailTitleSection: { paddingHorizontal: 20, marginTop: 16 },
+  detailTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  detailPlaceName: { color: '#0f172a', fontSize: 20, fontWeight: '900', flex: 1 },
+  detailRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  detailRatingText: { color: '#92400e', fontSize: 14, fontWeight: '800' },
+  detailTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 6 },
+  detailType: { color: '#2563eb', fontSize: 11, fontWeight: '700' },
+  detailTime: { color: '#64748b', fontSize: 11 },
+  detailAddress: { color: '#64748b', fontSize: 10 },
+  detailSection: { paddingHorizontal: 20, marginTop: 18 },
+  detailSectionTitle: { color: '#0f172a', fontSize: 13, fontWeight: '900', marginBottom: 8 },
+  detailDescription: { color: '#475569', fontSize: 12, lineHeight: 18 },
+  detailHighlightGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  detailHighlightCard: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', borderRadius: 10, padding: 8, width: '48%' },
+  detailHighlightText: { color: '#334155', fontSize: 10, fontWeight: '600', flex: 1 },
+  detailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  detailGridItem: { width: '48%', backgroundColor: '#f8fafc', borderRadius: 12, padding: 12 },
+  detailGridLabel: { color: '#64748b', fontSize: 9, fontWeight: '700', marginTop: 6 },
+  detailGridValue: { color: '#0f172a', fontSize: 11, fontWeight: '600', marginTop: 2 },
+  detailTips: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eff6ff', borderRadius: 12, padding: 12, marginHorizontal: 20, marginTop: 18 },
+  detailTipsText: { flex: 1, color: '#1e3a8a', fontSize: 11, fontWeight: '600' },
+  // Map & transport in detail modal
+  detailMapImage: { height: 180, marginHorizontal: 16, marginTop: 14, borderRadius: 18, backgroundColor: '#e2e8f0' },
+  detailPhoto: { height: 220, marginHorizontal: 16, marginTop: 14, borderRadius: 18, backgroundColor: '#e2e8f0' },
+  detailImageStrip: { height: 56, marginHorizontal: 16, marginTop: -28, marginBottom: 14, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
+  detailRouteSummary: { color: '#0f172a', fontSize: 12, fontWeight: '700', marginBottom: 4 },
+  detailRouteFrom: { color: '#64748b', fontSize: 10, marginBottom: 10 },
+  detailLegCard: { backgroundColor: '#f8fafc', borderRadius: 12, padding: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#2563eb' },
+  detailLegBadge: { backgroundColor: '#dbeafe', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start', marginBottom: 4 },
+  detailLegBadgeText: { color: '#1e3a8a', fontSize: 9, fontWeight: '800' },
+  detailLegLine: { color: '#2563eb', fontSize: 10, fontWeight: '700', marginBottom: 2 },
+  detailLegInstruction: { color: '#334155', fontSize: 11, lineHeight: 16 },
+  detailLegDuration: { color: '#64748b', fontSize: 9, fontWeight: '700', marginTop: 4 },
+  detailMapsButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#2563eb', borderRadius: 14, paddingVertical: 12, marginTop: 12 },
+  detailMapsButtonText: { color: '#fff', fontSize: 13, fontWeight: '800' },
 });

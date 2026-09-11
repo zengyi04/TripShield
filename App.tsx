@@ -89,7 +89,18 @@ function PhoneMockup({
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
     if (tab === 'home') {
+      setActivePreviewFeature(null);
+      if (activeScreen !== 'home') {
+        onNavigate('home');
+      }
+    } else if (tab === 'consensus') {
+      setActivePreviewFeature(null);
       onNavigate('home');
+    } else if (tab === 'self-healing') {
+      setActivePreviewFeature(null);
+      if (activeScreen !== 'home' && activeScreen !== 'self-healing') {
+        onNavigate('home');
+      }
     } else {
       setActivePreviewFeature(null);
       onNavigate('home');
@@ -102,13 +113,26 @@ function PhoneMockup({
       case 'home':
         return (
           <View style={styles.screenWrap}>
-            <HomeScreen
-              topColor={topColor}
-              bottomColor={bottomColor}
-              buttonBg={buttonBg}
-              buttonHover={buttonHover}
-              onNavigate={onNavigate}
-            />
+            {currentTab === 'consensus' ? (
+              <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
+            ) : currentTab === 'self-healing' ? (
+              <SelfHealingScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigateHome={() => handleTabChange('home')}
+                onNavigate={onNavigate}
+              />
+            ) : (
+              <HomeScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigate={onNavigate}
+              />
+            )}
             <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
           </View>
         );
