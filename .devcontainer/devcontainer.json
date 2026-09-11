@@ -1,7 +1,8 @@
 {
   "name": "TripShield",
   "remoteEnv": {
-    "EXPO_UNSTABLE_HEADLESS": "1"
+    "EXPO_UNSTABLE_HEADLESS": "1",
+    "CI": "false"
   },
   "postCreateCommand": "rm -rf node_modules && npm ci"
 }

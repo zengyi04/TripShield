@@ -43,15 +43,7 @@ View your app in AI Studio: https://ai.studio/apps/53d1b511-7adf-4431-9531-e7afa
 
 3. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 4. Run the app:
-   - Mobile UI: `npm start`
-   - **Expo Go QR on Codespaces:** GitHub sets `CI=true`, so plain `npm start` only prints `Waiting on http://localhost:8081` (no QR). Use:
-
-     ```bash
-     npm run start:qr
-     ```
-
-     Scan the QR in the terminal with Expo Go, or copy the **Metro** / `exp://` URL line. `localhost` URLs do not work on your phone — tunnel mode is required (`--tunnel` is already in the script).
-
+   - Mobile UI (Codespaces / Expo Go): `npm start` — shows the QR and tunnel URL (`CI` is unset for Expo in the start script).
    - Web preview: `npm run dev`
 
    Clear Metro cache: `npx expo start --clear --tunnel` (not `npm start --clear`).
