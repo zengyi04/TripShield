@@ -14,12 +14,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import type { ActiveScreen } from '../../types';
 import {
-  APP_GRADIENT_LOCATIONS,
-  screenGradientStops,
-} from '../../utils/appTheme';
-import { appThemeStyles } from '../../utils/appThemeStyles';
-import { HeaderBackButton, HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
-import {
   ACTIVE_BUY_WINDOWS,
   AI_PROCESSING_STEPS,
   BOOKING_OPTIONS,
@@ -82,7 +76,6 @@ function BuyWindowCard({
 
 export default function BuyWindowScreen({
   topColor,
-  bottomColor,
   onNavigate,
   onGoHome,
 }: BuyWindowScreenProps) {
@@ -118,24 +111,19 @@ export default function BuyWindowScreen({
   };
 
   return (
-    <LinearGradient
-      colors={screenGradientStops(topColor, bottomColor)}
-      locations={APP_GRADIENT_LOCATIONS}
-      style={styles.root}
-    >
-      <ScreenTopBar
-        title="Buy Window"
-        subtitle="Paste a link, lock a price"
-        left={<HeaderBackButton onPress={onGoHome} accessibilityLabel="Back to home" />}
-        right={
-          <HeaderIconButton onPress={() => onNavigate?.('welcome')} accessibilityLabel="Sign out">
-            <Ionicons name="log-out-outline" size={18} color="#1f2937" />
-          </HeaderIconButton>
-        }
-      />
+    <View style={styles.root}>
+      <View style={[styles.header, { backgroundColor: topColor }]}>
+        <Pressable onPress={onGoHome} style={styles.headerBtn}>
+          <Ionicons name="chevron-back" size={20} color="#334155" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Buy Window</Text>
+        <Pressable onPress={() => onNavigate?.('welcome')} style={styles.headerBtn}>
+          <Ionicons name="log-out-outline" size={18} color="#475569" />
+        </Pressable>
+      </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <LinearGradient colors={[bottomColor, '#5a8fc4']} style={styles.hero}>
+        <LinearGradient colors={['#255887', '#1a3c5e']} style={styles.hero}>
           <Text style={styles.heroKicker}>Buy Window</Text>
           <Text style={styles.heroTitle}>Turn travel inspiration into action.</Text>
           <Text style={styles.heroSub}>Paste a flight, hotel, or social travel link to analyze.</Text>
@@ -229,18 +217,34 @@ export default function BuyWindowScreen({
           </Pressable>
         </Pressable>
       </Modal>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#f1f5f9' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  headerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
   scroll: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 24, gap: 12 },
-  hero: { borderRadius: 20, padding: 16 },
-  heroKicker: { color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: '800', letterSpacing: 0.6 },
-  heroTitle: { color: '#fff', fontSize: 16, fontWeight: '900', marginTop: 4 },
-  heroSub: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 4, lineHeight: 18 },
+  scrollContent: { padding: 14, paddingBottom: 24, gap: 10 },
+  hero: { borderRadius: 16, padding: 14 },
+  heroKicker: { color: '#bfdbfe', fontSize: 10, fontWeight: '800' },
+  heroTitle: { color: '#fff', fontSize: 14, fontWeight: '900', marginTop: 4 },
+  heroSub: { color: '#bfdbfe', fontSize: 11, marginTop: 4 },
   inputRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
   input: {
     flex: 1,

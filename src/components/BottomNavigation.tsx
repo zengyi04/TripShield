@@ -29,17 +29,17 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     },
     {
       id: 'consensus' as FeatureTab,
-      label: 'Plan',
+      label: 'Consensus',
       icon: Sparkles,
     },
     {
       id: 'ledger' as FeatureTab,
-      label: 'Budget',
+      label: 'Ledger',
       icon: Receipt,
     },
     {
       id: 'self-healing' as FeatureTab,
-      label: 'Fix Trip',
+      label: 'Self-Healing',
       icon: ShieldCheck,
       hasDot: false,
     },

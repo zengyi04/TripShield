@@ -12,10 +12,9 @@
     "ios": {
       "supportsTablet": true
     },
-    "scheme": "tripshield",
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#9BBFE3"
+        "backgroundColor": "#B7D4F2"
       }
     },
     "plugins": [
@@ -26,7 +25,7 @@
         {
           "image": "./assets/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#9BBFE3"
+          "backgroundColor": "#B7D4F2"
         }
       ]
     ]
