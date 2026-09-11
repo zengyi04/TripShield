@@ -318,6 +318,13 @@ export const WhatIfSimulatorScreen: React.FC<WhatIfSimulatorScreenProps> = ({
       <Modal visible={simOpen} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setSimOpen(false)}>
           <Pressable style={styles.modalCard} onPress={() => undefined}>
+            <Pressable
+              onPress={() => setSimOpen(false)}
+              style={({ pressed }) => [styles.modalCloseBtn, pressed && styles.pressed]}
+              accessibilityLabel="Close simulation"
+            >
+              <Ionicons name="close" size={22} color="#374151" />
+            </Pressable>
             <Text style={styles.modalIcon}>✨</Text>
             <Text style={styles.modalTitle}>AI Simulation Complete</Text>
             {!simReady ? (
@@ -365,9 +372,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: '#F4F7FB',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D9E4F0',
   },
   iconCircle: {
     width: 36,
@@ -397,24 +404,22 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.24)',
-    borderRadius: 22,
+    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: 16,
     marginTop: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.42)',
-    shadowColor: '#0f2a44',
-    shadowOpacity: 0.14,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937', marginBottom: 8 },
   setupCopy: { fontSize: 13, color: '#6b7280', lineHeight: 18, marginBottom: 16 },
   dropdownTrigger: {
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+    borderColor: '#e5e7eb',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 14,
@@ -437,10 +442,8 @@ const styles = StyleSheet.create({
   errorHint: { marginTop: 10, fontSize: 12, color: '#ef4444', fontWeight: '600' },
   footerSpacer: { flex: 1 },
   simulateBtn: {
-    backgroundColor: 'rgba(30,58,138,0.88)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: '#1e3a8a',
+    borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -582,7 +585,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 24,
+    paddingTop: 20,
     maxHeight: '80%',
+    position: 'relative',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
   modalIcon: { fontSize: 40, textAlign: 'center', marginBottom: 8 },
   modalTitle: { fontSize: 18, fontWeight: '700', color: '#1f2937', textAlign: 'center', marginBottom: 12 },
