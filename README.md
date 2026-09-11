@@ -94,29 +94,13 @@ Replace the rows below with your **real** mentor sessions (name, date, what they
 
 **UI Prototype:** [Public Link — check it opens in an incognito window]
 
-![Home](docs/screens/home.png)
-*Home — the trip header plus four feature cards, each surfacing a live metric ("2 opportunities · 47h remaining"). The AI insight strip at the top is the only thing competing for attention.*
+<img src="docs/screens/trip-fix.png" width="240" alt="Trip Fix (Trip Flex)" />
 
-![Buy Window](docs/screens/buy-window.png)
-*Buy Window — a pasted link resolved into a bookable card, with the price-risk meter and countdown. The Wait vs Buy simulator sits directly under the price history so the tradeoff is visible without navigating away.*
+*Trip Fix — live Trip Health Score, active disruptions, **Auto-Fix Plan**, travel room, and itinerary summary.*
 
-![Consensus swipe](docs/screens/consensus-swipe.png)
-*Consensus — the 60-second Travel DNA questionnaire. Each answer is private and becomes a constraint, not a public vote, so quiet members still influence the result.*
+<img src="docs/screens/what-if.png" width="240" alt="What-If Simulator" />
 
-![Consensus result](docs/screens/consensus-result.png)
-*Consensus result — want / maybe / skip tallies per option with the locked schedule below. Deadlocks are resolved by the solver rather than by re-opening the chat.*
-
-![Ledger](docs/screens/ledger.png)
-*Adaptive Ledger — scanned receipt split line by line, with per-traveller shares and tax allocation. The budget ring shows the effect on the rest of the trip immediately.*
-
-![Budget rebalance](docs/screens/ledger-rebalance.png)
-*Dynamic rebalancing — after an overspend, remaining daily targets are recalculated under the selected strategy (balanced / activity-aware / strict saving).*
-
-![Trip Fix (Trip Flex)](docs/screens/trip-fix.png)
-*Trip Fix — live Trip Health Score (45/100), active disruptions (flight delay, heavy rain), AI warning strip, **Auto-Fix Plan**, travel room selector, and the Shenzhen Tech Tour itinerary with a shortcut into the full plan.*
-
-![What-If Simulator](docs/screens/what-if.png)
-*What-If Simulator — pick disruption conditions from the dropdown, then **Run AI Simulation** to preview a contingency plan before anything breaks on the trip.*
+*What-If Simulator — select disruption conditions, then **Run AI Simulation** for a contingency preview.*
 
 ---
 

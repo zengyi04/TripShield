@@ -27,13 +27,7 @@ If you add more boards (mindmaps, crazy eights, 5 Whys, user flows), drop them h
 
 | File | Screen |
 | --- | --- |
-| `home.png` | Home with the four feature cards |
-| `buy-window.png` | Buy Window with price risk meter and countdown |
-| `consensus-swipe.png` | Travel DNA questionnaire |
-| `consensus-result.png` | Vote tallies and locked schedule |
-| `ledger.png` | Receipt split by line item |
-| `ledger-rebalance.png` | Recalculated daily targets after an overspend |
-| `trip-fix.png` | Trip Fix (Trip Flex) — health score, disruptions, auto-fix, itinerary |
-| `what-if.png` | What-If Simulator — disruption setup and run simulation |
+| `trip-fix.png` | Trip Fix (Trip Flex) — cropped to phone frame, ~240px wide in README |
+| `what-if.png` | What-If Simulator — cropped to phone frame, ~240px wide in README |
 
-Capture these from `npm start` (Expo Go) rather than the web preview, since the native screens are the ones being judged.
+Add more captures here when ready and embed them in section 3 with `<img … width="240">` so they stay phone-sized on GitHub.
