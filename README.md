@@ -186,15 +186,6 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 | 4 | **Live price signal** — one flight data source wired into the Buy Window countdown, so the risk meter reads real history | The meter and countdown for at least one real route are driven by fetched prices, not a mock series | Keep the mock series, labelled *sample data* on screen so nothing is misrepresented |
 | 5 | **Hardening** — loading, empty, error and offline states on every network call, cached weather, and an EAS development build for the camera | The app is usable end to end with the network disabled | Ship the dev build for the camera only; the remaining states stay as-is |
 
-**Risks we already know about:**
-
-- **Gemini latency and free-tier rate limits.** Extraction is a foreground action, so a slow call is visible. We cache by URL, show the card optimistically, and queue rather than block.
-- **Expo Go cannot load a native camera module.** Item 2 therefore depends on an EAS development build, which we create *before* starting OCR rather than at the end.
-- **Flight price APIs are keyed and metered.** We scope item 4 to a single route with a daily cached pull, which keeps us inside a free tier and is enough to prove the mechanism.
-- **Four features, four people.** Each member owns one feature end to end and the shared theme tokens are frozen, so integration is a merge rather than a redesign.
-
-**Explicitly out of scope:** in-app payment or checkout (we deep-link out), hotel and flight inventory contracts, AR navigation, a social feed, push notifications, and the B2B partner dashboard. The B2B rerouting angle is presented as the business model, not as shipped software.
-
 ---
 
 ## Run Locally
