@@ -75,17 +75,7 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 ### 2.2 Ideation Boards
 
-![Problem tree](docs/ideation/problem-tree.png)
-*Problem tree (first pass) — we put "Group Travel Decision Paralysis & Friction" at the centre and worked outwards. Four causes (clashing preferences, endless chat debates, budget disputes, static itineraries) each produce a distinct consequence, and those four consequences are what the four TripShield features exist to remove.*
-
 ![Detailed problem tree](docs/ideation/problem-tree-detailed.png)
-*Problem tree (expanded) — we pushed each cause one level deeper to find the **root** cause, because "people can't agree" is a symptom, not something you can build against. Drilling down gave us the twelve blue root causes at the top, and those are what the features actually attack: "social pressure to seem agreeable hides real budgets" is why consensus is captured **privately** as Travel DNA, and "nothing monitors weather against the live plan" is why Trip Fix runs a continuous health score. The bottom row shows which mechanism answers which root cause. Source: [`problem-tree-detailed.mmd`](docs/ideation/problem-tree-detailed.mmd).*
-
-![Mindmap](docs/ideation/mindmap.png)
-*Mindmap (first pass) — once the problem tree told us **what** to solve, we branched outwards from the platform into four feature pillars and hung the concrete capabilities off each one. This is where the features stopped being themes and became buildable parts: "Live Trip Health Score 0 to 100", "60-Second Travel DNA Swipe Deck", "Google Vision OCR Receipt Scanning".*
-
-![Detailed mindmap](docs/ideation/mindmap-detailed.png)
-*Mindmap (expanded) — the same four pillars taken down another level, plus the three branches that were missing from the first pass: **the ideas we dropped** and why, **how we build it** (stack and the constraints each choice carries), and **who it is for**. Keeping the rejected ideas on the same board matters — "group chat with polls" sitting next to our consensus engine is the clearest statement of what we are arguing against. Source: [`mindmap-detailed.mmd`](docs/ideation/mindmap-detailed.mmd).*
 
 ### 2.3 Mentor Consultation
 
