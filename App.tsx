@@ -18,6 +18,7 @@ import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { SCREENSHOT_FEED_OFFERS, FeedOffer } from './src/data/mockOffers';
 import type { ActiveScreen } from './src/types';
+import LedgerScreen from './src/components/screens/LedgerScreen';
 
 const SAFE_TOP_COLOR = '#B7D4F2';
 
@@ -88,6 +89,8 @@ function PhoneMockup({
     setCurrentTab(tab);
     if (tab === 'home') {
       onNavigate('home');
+    } else if (tab === 'ledger') {
+      onNavigate('home');
     } else {
       setActivePreviewFeature(tab);
     }
@@ -98,13 +101,17 @@ function PhoneMockup({
       case 'home':
         return (
           <View style={styles.screenWrap}>
-            <HomeScreen
-              topColor={topColor}
-              bottomColor={bottomColor}
-              buttonBg={buttonBg}
-              buttonHover={buttonHover}
-              onNavigate={onNavigate}
-            />
+            {currentTab === 'ledger' ? (
+              <LedgerScreen topColor={topColor} bottomColor={bottomColor} buttonBg={buttonBg} buttonHover={buttonHover} />
+            ) : (
+              <HomeScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigate={onNavigate}
+              />
+            )}
             <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
           </View>
         );
