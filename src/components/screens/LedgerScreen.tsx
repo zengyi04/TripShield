@@ -4,6 +4,7 @@ import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { CATEGORIES, Category, DraftExpense, Expense, ReceiptItem, RebalanceStrategy, SettleTiming, Traveler, Trip } from '../../types';
 import { CATEGORY_COLOR, CATEGORY_ICON, STATUS_COLOR, ledgerStyles as s } from '../../utils/ledgerTheme';
+import { APP_GRADIENT_LOCATIONS, screenGradientStops } from '../../utils/appTheme';
 import { MOCK_RECEIPTS, createDemoTrip } from '../../data/ledgerMockData';
 import {
   addDays,
@@ -462,7 +463,7 @@ export default function LedgerScreen({
   function renderDashboard() {
     if (!trip) return null;
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <View style={s.header}>
           <View style={{ flex: 1 }}>
             <Text style={s.tripName}>{trip.name}</Text>
@@ -577,7 +578,7 @@ export default function LedgerScreen({
     const planned = trip.plannedDailyTargets[selectedDayGroup.date] || 0;
     const overspent = round2(selectedDayGroup.total - planned);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title={`${selectedDayGroup.label} Spending`} onBack={() => setView('dashboard')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 140 }}>
           <View style={s.card}>
@@ -624,7 +625,7 @@ export default function LedgerScreen({
     const payer = trip.travelers.find(t => t.id === selectedExpense.paidBy);
     const outstanding = computeOutstanding(selectedExpense);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title={selectedExpense.description} onBack={() => setView(expenseDetailFrom)} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 140 }}>
           <View style={s.card}>
@@ -756,7 +757,7 @@ export default function LedgerScreen({
 
   function renderSetBudget() {
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title={budgetMode === 'edit' ? 'Edit Trip Budget' : 'Set Your Trip Budget'} onBack={budgetMode === 'edit' ? () => setView('dashboard') : undefined} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           <Text style={s.label}>Trip Name</Text>
@@ -904,7 +905,7 @@ export default function LedgerScreen({
   function renderScanReceipt() {
     if (!draft) {
       return (
-        <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+        <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
           <Header title="Scan Receipt" onBack={() => setView('dashboard')} />
           <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 140 }}>
             <Pressable onPress={performScan} style={({ pressed }) => [s.scanArea, pressed && { opacity: 0.85 }]}>
@@ -928,7 +929,7 @@ export default function LedgerScreen({
 
     const total = round2(draft.items.reduce((sum, it) => sum + it.price, 0) + draft.tax);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header
           title={draft.receiptTitle || 'Scan Receipt'}
           subtitle={draft.receiptSubtitle}
@@ -999,7 +1000,7 @@ export default function LedgerScreen({
   function renderManualEntry() {
     const suggested = manualDescription ? suggestCategory(manualDescription) : null;
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Enter Expense" onBack={() => setView('dashboard')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           <Text style={s.label}>Amount (RM)</Text>
@@ -1052,7 +1053,7 @@ export default function LedgerScreen({
 
   function renderSelectTravelers() {
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Who's in this expense?" onBack={() => setView(wizardSource === 'receipt' ? 'scanReceipt' : 'manualEntry')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           <View style={s.stepperRow}>
@@ -1087,7 +1088,7 @@ export default function LedgerScreen({
   function renderAssignItems() {
     if (!draft) return null;
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Who Had What?" onBack={() => setView('selectTravelers')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           {draft.items.map(item => {
@@ -1144,7 +1145,7 @@ export default function LedgerScreen({
     const subtotals = computeSubtotalsByTraveler(draft.items, draft.selectedTravelerIds);
     const allocatedTax = Object.values(draft.taxAllocation).reduce((sum, v) => sum + v, 0);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Tax & Service Charge" onBack={() => setView('assignItems')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           <View style={s.card}>
@@ -1190,7 +1191,7 @@ export default function LedgerScreen({
     const total = round2(draft.items.reduce((sum, it) => sum + it.price, 0) + draft.tax);
     const shares = computeShares(subtotals, draft.taxAllocation);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Who Paid?" onBack={() => setView(draft.tax > 0 ? 'taxSplit' : 'assignItems')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           {draft.selectedTravelerIds.map(travelerId => {
@@ -1251,7 +1252,7 @@ export default function LedgerScreen({
     const total = round2(draft.items.reduce((sum, it) => sum + it.price, 0) + draft.tax);
     const payer = rosterDraft.find(t => t.id === draft.payerId);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Confirm Expense" onBack={() => setView('selectPayer')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           <View style={s.card}>
@@ -1314,7 +1315,7 @@ export default function LedgerScreen({
     const payer = trip.travelers.find(t => t.id === addedExpense.paidBy);
     const outstanding = computeOutstanding(addedExpense);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
           <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(74,222,128,0.25)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
             <Ionicons name="checkmark" size={36} color="#22c55e" />
@@ -1370,7 +1371,7 @@ export default function LedgerScreen({
     const result = strategyResults.find(r => r.strat === rebalanceStrategy)!.result;
     const strategyLabel = (strat: RebalanceStrategy) => (strat === 'balanced' ? 'Balanced' : strat === 'activity-aware' ? 'Activity-Aware' : 'Strict Saving');
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <Header title="Adaptive Budget Rebalance" onBack={() => setView('dashboard')} />
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 160 }}>
           <View style={s.card}>
@@ -1516,7 +1517,7 @@ export default function LedgerScreen({
     if (!trip) return null;
     const result = computeRebalance(trip, expenses, rebalanceStrategy, today);
     return (
-      <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={s.fullScreen}>
+      <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={s.fullScreen}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
           <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(74,222,128,0.25)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
             <Ionicons name="checkmark-done" size={36} color="#22c55e" />
