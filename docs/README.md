@@ -33,7 +33,7 @@ If you add more boards (mindmaps, crazy eights, 5 Whys, user flows), drop them h
 | `consensus-result.png` | Vote tallies and locked schedule |
 | `ledger.png` | Receipt split by line item |
 | `ledger-rebalance.png` | Recalculated daily targets after an overspend |
-| `trip-fix.png` | Trip Health Score and repaired plan |
-| `what-if.png` | What-If Simulator |
+| `trip-fix.png` | Trip Fix (Trip Flex) — health score, disruptions, auto-fix, itinerary |
+| `what-if.png` | What-If Simulator — disruption setup and run simulation |
 
 Capture these from `npm start` (Expo Go) rather than the web preview, since the native screens are the ones being judged.

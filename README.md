@@ -112,11 +112,11 @@ Replace the rows below with your **real** mentor sessions (name, date, what they
 ![Budget rebalance](docs/screens/ledger-rebalance.png)
 *Dynamic rebalancing — after an overspend, remaining daily targets are recalculated under the selected strategy (balanced / activity-aware / strict saving).*
 
-![Trip Fix](docs/screens/trip-fix.png)
-*Trip Fix (Self-Healing) — the Trip Health Score with the repaired plan below. Each day expands to compare old vs new stops; tapping a weather chip fetches live conditions for that place and time.*
+![Trip Fix (Trip Flex)](docs/screens/trip-fix.png)
+*Trip Fix — live Trip Health Score (45/100), active disruptions (flight delay, heavy rain), AI warning strip, **Auto-Fix Plan**, travel room selector, and the Shenzhen Tech Tour itinerary with a shortcut into the full plan.*
 
 ![What-If Simulator](docs/screens/what-if.png)
-*What-If Simulator — rehearse a disruption (heavy rain, closure, delay) and see the rerouted timeline before committing.*
+*What-If Simulator — pick disruption conditions from the dropdown, then **Run AI Simulation** to preview a contingency plan before anything breaks on the trip.*
 
 ---
 
