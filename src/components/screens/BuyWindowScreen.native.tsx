@@ -124,7 +124,7 @@ export default function BuyWindowScreen({
       style={styles.root}
     >
       <ScreenTopBar
-        title="Deals"
+        title="Buy Window"
         subtitle="Paste a link, lock a price"
         left={<HeaderBackButton onPress={onGoHome} accessibilityLabel="Back to home" />}
         right={

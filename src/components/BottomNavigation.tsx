@@ -23,7 +23,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     },
     {
       id: 'buy-window' as FeatureTab,
-      label: 'Deals',
+      label: 'Buy Window',
       icon: Timer,
       hasDot: false,
     },
