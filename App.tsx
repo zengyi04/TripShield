@@ -732,8 +732,8 @@ function HomeScreen({
           <Text style={styles.tripEmoji}>{ACTIVE_TRIP.coverEmoji}</Text>
           <View style={{ flex: 1 }}>
             <Text style={styles.tripName}>{ACTIVE_TRIP.tripName}</Text>
-            <Text style={styles.tripMeta}>{ACTIVE_TRIP.flag} {ACTIVE_TRIP.destination} · {ACTIVE_TRIP.dateRange}</Text>
-            <Text style={styles.tripMeta}>👥 {ACTIVE_TRIP.travelers} travelers</Text>
+            <Text style={styles.homeTripMetaText}>{ACTIVE_TRIP.flag} {ACTIVE_TRIP.destination} · {ACTIVE_TRIP.dateRange}</Text>
+            <Text style={styles.homeTripMetaText}>👥 {ACTIVE_TRIP.travelers} travelers</Text>
           </View>
         </View>
 
@@ -1233,7 +1233,7 @@ const styles = StyleSheet.create({
   },
   tripEmoji: { fontSize: 28 },
   tripName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
-  tripMeta: { fontSize: 11, fontWeight: '600', color: '#475569', marginTop: 2 },
+  homeTripMetaText: { fontSize: 11, fontWeight: '600', color: '#475569', marginTop: 2 },
   buyWindowAlert: {
     backgroundColor: '#fffbeb',
     borderRadius: 16,
