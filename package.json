@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "CI=false EXPO_UNSTABLE_HEADLESS=1 expo start --tunnel",
-    "start:lan": "CI=false EXPO_UNSTABLE_HEADLESS=1 expo start",
+    "start": "node scripts/expo-start.js",
+    "start:lan": "CI=false expo start",
     "dev": "expo start --web",
     "android": "expo start --android",
     "ios": "expo start --ios",
