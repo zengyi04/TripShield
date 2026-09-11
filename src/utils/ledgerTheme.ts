@@ -43,8 +43,17 @@ export const ledgerStyles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.22)',
   },
   headerTitleWrap: { flex: 1, marginHorizontal: 12 },
-  headerTitle: { fontSize: 15, fontWeight: '800', letterSpacing: 0.6, color: '#1f2937', textAlign: 'center' },
+  headerTitle: { fontSize: 26, fontWeight: '900', color: '#0f172a', letterSpacing: -0.6, textAlign: 'center' },
   headerSubtitle: { fontSize: 11, color: 'rgba(31,41,55,0.7)', textAlign: 'center', marginTop: 2 },
+  headerCaption: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(31,41,55,0.62)',
+    textAlign: 'center',
+    marginTop: 3,
+    lineHeight: 13,
+  },
+  headerSideSpacer: { width: 40, height: 40 },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
   pressedGlass: { backgroundColor: 'rgba(24, 58, 96, 0.42)', borderColor: 'rgba(255,255,255,0.5)' },
   smallAction: {
