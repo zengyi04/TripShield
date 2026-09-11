@@ -735,7 +735,7 @@ export const BuyWindowScreen: React.FC<BuyWindowScreenProps> = ({
                 <div className="flex items-center gap-2 mb-1">
                   <Flame size={18} className="text-amber-400" />
                   <p className="text-blue-200 text-[10px] font-extrabold uppercase tracking-wider">
-                    Buy Window · Feature 1
+                    Buy Window
                   </p>
                 </div>
                 <h2 className="text-white text-sm font-black leading-tight">

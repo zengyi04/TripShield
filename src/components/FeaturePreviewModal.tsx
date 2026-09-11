@@ -40,7 +40,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
     'buy-window': {
       title: 'Decisive Buy Window & Smart Link Aggregator',
       subtitle: 'LLM Link Extraction & AI Price Countdown Lock',
-      tag: 'Winning Feature 1',
+      tag: 'Decisive Buy Window',
       icon: Timer,
       mechanism:
         'LLMs (Gemini/OpenAI) extract location and flight data from pasted TikTok/IG links directly into interactive itinerary cards. An AI price engine sets decisive group countdown timers ("Best Paris flight price detected: 48h lock-in window").',
