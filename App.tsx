@@ -19,6 +19,7 @@ import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import type { ActiveScreen } from './src/types';
+import LedgerScreen from './src/components/screens/LedgerScreen';
 import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
 
 const SAFE_TOP_COLOR = '#B7D4F2';
@@ -102,6 +103,9 @@ function PhoneMockup({
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
     if (tab === 'home') {
+      onNavigate('home');
+    } else if (tab === 'ledger') {
+      onNavigate('home');
       setActivePreviewFeature(null);
       if (activeScreen !== 'home') {
         onNavigate('home');
@@ -130,6 +134,8 @@ function PhoneMockup({
       case 'home':
         return (
           <View style={styles.screenWrap}>
+            {currentTab === 'ledger' ? (
+              <LedgerScreen topColor={topColor} bottomColor={bottomColor} buttonBg={buttonBg} buttonHover={buttonHover} />
             {currentTab === 'consensus' ? (
               <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
             ) : currentTab === 'self-healing' ? (
@@ -149,6 +155,9 @@ function PhoneMockup({
                 buttonBg={buttonBg}
                 buttonHover={buttonHover}
                 onNavigate={onNavigate}
+              />
+            )}
+            <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
                 onOpenSelfHealing={() => handleTabChange('self-healing')}
               />
             )}

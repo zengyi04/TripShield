@@ -7,7 +7,7 @@ export default function App() {
   // Frontpage MUST be Sign Up & Login (welcome screen)
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('welcome');
 
-  // Same-family monochromatic palette (同一个色系)
+  // Same-family monochromatic palette 
   const topColor = '#9BBFE3'; // Soft periwinkle sky blue
   const harmonizedDerived = deriveDarkerTone(topColor, {
     darknessDelta: 32,
