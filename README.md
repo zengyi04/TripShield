@@ -78,6 +78,7 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 ### 2.2 Ideation Boards
 
 ![Detailed problem tree](docs/ideation/problem-tree-detailed.png)
+*Source: [`docs/ideation/problem-tree-detailed.png`](docs/ideation/problem-tree-detailed.png), generated from [`docs/ideation/problem-tree-detailed.mmd`](docs/ideation/problem-tree-detailed.mmd).*
 
 ### 2.3 Mentor Consultation
 
