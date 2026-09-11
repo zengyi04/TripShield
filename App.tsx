@@ -592,7 +592,15 @@ function BottomNavigation({
         const iconName = tab.icon as any;
         const showHealBadge = tab.id === 'self-healing' && !!showSelfHealBadge;
         return (
-          <Pressable key={tab.id} onPress={() => onTabChange(tab.id)} style={({ pressed }) => [styles.navItem, pressed && styles.pressedGlass]}>
+          <Pressable
+            key={tab.id}
+            onPress={() => onTabChange(tab.id)}
+            style={({ pressed }) => [
+              styles.navItem,
+              isActive && styles.navItemActive,
+              pressed && styles.navItemPressed,
+            ]}
+          >
             <View style={styles.navIconWrap}>
               <Ionicons name={iconName} size={22} color={isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)'} />
               {showHealBadge && <View style={styles.navHealBadge} />}
@@ -1116,6 +1124,8 @@ const styles = StyleSheet.create({
   metaText: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
   navWrap: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, backgroundColor: 'rgba(38,139,177,0.34)', shadowColor: '#0B4D68', shadowOpacity: 0.22, shadowRadius: 12 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 56, paddingVertical: 4 },
+  navItemActive: { backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 12 },
+  navItemPressed: { opacity: 0.7, transform: [{ scale: 0.92 }] },
   navIconWrap: { position: 'relative', marginBottom: 6 },
   navLabel: { fontSize: 10, letterSpacing: -0.2 },
   navHealBadge: {
