@@ -18,8 +18,6 @@ export interface TripActivity {
   lat: number;
   lng: number;
   mapsQuery: string;
-  /** Optional real photo shown in route modal before map tiles. */
-  previewImageUrl?: string;
   weather: WeatherSnapshot;
   route: {
     from: string;

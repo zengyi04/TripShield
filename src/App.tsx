@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ActiveScreen } from './types';
 import { deriveDarkerTone, deriveButtonTones } from './utils/color';
-import { APP_TOP_HEX } from './utils/appTheme';
 import { PhoneMockup } from './components/PhoneMockup';
 
 export default function App() {
@@ -9,7 +8,7 @@ export default function App() {
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('welcome');
 
   // Same-family monochromatic palette 
-  const topColor = APP_TOP_HEX;
+  const topColor = '#9BBFE3'; // Soft periwinkle sky blue
   const harmonizedDerived = deriveDarkerTone(topColor, {
     darknessDelta: 32,
     saturationDelta: 0,
