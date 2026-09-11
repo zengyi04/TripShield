@@ -136,7 +136,7 @@ function PhoneMockup({
           <View style={styles.screenWrap}>
             {currentTab === 'ledger' ? (
               <LedgerScreen topColor={topColor} bottomColor={bottomColor} buttonBg={buttonBg} buttonHover={buttonHover} />
-            {currentTab === 'consensus' ? (
+            ) : currentTab === 'consensus' ? (
               <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
             ) : currentTab === 'self-healing' ? (
               <SelfHealingScreen
@@ -155,10 +155,6 @@ function PhoneMockup({
                 buttonBg={buttonBg}
                 buttonHover={buttonHover}
                 onNavigate={onNavigate}
-              />
-            )}
-            <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
-                onOpenSelfHealing={() => handleTabChange('self-healing')}
               />
             )}
             <BottomNavigation

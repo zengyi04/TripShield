@@ -25,7 +25,7 @@ export interface ColorHarmonyConfig {
   useHarmonized: boolean; // true = 同一色系 (same color family), false = screenshot mismatch
 }
 
-export type ActiveScreen = 'home' | 'welcome' | 'signup' | 'login' | 'dashboard';
+export type ActiveScreen = 'home' | 'welcome' | 'signup' | 'login' | 'dashboard' | 'self-healing';
 
 // --- Ledger (Feature 3: Adaptive Ledger & Dynamic Budget Splitter) ---
 
@@ -118,4 +118,3 @@ export interface DraftExpense {
   receiptTitle?: string; // e.g. "Review Receipt" / "Review Ride", detected from the scanned receipt
   receiptSubtitle?: string; // e.g. merchant name, or "Unknown Merchant"
 }
-export type ActiveScreen = 'home' | 'welcome' | 'signup' | 'login' | 'dashboard' | 'self-healing';
