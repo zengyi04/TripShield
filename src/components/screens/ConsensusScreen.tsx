@@ -571,7 +571,7 @@ export function ConsensusScreen({ topColor, bottomColor, onGoHome }: ConsensusSc
         </Pressable>
       )}
 
-      <View style={styles.body}>
+      <View style={[styles.body, phase === 'hub' && { paddingTop: 16 }]}>
         {phase !== 'hub' && phase !== 'join' && (
           <View style={styles.phaseRail}>
             {(['setup', 'questions', 'group', 'itinerary'] as const).map((item, index) => {
