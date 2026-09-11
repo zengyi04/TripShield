@@ -20,3 +20,12 @@ View your app in AI Studio: https://ai.studio/apps/53d1b511-7adf-4431-9531-e7afa
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+### Expo (`npm start` / tunnel) on Codespaces or Linux
+
+If you see `libatk-1.0.so.0: cannot open shared object file` while Metro is starting, Expo is trying to install the desktop React Native DevTools shell. That is harmless for bundling but noisy.
+
+- **Codespaces:** Rebuild the dev container (`.devcontainer/devcontainer.json` sets `EXPO_UNSTABLE_HEADLESS=1`), or add that variable to a local `.env` / `.env.local`.
+- **One-off:** `EXPO_UNSTABLE_HEADLESS=1 npm start`
+
+You can still debug in the browser via Expo’s web tooling; only the standalone Fusebox shell is skipped.
