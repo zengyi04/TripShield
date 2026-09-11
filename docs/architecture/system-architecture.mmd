@@ -2,7 +2,7 @@ flowchart TD
 
   DEV["<b>Devices</b><br/>iOS · Android via Expo Go &nbsp;|&nbsp; Web via React Native Web"]
 
-  subgraph CLIENT["Expo / React Native client &nbsp;—&nbsp; BUILT TODAY"]
+  subgraph CLIENT["Expo / React Native client &nbsp;—&nbsp; BUILT"]
     direction TB
     APP["<b>App shell</b><br/>bottom navigation · shared theme tokens"]
 
@@ -38,8 +38,8 @@ flowchart TD
   F3 --> DATA
   F4 --> DATA
 
-  DATA -->|live today| METEO
-  DATA -->|live today| MAPS
+  DATA -->|live| METEO
+  DATA -->|live| MAPS
   F1 -->|we hand off, never take payment| BOOK
   DATA -.->|planned| PROXY
   DATA -.->|planned| SUPA
