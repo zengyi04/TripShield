@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────────────────────────────
-// TripShield · Feature 1: Decisive Buy Window & Smart Link Aggregator
+// TripShield · Decisive Buy Window & Smart Link Aggregator
 // Mock frontend data — NO real APIs, NO backend
 // ──────────────────────────────────────────────────────────────────────────────
 

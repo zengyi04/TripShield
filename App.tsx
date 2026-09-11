@@ -748,7 +748,7 @@ function HomeScreen({
               </View>
               <Ionicons name="chevron-forward" size={18} color="#d97706" />
             </View>
-            <Text style={styles.buyWindowCta}>Tap to open Buy Window (Feature 1)</Text>
+            <Text style={styles.buyWindowCta}>Tap to open Buy Window</Text>
           </Pressable>
         ) : null}
 
@@ -816,7 +816,7 @@ function FeaturePreviewModal({
     'buy-window': {
       title: 'Decisive Buy Window & Smart Link Aggregator',
       subtitle: 'LLM Link Extraction & AI Price Countdown Lock',
-      tag: 'Winning Feature 1',
+      tag: 'Decisive Buy Window',
       metric: 'Reduces deliberation from 4 days to 40 seconds',
       desc: 'LLMs extract flight/hotel data from pasted TikTok/IG links into itinerary cards. Dynamic deep-link redirects bypass gatekeeping for instant affiliate checkout.',
     },
