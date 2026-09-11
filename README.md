@@ -94,11 +94,11 @@ Replace the rows below with your **real** mentor sessions (name, date, what they
 
 **UI Prototype:** [Public Link — check it opens in an incognito window]
 
-<img src="docs/screens/trip-fix.png" width="180" alt="Trip Fix (Trip Flex)" />
+<img src="docs/screens/trip-fix.png" width="150" alt="Trip Fix (Trip Flex)" />
 
 *Trip Fix — live Trip Health Score, active disruptions, **Auto-Fix Plan**, travel room, and itinerary summary.*
 
-<img src="docs/screens/what-if.png" width="180" alt="What-If Simulator" />
+<img src="docs/screens/what-if.png" width="150" alt="What-If Simulator" />
 
 *What-If Simulator — select disruption conditions, then **Run AI Simulation** for a contingency preview.*
 

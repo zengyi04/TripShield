@@ -27,7 +27,7 @@ If you add more boards (mindmaps, crazy eights, 5 Whys, user flows), drop them h
 
 | File | Screen |
 | --- | --- |
-| `trip-fix.png` | Trip Fix (Trip Flex) — cropped to phone frame, ~180px wide in README |
-| `what-if.png` | What-If Simulator — cropped to phone frame, ~180px wide in README |
+| `trip-fix.png` | Trip Fix (Trip Flex) — cropped to phone frame, ~150px wide in README |
+| `what-if.png` | What-If Simulator — cropped to phone frame, ~150px wide in README |
 
-Add more captures here when ready and embed them in section 3 with `<img … width="180">` so they stay phone-sized on GitHub.
+Add more captures here when ready and embed them in section 3 with `<img … width="150">` so they stay phone-sized on GitHub.
