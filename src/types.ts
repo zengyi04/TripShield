@@ -25,8 +25,6 @@ export interface ColorHarmonyConfig {
   useHarmonized: boolean; // true = 同一色系 (same color family), false = screenshot mismatch
 }
 
-export type ActiveScreen = 'home' | 'welcome' | 'signup' | 'login' | 'dashboard';
-
 // --- Ledger (Feature 3: Adaptive Ledger & Dynamic Budget Splitter) ---
 
 export type Category =

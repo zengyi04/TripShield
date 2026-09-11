@@ -102,41 +102,42 @@ function PhoneMockup({
 
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
+
     if (tab === 'home') {
-      onNavigate('home');
-    } else if (tab === 'ledger') {
-      onNavigate('home');
       setActivePreviewFeature(null);
       if (activeScreen !== 'home') {
         onNavigate('home');
       }
-    } else if (tab === 'consensus') {
-      setActivePreviewFeature(null);
-      if (activeScreen !== 'home') {
-        onNavigate('home');
-      }
-    } else if (tab === 'self-healing') {
-      setActivePreviewFeature(null);
-      if (activeScreen !== 'home' && activeScreen !== 'self-healing') {
-        onNavigate('home');
-      }
-    } else {
+      return;
+    }
+
+    if (tab === 'buy-window') {
       setActivePreviewFeature(tab);
       if (activeScreen !== 'home') {
         onNavigate('home');
       }
+      return;
+    }
+
+    setActivePreviewFeature(null);
+    if (activeScreen !== 'home' && activeScreen !== 'self-healing') {
+      onNavigate('home');
     }
   };
 
   const renderScreen = () => {
     switch (activeScreen) {
-      case 'self-healing':
       case 'home':
         return (
           <View style={styles.screenWrap}>
             {currentTab === 'ledger' ? (
-              <LedgerScreen topColor={topColor} bottomColor={bottomColor} buttonBg={buttonBg} buttonHover={buttonHover} />
-            {currentTab === 'consensus' ? (
+              <LedgerScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+              />
+            ) : currentTab === 'consensus' ? (
               <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
             ) : currentTab === 'self-healing' ? (
               <SelfHealingScreen
@@ -155,9 +156,6 @@ function PhoneMockup({
                 buttonBg={buttonBg}
                 buttonHover={buttonHover}
                 onNavigate={onNavigate}
-              />
-            )}
-            <BottomNavigation currentTab={currentTab} onTabChange={handleTabChange} barBgColor={bottomColor} />
                 onOpenSelfHealing={() => handleTabChange('self-healing')}
               />
             )}

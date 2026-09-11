@@ -35,6 +35,10 @@
     "src/components/screens/SelfHealingScreen.tsx",
     "src/components/screens/WhatIfSimulatorScreen.tsx",
     "src/components/screens/ConsensusScreen.tsx",
+    "src/components/screens/LedgerScreen.tsx",
+    "src/components/Ledger*.tsx",
+    "src/utils/ledger*.ts",
+    "src/data/ledgerMockData.ts",
     "src/data/mockUsers.ts"
   ],
   "exclude": [
