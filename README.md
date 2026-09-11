@@ -149,8 +149,11 @@ Replace the rows below with your **real** mentor sessions (name, date, what they
 
 ### System Architecture
 
-![System architecture](docs/architecture/system-architecture.png)
+<img src="docs/architecture/system-architecture.png" width="720" alt="TripShield system architecture and build plan" />
+
 *Source: [`docs/architecture/system-architecture.png`](docs/architecture/system-architecture.png)*
+
+**Is this diagram complete?** Yes for a **high-level** submission slide: it shows group travellers on mobile/web, a React Native frontend, a backend API layer (auth, business logic, recommendations), database storage, Gemini for group-aware recommendations, external maps and weather, and a five-step build timeline. For **exact** stack names and what is already built in the repo, use the **Tech Stack** table above (e.g. Supabase/Postgres rather than MongoDB or Firebase, Open-Meteo and ArcGIS static maps in the current app, and a small serverless proxy rather than a large Express monolith).
 
 ### Build Plan & Scope
 

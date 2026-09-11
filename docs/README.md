@@ -12,14 +12,9 @@ Drop the images referenced by the root [README.md](../README.md) here. Filenames
 
 | File | What it shows |
 | --- | --- |
-| `system-architecture.png` | Client, proxy, backend and external services, with built vs planned marked |
-| `system-architecture.mmd` | Mermaid source for the diagram above |
+| `system-architecture.png` | Team system architecture diagram (users, React Native, backend, DB, Gemini, external APIs, build timeline) |
 
-After editing the source, re-render with:
-
-```bash
-npx @mermaid-js/mermaid-cli -i docs/architecture/system-architecture.mmd -o docs/architecture/system-architecture.png -b white -s 3
-```
+Replace this file to update section 5 in the root README. The older Mermaid source was removed when we switched to this diagram.
 
 If you add more boards (mindmaps, crazy eights, 5 Whys, user flows), drop them here and embed them in section 2.2. Messy photos of whiteboards or paper are fine — the reviewers want to see how the team thought, not polished diagrams.
 
