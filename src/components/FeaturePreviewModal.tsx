@@ -66,7 +66,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
     'ledger': {
       title: 'Adaptive Ledger & Dynamic Budget Splitter',
       subtitle: 'OCR Receipt Scanning & Reactive Balance Math',
-      tag: 'Winning Feature 3',
+      tag: 'Adaptive Ledger',
       icon: Receipt,
       mechanism:
         'Integrated OCR receipt scanning (Google Cloud Vision API) parses paper bills and restaurant checks, automatically splitting line items across members into a real-time net IOUs balance.',

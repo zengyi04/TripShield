@@ -46,7 +46,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <h1
           className="text-3xl sm:text-[34px] font-extrabold text-white tracking-tight leading-tight mb-3"
           id="welcome-title"
-          style={{ fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif" }}
         >
           Welcome back
         </h1>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, KeyRound, Check } from 'lucide-react';
+import { TripShieldLogo } from '../TripShieldLogo';
 import { ActiveScreen } from '../../types';
 
 interface LoginScreenProps {
@@ -33,20 +34,23 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     <div className="w-full h-full flex flex-col select-none" id="login-screen">
       {/* Top Section */}
       <div
-        className="w-full pt-4 pb-6 px-6 flex items-center justify-between transition-colors duration-300"
+        className="w-full pt-3 pb-3 px-3.5 flex items-center justify-between transition-colors duration-300"
         style={{ backgroundColor: topColor }}
       >
         <button
           onClick={() => onNavigate('welcome')}
           id="login-back-btn"
-          className="w-10 h-10 rounded-full flex items-center justify-center bg-white/30 backdrop-blur-md text-slate-800 hover:bg-white/50 transition-all cursor-pointer"
+          className="w-8 h-8 rounded-full flex items-center justify-center bg-white/70 hover:bg-white text-slate-800 transition-all cursor-pointer shadow-xs"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} />
         </button>
-        <span className="text-slate-800 font-bold text-sm tracking-wide uppercase opacity-80">
-          Sign In
-        </span>
-        <div className="w-10" />
+        <div className="flex items-center gap-2">
+          <TripShieldLogo size={24} />
+          <span className="text-slate-800 font-black text-xs tracking-tight">
+            Sign In
+          </span>
+        </div>
+        <div className="w-8" />
       </div>
 
       {/* Bottom Section */}
@@ -132,7 +136,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <div className="text-center pt-4">
           <p className="text-white/80 text-xs">
-            New to Voya?{' '}
+            New to TripShield?{' '}
             <button
               onClick={() => onNavigate('signup')}
               className="text-white font-bold underline underline-offset-2 ml-1 cursor-pointer"

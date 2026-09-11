@@ -124,7 +124,7 @@ export default function BuyWindowScreen({
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <LinearGradient colors={['#255887', '#1a3c5e']} style={styles.hero}>
-          <Text style={styles.heroKicker}>Buy Window · Feature 1</Text>
+          <Text style={styles.heroKicker}>Buy Window</Text>
           <Text style={styles.heroTitle}>Turn travel inspiration into action.</Text>
           <Text style={styles.heroSub}>Paste a flight, hotel, or social travel link to analyze.</Text>
           <View style={styles.inputRow}>

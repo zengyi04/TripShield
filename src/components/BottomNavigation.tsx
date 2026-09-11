@@ -59,14 +59,14 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             id={`nav-tab-${tab.id}`}
-            className={`relative flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all duration-200 cursor-pointer min-w-[56px] ${
+            className={`relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 cursor-pointer min-w-[56px] ${
               isActive
                 ? 'text-blue-600 font-extrabold'
                 : 'text-slate-400 hover:text-slate-600 font-semibold'
             }`}
           >
             {/* Icon + Badge */}
-            <div className="relative mb-1">
+            <div className="relative mb-0.5">
               <Icon
                 size={22}
                 strokeWidth={isActive ? 2.5 : 1.8}
@@ -90,12 +90,17 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
 
             {/* Main Label */}
             <span
-              className={`text-[11px] tracking-tight leading-none ${
+              className={`text-[10px] tracking-tight leading-none ${
                 isActive ? 'font-black text-blue-600' : 'font-semibold text-slate-500'
               }`}
             >
               {tab.label}
             </span>
+
+            {/* Active Indicator Bar */}
+            {isActive && (
+              <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-full bg-blue-600 transition-all duration-200" />
+            )}
           </button>
         );
       })}
