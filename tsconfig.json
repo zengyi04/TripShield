@@ -14,6 +14,11 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "customConditions": [
+      "react-native"
+    ],
     "paths": {
       "@/*": [
         "./*"
@@ -53,6 +58,5 @@
     "src/components/screens/LoginScreen.tsx",
     "src/components/screens/SignUpScreen.tsx",
     "src/components/screens/WelcomeScreen.tsx"
-  ],
-  "extends": "./node_modules/expo/tsconfig.base.json"
+  ]
 }

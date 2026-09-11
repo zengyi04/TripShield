@@ -15,6 +15,13 @@ import type { ActiveScreen } from '../../types';
 import { WhatIfSimulatorScreen } from './WhatIfSimulatorScreen';
 import { ROOMS, type TripActivity, type TripDay } from '../../data/tripRooms';
 import { fetchPlaceWeather, type WeatherSnapshot } from '../../utils/weather';
+import {
+  APP_COLORS,
+  APP_GRADIENT_LOCATIONS,
+  APP_TYPO,
+  screenGradientStops,
+} from '../../utils/appTheme';
+import { appThemeStyles } from '../../utils/appThemeStyles';
 
 interface SelfHealingScreenProps {
   topColor: string;
@@ -99,6 +106,15 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   const selectedRoom = ROOMS.find(r => r.id === selectedRoomId)!;
   const isFixed = !!autoFixed[selectedRoomId];
   const visibleDays = isFixed ? selectedRoom.optimizedDays : selectedRoom.days;
+
+  useEffect(() => {
+    const days = isFixed ? selectedRoom.optimizedDays : selectedRoom.days;
+    const prefix = isFixed ? 'new' : 'live';
+    const first = days[0];
+    if (first) {
+      setExpandedDay(`${selectedRoomId}-${prefix}-${first.date}`);
+    }
+  }, [selectedRoomId, isFixed, selectedRoom.optimizedDays, selectedRoom.days]);
 
   const tripHealthScore = useMemo(
     () => computeTripHealthScore(selectedRoomId, autoFixed),
@@ -223,79 +239,26 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
 
   return (
     <LinearGradient
-      colors={[topColor, '#8EAFD2', bottomColor]}
-      locations={[0, 0.46, 1]}
+      colors={screenGradientStops(topColor, bottomColor)}
+      locations={APP_GRADIENT_LOCATIONS}
       style={styles.container}
     >
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Self-Healing Pivot</Text>
+      <View style={appThemeStyles.screenHeader}>
+        <View style={appThemeStyles.screenHeaderCenter}>
+          <Text style={appThemeStyles.screenHeaderTitle}>Self-Healing Pivot</Text>
+          <Text style={appThemeStyles.screenHeaderSubtitle}>Live weather · routes · trip health</Text>
+        </View>
       </View>
 
       <ScrollView
         style={styles.scrollArea}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={appThemeStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Select Travel Room</Text>
-          <Pressable onPress={() => setRoomMenuOpen(true)} style={styles.roomTrigger}>
-            <View style={styles.roomTriggerLeft}>
-              <Text style={styles.roomEmoji}>{selectedRoom.emoji}</Text>
-              <View>
-                <Text style={styles.roomName}>{selectedRoom.name}</Text>
-                <Text style={styles.roomCity}>{selectedRoom.city}</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-down" size={16} color="#6b7280" />
-          </Pressable>
-        </View>
-
-        <View style={[styles.card, itineraryGlow && styles.cardGlow]}>
-          <View style={styles.tripHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.tripTitle}>{selectedRoom.destination}</Text>
-              <Text style={styles.tripDate}>{selectedRoom.dateRange}</Text>
-            </View>
-            <View style={styles.membersBadge}>
-              <Text style={styles.membersText}>👥 {selectedRoom.members} members</Text>
-            </View>
-          </View>
-
-          <Pressable onPress={() => setPlanModalOpen(true)} style={styles.fullPlanBtn}>
-            <Ionicons name="newspaper-outline" size={16} color="#1e3a8a" />
-            <Text style={styles.fullPlanBtnText}>Open full detailed plan</Text>
-          </Pressable>
-
-          {isFixed ? (
-            <>
-              <View style={styles.optimizedPill}>
-                <Text style={styles.optimizedPillText}>✨  AI Plan Optimized</Text>
-              </View>
-              <Text style={styles.compareHint}>
-                Tap a day to compare times and places with the previous plan. Weather icons open live conditions.
-              </Text>
-              <View style={[styles.planBlock, styles.oldPlan]}>
-                <Text style={styles.oldPlanLabel}>PREVIOUS PLAN (DISRUPTED)</Text>
-                {selectedRoom.days.map(day => renderDayBlock(day, 'old', true))}
-              </View>
-              <View style={styles.aiArrow}>
-                <View style={styles.aiLine} />
-                <Text style={styles.aiArrowText}>AI Re-routed</Text>
-                <View style={styles.aiLine} />
-              </View>
-              <View style={[styles.planBlock, styles.newPlan]}>
-                <Text style={styles.newPlanLabel}>UPDATED PLAN (OPTIMAL)</Text>
-                {selectedRoom.optimizedDays.map(day => renderDayBlock(day, 'new'))}
-              </View>
-            </>
-          ) : (
-            selectedRoom.days.map(day => renderDayBlock(day, 'live'))
-          )}
-        </View>
-
-        <View style={styles.card}>
+        <View style={[appThemeStyles.card, styles.healthCard]}>
+          <Text style={appThemeStyles.sectionEyebrow}>Step 1 · Trip health</Text>
           <View style={styles.healthHeader}>
-            <Text style={styles.cardTitle}>Trip Health Score</Text>
+            <Text style={styles.healthCardTitle}>Trip Health Score</Text>
             <View
               style={[
                 styles.statusBadge,
@@ -315,8 +278,8 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
               <Text style={[styles.scoreNumber, { color: healthColor }]}>{tripHealthScore}</Text>
               <Text style={styles.scoreTotal}>/ 100</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.breakdownTitle}>Active Disruptions:</Text>
+            <View style={styles.disruptionPanel}>
+              <Text style={styles.breakdownTitle}>Active disruptions</Text>
               {isFixed || activeConditions.length === 0 ? (
                 <>
                   <Text style={styles.noDisruption}>✔ No active disruptions</Text>
@@ -328,7 +291,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                 activeConditions.map(c => (
                   <View key={c.id} style={styles.disruptionItem}>
                     <Text style={styles.disruptionLabel}>
-                      {disruptionIcon(c.icon)} {c.label}:
+                      {disruptionIcon(c.icon)} {c.label}
                     </Text>
                     <Text style={styles.disruptionImpact}>{c.impactScore}</Text>
                   </View>
@@ -340,15 +303,15 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
           <View style={styles.legend}>
             <View style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: '#10b981' }]} />
-              <Text style={styles.legendText}>High (80-100)</Text>
+              <Text style={styles.legendText}>High (80–100)</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: '#f59e0b' }]} />
-              <Text style={styles.legendText}>Med (50-79)</Text>
+              <Text style={styles.legendText}>Med (50–79)</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />
-              <Text style={styles.legendText}>Low (0-49)</Text>
+              <Text style={styles.legendText}>Low (0–49)</Text>
             </View>
           </View>
 
@@ -359,7 +322,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                 itinerary to avoid the heavy rain and flight delays.
               </Text>
               <Pressable onPress={runAutoFix} style={({ pressed }) => [styles.autoFixBtn, pressed && styles.pressed]}>
-                <Text style={styles.autoFixText}>⚡  Auto-Fix Plan</Text>
+                <Text style={styles.autoFixText}>⚡ Auto-Fix Plan</Text>
               </Pressable>
             </View>
           ) : null}
@@ -404,8 +367,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
           {isFixed && awaitingMediumConfirm ? (
             <View style={[styles.suggestionBox, styles.mediumConfirmBox]}>
               <Text style={styles.mediumSuggestionText}>
-                Here is your AI replacement plan above. If it looks good, keep it — or switch back to your previous
-                itinerary anytime.
+                Review the updated itinerary below. Keep the optimized plan or revert to your previous one anytime.
               </Text>
               <View style={styles.mediumActionRow}>
                 <Pressable
@@ -418,19 +380,81 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                   onPress={revertToPreviousPlan}
                   style={({ pressed }) => [styles.mediumSecondaryBtn, pressed && styles.pressed]}
                 >
-                  <Text style={styles.mediumSecondaryBtnText}>Don&apos;t change plan</Text>
+                  <Text style={styles.mediumSecondaryBtnText}>Revert plan</Text>
                 </Pressable>
               </View>
             </View>
           ) : null}
         </View>
 
-        <Pressable onPress={() => setView('simulator')} style={styles.whatIfEntry}>
+        <View style={appThemeStyles.card}>
+          <Text style={appThemeStyles.sectionEyebrow}>Step 2 · Travel room</Text>
+          <Text style={appThemeStyles.cardTitle}>Select travel room</Text>
+          <Pressable onPress={() => setRoomMenuOpen(true)} style={styles.roomTrigger}>
+            <View style={styles.roomTriggerLeft}>
+              <Text style={styles.roomEmoji}>{selectedRoom.emoji}</Text>
+              <View>
+                <Text style={styles.roomName}>{selectedRoom.name}</Text>
+                <Text style={styles.roomCity}>{selectedRoom.city}</Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-down" size={16} color={APP_COLORS.textMuted} />
+          </Pressable>
+        </View>
+
+        <View style={[appThemeStyles.card, itineraryGlow && styles.cardGlow]}>
+          <Text style={appThemeStyles.sectionEyebrow}>Step 3 · Itinerary</Text>
+          <View style={styles.tripHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.tripTitle}>{selectedRoom.destination}</Text>
+              <Text style={styles.tripDate}>{selectedRoom.dateRange}</Text>
+            </View>
+            <View style={styles.membersBadge}>
+              <Text style={styles.membersText}>👥 {selectedRoom.members} members</Text>
+            </View>
+          </View>
+
+          <Pressable onPress={() => setPlanModalOpen(true)} style={styles.fullPlanBtn}>
+            <Ionicons name="newspaper-outline" size={16} color={APP_COLORS.accentDark} />
+            <Text style={styles.fullPlanBtnText}>Open full detailed plan</Text>
+          </Pressable>
+
+          {isFixed ? (
+            <>
+              <View style={styles.optimizedPill}>
+                <Text style={styles.optimizedPillText}>✨ AI plan optimized</Text>
+              </View>
+              <Text style={styles.compareHint}>
+                Expand each day to compare old vs new stops. Tap weather icons for live conditions.
+              </Text>
+              <View style={[styles.planBlock, styles.oldPlan]}>
+                <Text style={styles.oldPlanLabel}>Previous plan (disrupted)</Text>
+                {selectedRoom.days.map(day => renderDayBlock(day, 'old', true))}
+              </View>
+              <View style={styles.aiArrow}>
+                <View style={styles.aiLine} />
+                <Text style={styles.aiArrowText}>AI re-routed</Text>
+                <View style={styles.aiLine} />
+              </View>
+              <View style={[styles.planBlock, styles.newPlan]}>
+                <Text style={styles.newPlanLabel}>Updated plan (optimal)</Text>
+                {selectedRoom.optimizedDays.map(day => renderDayBlock(day, 'new'))}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.compareHint}>Tap a day to expand activities, routes, and weather.</Text>
+              {selectedRoom.days.map(day => renderDayBlock(day, 'live'))}
+            </>
+          )}
+        </View>
+
+        <Pressable onPress={() => setView('simulator')} style={[appThemeStyles.card, styles.whatIfEntry]}>
           <View>
             <Text style={styles.whatIfTitle}>What-If Simulator</Text>
             <Text style={styles.whatIfSub}>Try other disruption conditions</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#1e3a8a" />
+          <Ionicons name="chevron-forward" size={18} color={APP_COLORS.accentDark} />
         </Pressable>
       </ScrollView>
 
@@ -587,49 +611,27 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    paddingTop: 12,
-    paddingHorizontal: 14,
-    paddingBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.22)',
-  },
   pressed: { opacity: 0.75 },
-  headerTitle: {
-    textAlign: 'center',
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#0f172a',
-    letterSpacing: -0.3,
-  },
   scrollArea: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 20, gap: 16, paddingTop: 12 },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E6EEF5',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+  healthCard: { gap: 4 },
+  healthCardTitle: {
+    fontSize: APP_TYPO.sectionTitle,
+    fontWeight: '700',
+    color: APP_COLORS.textSecondary,
+    flex: 1,
   },
+  disruptionPanel: { flex: 1, minWidth: 0 },
   cardGlow: {
     shadowColor: '#10b981',
     shadowOpacity: 0.45,
     shadowRadius: 8,
     elevation: 6,
   },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937', marginBottom: 12 },
+  cardTitle: { fontSize: APP_TYPO.sectionTitle, fontWeight: '600', color: APP_COLORS.textSecondary, marginBottom: 12 },
   roomTrigger: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: APP_COLORS.surfaceMuted,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E2E8F0',
+    borderColor: APP_COLORS.border,
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -639,37 +641,39 @@ const styles = StyleSheet.create({
   },
   roomTriggerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   roomEmoji: { fontSize: 24 },
-  roomName: { fontSize: 14, fontWeight: '600', color: '#1f2937' },
-  roomCity: { fontSize: 12, color: '#6b7280', marginTop: 1 },
+  roomName: { fontSize: APP_TYPO.bodySmall, fontWeight: '600', color: APP_COLORS.textSecondary },
+  roomCity: { fontSize: APP_TYPO.caption, color: APP_COLORS.textMuted, marginTop: 1 },
   tripHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  tripTitle: { fontSize: 18, fontWeight: '700', color: '#1f2937' },
-  tripDate: { fontSize: 13, color: '#6b7280', marginTop: 4 },
+  tripTitle: { fontSize: APP_TYPO.sectionTitle + 2, fontWeight: '700', color: APP_COLORS.textSecondary },
+  tripDate: { fontSize: APP_TYPO.bodySmall, color: APP_COLORS.textMuted, marginTop: 4 },
   membersBadge: {
-    backgroundColor: '#e0e7ff',
+    backgroundColor: APP_COLORS.chipBg,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: APP_COLORS.chipBorder,
   },
-  membersText: { fontSize: 12, fontWeight: '500', color: '#3b82f6' },
+  membersText: { fontSize: APP_TYPO.caption, fontWeight: '600', color: APP_COLORS.accent },
   fullPlanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     borderWidth: 1.5,
-    borderColor: '#93c5fd',
-    backgroundColor: '#eff6ff',
+    borderColor: APP_COLORS.chipBorder,
+    backgroundColor: APP_COLORS.chipBg,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginBottom: 12,
   },
-  fullPlanBtnText: { fontSize: 13, fontWeight: '700', color: '#1e3a8a' },
+  fullPlanBtnText: { fontSize: APP_TYPO.bodySmall, fontWeight: '700', color: APP_COLORS.accentDark },
   itineraryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: APP_COLORS.surfaceMuted,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E8EEF4',
+    borderColor: APP_COLORS.cardBorder,
     padding: 12,
     borderRadius: 12,
     marginBottom: 8,
@@ -754,8 +758,8 @@ const styles = StyleSheet.create({
   aiArrow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   aiLine: { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
   aiArrowText: { fontSize: 12, fontWeight: '600', color: '#9ca3af' },
-  healthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  monitorTag: { fontSize: 10, color: '#3b82f6', fontWeight: '700', marginTop: -6, marginBottom: 8 },
+  healthHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  monitorTag: { fontSize: APP_TYPO.micro, color: APP_COLORS.accent, fontWeight: '700', marginBottom: 8 },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -763,7 +767,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginBottom: 12,
     flexShrink: 0,
   },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
@@ -855,22 +858,12 @@ const styles = StyleSheet.create({
     borderColor: '#93c5fd',
   },
   whatIfEntry: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E6EEF5',
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
   },
-  whatIfTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
-  whatIfSub: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  whatIfTitle: { fontSize: APP_TYPO.sectionTitle, fontWeight: '600', color: APP_COLORS.textSecondary },
+  whatIfSub: { fontSize: APP_TYPO.caption, color: APP_COLORS.textMuted, marginTop: 2 },
   menuBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

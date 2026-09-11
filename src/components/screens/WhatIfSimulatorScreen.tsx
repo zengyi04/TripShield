@@ -10,6 +10,12 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  APP_COLORS,
+  APP_GRADIENT_LOCATIONS,
+  screenGradientStops,
+} from '../../utils/appTheme';
+import { appThemeStyles } from '../../utils/appThemeStyles';
 
 export interface GlobalCondition {
   id: string;
@@ -176,21 +182,28 @@ export const WhatIfSimulatorScreen: React.FC<WhatIfSimulatorScreenProps> = ({
   const categoryLabel = CATEGORIES.find(c => c.value === category)?.label ?? 'All Categories';
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={onBack} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}>
-          <Ionicons name="arrow-back" size={20} color="#0f172a" />
+    <LinearGradient
+      colors={screenGradientStops(topColor, bottomColor)}
+      locations={APP_GRADIENT_LOCATIONS}
+      style={styles.container}
+    >
+      <View style={appThemeStyles.screenHeader}>
+        <Pressable onPress={onBack} style={({ pressed }) => [appThemeStyles.headerIconBtn, pressed && styles.pressed]}>
+          <Ionicons name="arrow-back" size={20} color={APP_COLORS.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>What-If Simulator</Text>
+        <View style={appThemeStyles.screenHeaderCenter}>
+          <Text style={appThemeStyles.screenHeaderTitle}>What-If Simulator</Text>
+          <Text style={appThemeStyles.screenHeaderSubtitle}>Test disruption scenarios</Text>
+        </View>
         <Pressable
           onPress={() => {
             setSelected({});
             setSimOpen(false);
             setSimReady(false);
           }}
-          style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}
+          style={({ pressed }) => [appThemeStyles.headerIconBtn, pressed && styles.pressed]}
         >
-          <Ionicons name="refresh-outline" size={19} color="#0f172a" />
+          <Ionicons name="refresh-outline" size={19} color={APP_COLORS.textPrimary} />
         </Pressable>
       </View>
 
@@ -372,22 +385,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F7FB',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D9E4F0',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
   pressed: { opacity: 0.75 },
   headerTitle: {

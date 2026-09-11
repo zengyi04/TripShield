@@ -3,6 +3,7 @@ import { Alert, Image, Linking, Modal, Pressable, ScrollView, Share, StyleSheet,
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_USERS, MockUser } from '../../data/mockUsers';
+import { APP_GRADIENT_LOCATIONS, screenGradientStops } from '../../utils/appTheme';
 
 const modeLabel: Record<string, string> = { walk: 'Walk', metro: 'Subway', bus: 'Bus', taxi: 'Taxi', flight: 'Flight', ferry: 'Ferry', rail: 'Rail' };
 const mapsDir = (from: string, to: string) => `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&travelmode=transit`;
@@ -544,7 +545,7 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
   };
 
   return (
-    <LinearGradient colors={[topColor, bottomColor]} locations={[0, 1]} style={styles.page}> 
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.page}>
       {/* Header - only show for hub */}
       {phase === 'hub' && (
         <View style={styles.hero}>

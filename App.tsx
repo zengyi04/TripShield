@@ -17,6 +17,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
+import { APP_GRADIENT_LOCATIONS, APP_TOP_HEX, screenGradientStops } from './src/utils/appTheme';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import type { ActiveScreen } from './src/types';
 import LedgerScreen from './src/components/screens/LedgerScreen';
@@ -30,7 +31,7 @@ import {
 } from './src/data/mockBuyWindow';
 import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
 
-const SAFE_TOP_COLOR = '#B7D4F2';
+const SAFE_TOP_COLOR = APP_TOP_HEX;
 
 type FeatureTab = 'home' | 'buy-window' | 'consensus' | 'ledger' | 'self-healing';
 
@@ -324,7 +325,7 @@ function WelcomeScreen({
   isHarmonized: boolean;
 }) {
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.welcomeTop}> 
         <TripShieldLogo size={190} />
       </View>
@@ -360,7 +361,7 @@ function SignUpScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover
   };
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.formHeader}> 
         <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
         <Text style={styles.formTitle}>Get Started</Text>
@@ -403,7 +404,7 @@ function LoginScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover 
   };
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.formHeader}> 
         <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
         <Text style={styles.formTitle}>Sign In</Text>
@@ -439,7 +440,7 @@ function DashboardScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHo
   ];
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.dashboardHeader}> 
         <View style={styles.titleRow}>
           <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
@@ -634,7 +635,7 @@ function HomeScreen({
   const previewItinerary = ITINERARY_ITEMS.slice(0, 3);
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.homeScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.homeScreen}>
       <View style={styles.topBar}> 
         <View style={styles.topBarRow}>
           <View style={styles.userRow}>
