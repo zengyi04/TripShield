@@ -1,7 +1,0 @@
-{
-  "name": "TripShield",
-  "remoteEnv": {
-    "CI": "false"
-  },
-  "postCreateCommand": "rm -rf node_modules && npm ci"
-}

@@ -17,29 +17,6 @@ View your app in AI Studio: https://ai.studio/apps/53d1b511-7adf-4431-9531-e7afa
 
 1. Install dependencies:
    `npm install`
-
-   **Codespaces:** If `npm install` fails with `ENOTEMPTY` on `node_modules/...`, remove the folder and reinstall:
-
-   ```bash
-   npm run reinstall
-   ```
-
-   Or: `rm -rf node_modules && npm install`
-
-   **Do not run** `npm audit fix --force` — it can remove or break packages (e.g. `chromium-edge-launcher`) and then `npm start` fails. Recovery:
-
-   ```bash
-   git checkout package-lock.json
-   npm run reinstall
-   ```
-
-   `postinstall` will re-fetch broken launcher packages if needed.
-
-2. **Codespaces / Expo:** optional `.env.local` — see [.env.example](.env.example). Set `EXPO_UNSTABLE_HEADLESS=1` only if you see DevTools/`libatk` errors (it can hide the QR when combined with GitHub log capture).
-
-3. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-4. Run the app:
-   - Mobile UI (Expo Go): `npm start` (shows QR + tunnel when the terminal is interactive)
-   - Web preview: `npm run dev`
-
-   Clear Metro cache: `npx expo start --clear --tunnel` (not `npm start --clear`).
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
