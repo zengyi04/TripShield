@@ -35,6 +35,7 @@
     "src/components/screens/SelfHealingScreen.tsx",
     "src/components/screens/WhatIfSimulatorScreen.tsx",
     "src/components/screens/ConsensusScreen.tsx",
+    "src/components/screens/BuyWindowScreen.native.tsx",
     "src/components/screens/LedgerScreen.tsx",
     "src/components/Ledger*.tsx",
     "src/utils/ledger*.ts",

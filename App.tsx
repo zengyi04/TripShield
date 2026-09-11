@@ -20,6 +20,14 @@ import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import type { ActiveScreen } from './src/types';
 import LedgerScreen from './src/components/screens/LedgerScreen';
+import BuyWindowScreen from './src/components/screens/BuyWindowScreen.native';
+import {
+  ACTIVE_BUY_WINDOWS,
+  ACTIVE_TRIP,
+  AI_INSIGHT,
+  FEATURE_SUMMARIES,
+  ITINERARY_ITEMS,
+} from './src/data/mockBuyWindow';
 import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
 
 const SAFE_TOP_COLOR = '#B7D4F2';
@@ -112,7 +120,7 @@ function PhoneMockup({
     }
 
     if (tab === 'buy-window') {
-      setActivePreviewFeature(tab);
+      setActivePreviewFeature(null);
       if (activeScreen !== 'home') {
         onNavigate('home');
       }
@@ -139,6 +147,15 @@ function PhoneMockup({
               />
             ) : currentTab === 'consensus' ? (
               <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
+            ) : currentTab === 'buy-window' ? (
+              <BuyWindowScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                buttonBg={buttonBg}
+                buttonHover={buttonHover}
+                onNavigate={onNavigate}
+                onGoHome={() => handleTabChange('home')}
+              />
             ) : currentTab === 'self-healing' ? (
               <SelfHealingScreen
                 topColor={topColor}
@@ -157,6 +174,9 @@ function PhoneMockup({
                 buttonHover={buttonHover}
                 onNavigate={onNavigate}
                 onOpenSelfHealing={() => handleTabChange('self-healing')}
+                onSwitchToBuyWindow={() => handleTabChange('buy-window')}
+                onOpenConsensus={() => handleTabChange('consensus')}
+                onOpenLedger={() => handleTabChange('ledger')}
               />
             )}
             <BottomNavigation
@@ -594,6 +614,9 @@ function HomeScreen({
   buttonHover,
   onNavigate,
   onOpenSelfHealing,
+  onSwitchToBuyWindow,
+  onOpenConsensus,
+  onOpenLedger,
 }: {
   topColor: string;
   bottomColor: string;
@@ -601,9 +624,14 @@ function HomeScreen({
   buttonHover: string;
   onNavigate?: (screen: ActiveScreen) => void;
   onOpenSelfHealing?: () => void;
+  onSwitchToBuyWindow?: () => void;
+  onOpenConsensus?: () => void;
+  onOpenLedger?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
+  const activeBuyWindow = ACTIVE_BUY_WINDOWS[0];
+  const previewItinerary = ITINERARY_ITEMS.slice(0, 3);
 
   return (
     <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.homeScreen}>
@@ -696,7 +724,74 @@ function HomeScreen({
 
       </View>
 
-      <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent} />
+      <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent}>
+        <Text style={styles.homeGreeting}>Good day 👋</Text>
+        <Text style={styles.homeGreetingSub}>Here&apos;s what&apos;s happening with your trip.</Text>
+
+        <View style={styles.tripOverviewCard}>
+          <Text style={styles.tripEmoji}>{ACTIVE_TRIP.coverEmoji}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.tripName}>{ACTIVE_TRIP.tripName}</Text>
+            <Text style={styles.tripMeta}>{ACTIVE_TRIP.flag} {ACTIVE_TRIP.destination} · {ACTIVE_TRIP.dateRange}</Text>
+            <Text style={styles.tripMeta}>👥 {ACTIVE_TRIP.travelers} travelers</Text>
+          </View>
+        </View>
+
+        {activeBuyWindow ? (
+          <Pressable onPress={onSwitchToBuyWindow} style={({ pressed }) => [styles.buyWindowAlert, pressed && styles.pressedGlass]}>
+            <View style={styles.buyWindowAlertTop}>
+              <Ionicons name="timer" size={20} color="#d97706" />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.buyWindowKicker}>🔥 Buy Window</Text>
+                <Text style={styles.buyWindowTitle}>Flight opportunity detected</Text>
+                <Text style={styles.buyWindowSub}>{activeBuyWindow.route} · {activeBuyWindow.price}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#d97706" />
+            </View>
+            <Text style={styles.buyWindowCta}>Tap to open Buy Window (Feature 1)</Text>
+          </Pressable>
+        ) : null}
+
+        <View style={styles.aiInsightCard}>
+          <Ionicons name="sparkles" size={18} color="#fff" />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={styles.aiInsightKicker}>TripShield Insight</Text>
+            <Text style={styles.aiInsightText}>{AI_INSIGHT.message}</Text>
+            <Text style={styles.aiInsightSub}>{AI_INSIGHT.detail}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.homeSectionLabel}>Trip features</Text>
+        <View style={styles.featureGrid}>
+          {FEATURE_SUMMARIES.map(f => (
+            <Pressable
+              key={f.id}
+              onPress={() => {
+                if (f.id === 'buy-window') onSwitchToBuyWindow?.();
+                else if (f.id === 'self-healing') onOpenSelfHealing?.();
+                else if (f.id === 'consensus') onOpenConsensus?.();
+                else if (f.id === 'ledger') onOpenLedger?.();
+              }}
+              style={styles.featureChip}
+            >
+              <Text style={styles.featureEmoji}>{f.emoji}</Text>
+              <Text style={styles.featureLabel}>{f.label}</Text>
+              <Text style={styles.featureMetric}>{f.metric}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={styles.homeSectionLabel}>Itinerary preview</Text>
+        {previewItinerary.map(item => (
+          <View key={item.id} style={styles.itineraryPreviewRow}>
+            <Text style={styles.tripEmoji}>{item.emoji}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itineraryName}>{item.name}</Text>
+              <Text style={styles.itineraryMeta}>{item.location} · {item.type}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -843,7 +938,7 @@ const styles = StyleSheet.create({
   phoneFrame: { flex: 1, width: '100%', height: '100%', backgroundColor: '#dfeaf3', overflow: 'hidden', zIndex: 1 },
   phoneInner: { flex: 1, overflow: 'hidden' },
   innerContent: { flex: 1 },
-  screenWrap: { flex: 1 },
+  screenWrap: { flex: 1, minHeight: 0 },
   fullScreen: { flex: 1 },
   consensusPage: { flex: 1 },
   consensusHero: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
@@ -1122,8 +1217,76 @@ const styles = StyleSheet.create({
   chipSelected: { backgroundColor: 'rgba(35, 82, 128, 0.72)', borderColor: 'rgba(255,255,255,0.46)' },
   chipUnselected: { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.28)' },
   chipText: { fontSize: 11, fontWeight: '800' },
-  offerScroll: { flexGrow: 1, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 30 },
-  offerContent: { paddingBottom: 120 },
+  offerScroll: { flex: 1, paddingHorizontal: 12, paddingTop: 12 },
+  offerContent: { paddingBottom: 120, gap: 12 },
+  homeGreeting: { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  homeGreetingSub: { fontSize: 14, fontWeight: '900', color: '#fff', marginBottom: 4 },
+  tripOverviewCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  tripEmoji: { fontSize: 28 },
+  tripName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
+  tripMeta: { fontSize: 11, fontWeight: '600', color: '#475569', marginTop: 2 },
+  buyWindowAlert: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    padding: 12,
+  },
+  buyWindowAlertTop: { flexDirection: 'row', alignItems: 'center' },
+  buyWindowKicker: { fontSize: 10, fontWeight: '900', color: '#d97706' },
+  buyWindowTitle: { fontSize: 12, fontWeight: '800', color: '#1e293b', marginTop: 2 },
+  buyWindowSub: { fontSize: 10, fontWeight: '600', color: '#64748b', marginTop: 2 },
+  buyWindowCta: { fontSize: 10, fontWeight: '800', color: '#b45309', marginTop: 8 },
+  aiInsightCard: {
+    flexDirection: 'row',
+    backgroundColor: '#2563eb',
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'flex-start',
+  },
+  aiInsightKicker: { fontSize: 9, fontWeight: '800', color: '#bfdbfe', textTransform: 'uppercase' },
+  aiInsightText: { fontSize: 12, fontWeight: '800', color: '#fff', marginTop: 2 },
+  aiInsightSub: { fontSize: 10, color: '#dbeafe', marginTop: 4, lineHeight: 14 },
+  homeSectionLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.9)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginTop: 4,
+  },
+  featureGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  featureChip: {
+    width: '48%',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  featureEmoji: { fontSize: 18 },
+  featureLabel: { fontSize: 11, fontWeight: '800', color: '#1e293b', marginTop: 4 },
+  featureMetric: { fontSize: 9, fontWeight: '600', color: '#64748b', marginTop: 2 },
+  itineraryPreviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 6,
+  },
+  itineraryName: { fontSize: 12, fontWeight: '800', color: '#1e293b' },
+  itineraryMeta: { fontSize: 10, color: '#64748b', marginTop: 2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   offerCard: { width: '48%', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.38)', marginBottom: 12, position: 'relative' },
   promoCard: { backgroundColor: '#0F2C59', minHeight: 220 },
