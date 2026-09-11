@@ -17,6 +17,8 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
+import { APP_GRADIENT_LOCATIONS, APP_TOP_HEX, screenGradientStops } from './src/utils/appTheme';
+import { HeaderBackButton, HeaderIconButton, ScreenTopBar } from './src/components/ScreenTopBar';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import type { ActiveScreen } from './src/types';
 import LedgerScreen from './src/components/screens/LedgerScreen';
@@ -30,7 +32,7 @@ import {
 } from './src/data/mockBuyWindow';
 import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
 
-const SAFE_TOP_COLOR = '#B7D4F2';
+const SAFE_TOP_COLOR = APP_TOP_HEX;
 
 type FeatureTab = 'home' | 'buy-window' | 'consensus' | 'ledger' | 'self-healing';
 
@@ -146,7 +148,11 @@ function PhoneMockup({
                 buttonHover={buttonHover}
               />
             ) : currentTab === 'consensus' ? (
-              <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
+              <DedicatedConsensusScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                onGoHome={() => handleTabChange('home')}
+              />
             ) : currentTab === 'buy-window' ? (
               <BuyWindowScreen
                 topColor={topColor}
@@ -324,7 +330,7 @@ function WelcomeScreen({
   isHarmonized: boolean;
 }) {
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.welcomeTop}> 
         <TripShieldLogo size={190} />
       </View>
@@ -360,12 +366,8 @@ function SignUpScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover
   };
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
-      <View style={styles.formHeader}> 
-        <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
-        <Text style={styles.formTitle}>Get Started</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
+      <ScreenTopBar title="Get Started" subtitle="Create your TripShield account" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
       <View style={styles.formBody}> 
         <View>
           <View style={styles.inlineHeader}><Ionicons name="star" size={18} color="rgba(255,255,255,0.8)" /><Text style={styles.sectionHeading}>Create account</Text></View>
@@ -403,12 +405,8 @@ function LoginScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover 
   };
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
-      <View style={styles.formHeader}> 
-        <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
-        <Text style={styles.formTitle}>Sign In</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
+      <ScreenTopBar title="Sign In" subtitle="Welcome back, traveller" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
       <View style={styles.formBody}> 
         <View>
           <View style={styles.inlineHeader}><Ionicons name="key-outline" size={18} color="rgba(255,255,255,0.8)" /><Text style={styles.sectionHeading}>Welcome back</Text></View>
@@ -439,7 +437,7 @@ function DashboardScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHo
   ];
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.fullScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.dashboardHeader}> 
         <View style={styles.titleRow}>
           <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
@@ -582,9 +580,9 @@ function BottomNavigation({
   const tabs = [
     { id: 'home' as FeatureTab, label: 'Home', icon: 'home' },
     { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer' },
-    { id: 'consensus' as FeatureTab, label: 'Consensus', icon: 'sparkles' },
-    { id: 'ledger' as FeatureTab, label: 'Ledger', icon: 'receipt' },
-    { id: 'self-healing' as FeatureTab, label: 'Self-Healing', icon: 'shield-checkmark' },
+    { id: 'consensus' as FeatureTab, label: 'Plan', icon: 'sparkles' },
+    { id: 'ledger' as FeatureTab, label: 'Budget', icon: 'receipt' },
+    { id: 'self-healing' as FeatureTab, label: 'Fix Trip', icon: 'shield-checkmark' },
   ];
 
   return (
@@ -634,7 +632,7 @@ function HomeScreen({
   const previewItinerary = ITINERARY_ITEMS.slice(0, 3);
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.homeScreen}>
+    <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.homeScreen}>
       <View style={styles.topBar}> 
         <View style={styles.topBarRow}>
           <View style={styles.userRow}>
@@ -1084,8 +1082,6 @@ const styles = StyleSheet.create({
   maybeLater: { color: '#fff', fontSize: 15, fontWeight: '700', textDecorationLine: 'underline', marginTop: 10, alignSelf: 'center' },
   legalText: { color: 'rgba(255,255,255,0.7)', fontSize: 11, textAlign: 'center', maxWidth: 270, lineHeight: 18 },
   linkText: { color: '#fff', fontWeight: '600', textDecorationLine: 'underline' },
-  formHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 16, paddingBottom: 24, backgroundColor: 'rgba(255,255,255,0.08)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.18)' },
-  formTitle: { fontSize: 14, fontWeight: '800', letterSpacing: 1.2, color: '#1f2937', textTransform: 'uppercase' },
   formBody: { flex: 1, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 32, paddingTop: 28, paddingBottom: 32, justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
   iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
   inlineHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
@@ -1121,7 +1117,7 @@ const styles = StyleSheet.create({
   navWrap: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, backgroundColor: 'rgba(38,139,177,0.34)', shadowColor: '#0B4D68', shadowOpacity: 0.22, shadowRadius: 12 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 56, paddingVertical: 4 },
   navIconWrap: { position: 'relative', marginBottom: 6 },
-  navLabel: { fontSize: 11, letterSpacing: -0.1 },
+  navLabel: { fontSize: 10, letterSpacing: -0.2 },
   navHealBadge: {
     position: 'absolute',
     top: 2,
@@ -1135,9 +1131,9 @@ const styles = StyleSheet.create({
   },
   homeScreen: { flex: 1, position: 'relative' },
   topBar: {
-    paddingTop: 12,
-    paddingBottom: 14,
-    paddingHorizontal: 14,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 20,
     position: 'relative',
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderBottomWidth: 1,
