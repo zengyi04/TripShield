@@ -26,7 +26,14 @@ View your app in AI Studio: https://ai.studio/apps/53d1b511-7adf-4431-9531-e7afa
 
    Or: `rm -rf node_modules && npm install`
 
-   **Do not run** `npm audit fix --force` — it can remove or break packages (e.g. `chromium-edge-launcher`) and then `npm start` fails. If that happened, run `npm run reinstall` and use the lockfile from git (`git checkout package-lock.json` if you changed it).
+   **Do not run** `npm audit fix --force` — it can remove or break packages (e.g. `chromium-edge-launcher`) and then `npm start` fails. Recovery:
+
+   ```bash
+   git checkout package-lock.json
+   npm run reinstall
+   ```
+
+   `postinstall` will re-fetch broken launcher packages if needed.
 
 2. **Codespaces / Expo:** add to `.env.local` (see [.env.example](.env.example)):
 

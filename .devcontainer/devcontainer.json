@@ -3,5 +3,5 @@
   "remoteEnv": {
     "EXPO_UNSTABLE_HEADLESS": "1"
   },
-  "postCreateCommand": "rm -rf node_modules && npm install"
+  "postCreateCommand": "rm -rf node_modules && npm ci"
 }

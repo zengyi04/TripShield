@@ -12,7 +12,8 @@
     "web": "expo start --web",
     "tunnel": "expo start --tunnel",
     "lint": "tsc --noEmit",
-    "reinstall": "rm -rf node_modules && npm install"
+    "postinstall": "node scripts/ensure-expo-dev-deps.js",
+    "reinstall": "rm -rf node_modules && npm ci"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",
