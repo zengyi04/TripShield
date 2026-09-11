@@ -81,19 +81,11 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 ![Detailed problem tree](docs/ideation/problem-tree-detailed.png)
 *Problem tree (expanded) — we pushed each cause one level deeper to find the **root** cause, because "people can't agree" is a symptom, not something you can build against. Drilling down gave us the twelve blue root causes at the top, and those are what the features actually attack: "social pressure to seem agreeable hides real budgets" is why consensus is captured **privately** as Travel DNA, and "nothing monitors weather against the live plan" is why Trip Fix runs a continuous health score. The bottom row shows which mechanism answers which root cause. Source: [`problem-tree-detailed.mmd`](docs/ideation/problem-tree-detailed.mmd).*
 
-> The remaining boards below are placeholders — replace them with your own exports and keep the 1–2 line captions.
-
 ![Mindmap](docs/ideation/mindmap.png)
-*Mindmap of the first session — every idea we generated before filtering, including the ones dropped in 2.1. The cluster on the right is what became TripShield.*
+*Mindmap (first pass) — once the problem tree told us **what** to solve, we branched outwards from the platform into four feature pillars and hung the concrete capabilities off each one. This is where the features stopped being themes and became buildable parts: "Live Trip Health Score 0 to 100", "60-Second Travel DNA Swipe Deck", "Google Vision OCR Receipt Scanning".*
 
-![User flow](docs/ideation/user-flow.png)
-*User flow from pasted link to locked booking, showing where the Buy Window countdown and the consensus vote interrupt the flow.*
-
-![Crazy eights](docs/ideation/crazy-eights.png)
-*Crazy eights on the Self-Healing screen — eight takes on how to show "your day is broken, here is the fix" in one glance. Sketch 6 (health score + old vs new comparison) is what we built.*
-
-![5 Whys](docs/ideation/five-whys.png)
-*5 Whys on "why didn't the group book the flight?" — the chain ends at "nobody owned the decision", which is why we made the app own it.*
+![Detailed mindmap](docs/ideation/mindmap-detailed.png)
+*Mindmap (expanded) — the same four pillars taken down another level, plus the three branches that were missing from the first pass: **the ideas we dropped** and why, **how we build it** (stack and the constraints each choice carries), and **who it is for**. Keeping the rejected ideas on the same board matters — "group chat with polls" sitting next to our consensus engine is the clearest statement of what we are arguing against. Source: [`mindmap-detailed.mmd`](docs/ideation/mindmap-detailed.mmd).*
 
 ### 2.3 Mentor Consultation
 

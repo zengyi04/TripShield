@@ -4,15 +4,20 @@ Drop the images referenced by the root [README.md](../README.md) here. Filenames
 
 ## `ideation/`
 
-| File | What it should show |
+| File | What it shows |
 | --- | --- |
-| `problem-tree.png` | Root-cause breakdown of why group trips stall |
-| `mindmap.png` | First-session mindmap, including dropped ideas |
-| `user-flow.png` | Pasted link → locked booking flow |
-| `crazy-eights.png` | Eight sketches of the Self-Healing screen |
-| `five-whys.png` | "Why didn't the group book the flight?" chain |
+| `problem-tree.png` | Team problem tree — causes, effects, solution |
+| `problem-tree-detailed.png` | Expanded version drilling each cause to its root cause |
+| `mindmap.png` | Team mindmap — platform branched into four feature pillars |
+| `mindmap-detailed.png` | Expanded version adding dropped ideas, stack and stakeholders |
 
-Messy photos of whiteboards or paper are fine — the reviewers want to see how the team thought, not polished diagrams.
+The two `-detailed` boards are generated from the `.mmd` sources next to them. After editing a source, re-render with:
+
+```bash
+npx @mermaid-js/mermaid-cli -i docs/ideation/<name>.mmd -o docs/ideation/<name>.png -b white -s 4
+```
+
+If you add more boards (crazy eights, 5 Whys, user flows), drop them here and embed them in section 2.2. Messy photos of whiteboards or paper are fine — the reviewers want to see how the team thought, not polished diagrams.
 
 ## `screens/`
 
