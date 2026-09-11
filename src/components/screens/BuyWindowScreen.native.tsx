@@ -14,7 +14,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import type { ActiveScreen } from '../../types';
 import {
-  APP_COLORS,
   APP_GRADIENT_LOCATIONS,
   screenGradientStops,
 } from '../../utils/appTheme';
@@ -125,7 +124,8 @@ export default function BuyWindowScreen({
       style={styles.root}
     >
       <ScreenTopBar
-        title="Buy Window"
+        title="Deals"
+        subtitle="Paste a link, lock a price"
         left={<HeaderBackButton onPress={onGoHome} accessibilityLabel="Back to home" />}
         right={
           <HeaderIconButton onPress={() => onNavigate?.('welcome')} accessibilityLabel="Sign out">

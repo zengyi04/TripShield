@@ -367,7 +367,7 @@ function SignUpScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover
 
   return (
     <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
-      <ScreenTopBar title="Get Started" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
+      <ScreenTopBar title="Get Started" subtitle="Create your TripShield account" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
       <View style={styles.formBody}> 
         <View>
           <View style={styles.inlineHeader}><Ionicons name="star" size={18} color="rgba(255,255,255,0.8)" /><Text style={styles.sectionHeading}>Create account</Text></View>
@@ -406,7 +406,7 @@ function LoginScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover 
 
   return (
     <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
-      <ScreenTopBar title="Sign In" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
+      <ScreenTopBar title="Sign In" subtitle="Welcome back, traveller" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
       <View style={styles.formBody}> 
         <View>
           <View style={styles.inlineHeader}><Ionicons name="key-outline" size={18} color="rgba(255,255,255,0.8)" /><Text style={styles.sectionHeading}>Welcome back</Text></View>
@@ -579,10 +579,10 @@ function BottomNavigation({
 }) {
   const tabs = [
     { id: 'home' as FeatureTab, label: 'Home', icon: 'home' },
-    { id: 'buy-window' as FeatureTab, label: 'Buy Window', icon: 'timer' },
-    { id: 'consensus' as FeatureTab, label: 'Consensus', icon: 'sparkles' },
-    { id: 'ledger' as FeatureTab, label: 'Ledger', icon: 'receipt' },
-    { id: 'self-healing' as FeatureTab, label: 'Self-Healing', icon: 'shield-checkmark' },
+    { id: 'buy-window' as FeatureTab, label: 'Deals', icon: 'timer' },
+    { id: 'consensus' as FeatureTab, label: 'Plan', icon: 'sparkles' },
+    { id: 'ledger' as FeatureTab, label: 'Budget', icon: 'receipt' },
+    { id: 'self-healing' as FeatureTab, label: 'Fix Trip', icon: 'shield-checkmark' },
   ];
 
   return (
@@ -1117,7 +1117,7 @@ const styles = StyleSheet.create({
   navWrap: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, backgroundColor: 'rgba(38,139,177,0.34)', shadowColor: '#0B4D68', shadowOpacity: 0.22, shadowRadius: 12 },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 56, paddingVertical: 4 },
   navIconWrap: { position: 'relative', marginBottom: 6 },
-  navLabel: { fontSize: 11, letterSpacing: -0.1 },
+  navLabel: { fontSize: 10, letterSpacing: -0.2 },
   navHealBadge: {
     position: 'absolute',
     top: 2,

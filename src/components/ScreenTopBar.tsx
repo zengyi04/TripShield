@@ -5,13 +5,15 @@ import { ledgerStyles as s } from '../utils/ledgerTheme';
 
 type ScreenTopBarProps = {
   title: string;
+  /** Very small line under the main title */
+  subtitle?: string;
   left?: React.ReactNode;
   right?: React.ReactNode;
   style?: ViewStyle;
 };
 
 /** Shared top bar — matches Ledger header theme (size, color, padding). */
-export function ScreenTopBar({ title, left, right, style }: ScreenTopBarProps) {
+export function ScreenTopBar({ title, subtitle, left, right, style }: ScreenTopBarProps) {
   return (
     <View style={[s.header, style]}>
       {left ?? <View style={s.headerSideSpacer} />}
@@ -19,6 +21,11 @@ export function ScreenTopBar({ title, left, right, style }: ScreenTopBarProps) {
         <Text style={s.headerTitle} numberOfLines={1}>
           {title}
         </Text>
+        {subtitle ? (
+          <Text style={s.headerCaption} numberOfLines={2}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
       {right ?? <View style={s.headerSideSpacer} />}
     </View>

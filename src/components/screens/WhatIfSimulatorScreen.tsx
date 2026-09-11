@@ -183,7 +183,11 @@ export const WhatIfSimulatorScreen: React.FC<WhatIfSimulatorScreenProps> = ({
       locations={APP_GRADIENT_LOCATIONS}
       style={styles.container}
     >
-      <ScreenTopBar title="What-If Simulator" left={<HeaderBackButton onPress={onBack} />} />
+      <ScreenTopBar
+        title="What-If"
+        subtitle="Try disruption scenarios"
+        left={<HeaderBackButton onPress={onBack} />}
+      />
 
       <View style={styles.content}>
         <View style={styles.card}>

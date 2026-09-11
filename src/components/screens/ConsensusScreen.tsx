@@ -551,7 +551,8 @@ export function ConsensusScreen({ topColor, bottomColor, onGoHome }: ConsensusSc
       {/* Header - only show for hub */}
       {phase === 'hub' && (
         <ScreenTopBar
-          title="Trip rooms"
+          title="Group Plan"
+          subtitle="Build trips with your crew"
           left={onGoHome ? <HeaderBackButton onPress={onGoHome} /> : undefined}
         />
       )}

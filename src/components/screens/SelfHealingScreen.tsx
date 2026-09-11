@@ -244,7 +244,8 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
       style={styles.container}
     >
       <ScreenTopBar
-        title="Self-Healing Pivot"
+        title="Trip Fix"
+        subtitle="Fix weather delays & bad routes fast"
         left={onNavigateHome ? <HeaderBackButton onPress={onNavigateHome} /> : undefined}
       />
 
