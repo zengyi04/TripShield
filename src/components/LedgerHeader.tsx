@@ -20,10 +20,10 @@ export default function LedgerHeader({
     <View style={s.header}>
       {onBack ? (
         <Pressable onPress={onBack} style={({ pressed }) => [s.iconCircle, pressed && s.pressedGlass]}>
-          <Ionicons name="arrow-back" size={20} color="#1f2937" />
+          <Ionicons name="chevron-back" size={20} color="#1f2937" />
         </Pressable>
       ) : (
-        <View style={{ width: 40 }} />
+        <View style={s.headerSideSpacer} />
       )}
       <View style={s.headerTitleWrap}>
         <Text style={s.headerTitle} numberOfLines={1}>
@@ -45,7 +45,7 @@ export default function LedgerHeader({
               )
           : null}
       </View>
-      {right || <View style={{ width: 40 }} />}
+      {right || <View style={s.headerSideSpacer} />}
     </View>
   );
 }

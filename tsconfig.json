@@ -14,6 +14,11 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "customConditions": [
+      "react-native"
+    ],
     "paths": {
       "@/*": [
         "./*"
@@ -38,6 +43,8 @@
     "src/components/screens/BuyWindowScreen.native.tsx",
     "src/components/screens/LedgerScreen.tsx",
     "src/components/Ledger*.tsx",
+    "src/components/ScreenTopBar.tsx",
+    "src/components/RouteMapPreview.tsx",
     "src/utils/ledger*.ts",
     "src/data/ledgerMockData.ts",
     "src/data/mockUsers.ts"
@@ -53,6 +60,5 @@
     "src/components/screens/LoginScreen.tsx",
     "src/components/screens/SignUpScreen.tsx",
     "src/components/screens/WelcomeScreen.tsx"
-  ],
-  "extends": "./node_modules/expo/tsconfig.base.json"
+  ]
 }

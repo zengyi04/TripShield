@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { APP_GRADIENT_LOCATIONS, screenGradientStops } from '../../utils/appTheme';
+import { HeaderBackButton, ScreenTopBar } from '../ScreenTopBar';
 
 export interface GlobalCondition {
   id: string;
@@ -176,23 +178,16 @@ export const WhatIfSimulatorScreen: React.FC<WhatIfSimulatorScreenProps> = ({
   const categoryLabel = CATEGORIES.find(c => c.value === category)?.label ?? 'All Categories';
 
   return (
-    <LinearGradient colors={[topColor, '#8EAFD2', bottomColor]} locations={[0, 0.46, 1]} style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={onBack} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}>
-          <Ionicons name="arrow-back" size={20} color="#0f172a" />
-        </Pressable>
-        <Text style={styles.headerTitle}>What-If Simulator</Text>
-        <Pressable
-          onPress={() => {
-            setSelected({});
-            setSimOpen(false);
-            setSimReady(false);
-          }}
-          style={({ pressed }) => [styles.iconCircle, pressed && styles.pressed]}
-        >
-          <Ionicons name="refresh-outline" size={19} color="#0f172a" />
-        </Pressable>
-      </View>
+    <LinearGradient
+      colors={screenGradientStops(topColor, bottomColor)}
+      locations={APP_GRADIENT_LOCATIONS}
+      style={styles.container}
+    >
+      <ScreenTopBar
+        title="What-If"
+        subtitle="Try disruption scenarios"
+        left={<HeaderBackButton onPress={onBack} />}
+      />
 
       <View style={styles.content}>
         <View style={styles.card}>
@@ -372,22 +367,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F7FB',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D9E4F0',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
   pressed: { opacity: 0.75 },
   headerTitle: {
