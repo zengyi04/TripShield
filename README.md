@@ -38,12 +38,14 @@ Group travel planning breaks down at the moment of **decision**, not at the mome
 | **Google Trips / Travel** | Aggregates bookings from Gmail, price tracking on flights | Built for the solo traveller and only for items you already booked. No group consensus, no shared budget, no replanning |
 | **Splitwise** | Expense splitting and debt simplification | Purely reactive bookkeeping after the trip. Every line item is typed by hand, and it has no link to the itinerary or the budget that is being blown |
 | **TripIt** | Parses confirmation emails into a clean itinerary | Post-booking only. Useless during the deliberation phase, where most group trips actually die |
+| **Trip.com** | Huge flight/hotel/activity inventory, competitive fares, booking completed in-app | A conversion funnel built for one buyer. It optimises a single search at a time, with no shared shortlist, no way for four people to converge on one option, no budget tracking after payment and no response when the booked day is rained out |
+| **TripAdvisor** | Reviews, rankings and "things to do" at a scale nobody else has | Discovery ends at the shortlist. Saved places never become an agreed, time-ordered plan, there is no consensus or money layer, and a 4.5-star ranking says nothing about whether that stop still works in today's weather |
 
-The common gap: **every one of these tools assumes the decision has already been made.** None of them compress the time between *seeing an option* and *committing to it*, which is exactly where group trips stall.
+The common gap: **these tools either assume the decision has already been made, or serve one buyer at a time.** None of them compress the time between *seeing an option* and *a group committing to it*, which is exactly where group trips stall.
 
 ### Our Solution
 
-TripShield is a mobile **travel decision engine**, not another itinerary notepad. It takes the four points where group trips stall — extracting options, agreeing on them, paying for them, and recovering when they break — and gives each one an explicit mechanism. Inspiration links are parsed into structured, bookable cards with a live price countdown; group preferences are captured through a 60-second swipe flow and resolved algorithmically instead of by chat; spending is tracked by scanning receipts and rebalanced against the remaining days; and when weather or traffic invalidates a day, the app scores the damage and offers a single-tap repaired plan.
+TripShield is a mobile **travel decision engine**, not another itinerary notepad. It targets the four points where group trips stall — extracting options, agreeing on them, paying for them, and recovering when they break — and gives each one an explicit mechanism. Pasted inspiration links become bookable cards with a live price countdown, a 60-second swipe flow resolves group preferences algorithmically instead of by chat, and scanned receipts rebalance the budget across the days that are left. When weather or traffic invalidates a day, the app scores the damage and offers a single-tap repaired plan.
 
 **Feature set:**
 
@@ -132,15 +134,18 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 **Comparison:**
 
-| Capability | Wanderlog | Google Travel | Splitwise | TripIt | **TripShield** |
-| --- | --- | --- | --- | --- | --- |
-| Extracts bookable items from social links | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Tells you *when* to buy (price window) | ✗ | Partial (flights) | ✗ | ✗ | **✓** |
-| Algorithmic group consensus | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Receipt OCR with uneven line-item splits | ✗ | ✗ | Partial (manual) | ✗ | **✓** |
-| Forward-looking budget rebalancing | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Repairs a broken day automatically | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Simulates disruptions before they happen | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Capability | Wanderlog | Google Travel | Splitwise | TripIt | Trip.com | TripAdvisor | **TripShield** |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Extracts bookable items from social links | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Tells you *when* to buy (price window) | ✗ | Partial | ✗ | ✗ | Partial | Partial | **✓** |
+| Algorithmic group consensus | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Receipt OCR with uneven line-item splits | ✗ | ✗ | Partial | ✗ | ✗ | ✗ | **✓** |
+| Forward-looking budget rebalancing | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Repairs a broken day automatically | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Simulates disruptions before they happen | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
+| Completes the booking in-app | ✗ | Partial | ✗ | ✗ | ✓ | Partial | Deep link out, by design |
+
+Trip.com and TripAdvisor are the two strongest incumbents here, and the last row is the one we deliberately concede: Trip.com owns inventory and payment, and we do not try to. TripShield ends at the deep link and competes on everything that happens *before* checkout and *after* the plan breaks — the part neither of them touches.
 
 ---
 
