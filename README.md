@@ -17,6 +17,14 @@ View your app in AI Studio: https://ai.studio/apps/53d1b511-7adf-4431-9531-e7afa
 
 1. Install dependencies:
    `npm install`
+
+   **Codespaces:** If `npm install` fails with `ENOTEMPTY` on `node_modules/...`, remove the folder and reinstall:
+
+   ```bash
+   npm run reinstall
+   ```
+
+   Or: `rm -rf node_modules && npm install`
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
