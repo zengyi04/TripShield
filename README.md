@@ -1,6 +1,6 @@
-# TripShield by [Team Name]
+# TripShield by OnTheWay
 
-**Team:** [Member 1], [Member 2], [Member 3], [Member 4]
+**Team:** Then Fung Maye, Ham Zeng Yi, Ee Si Ying, Kuan Hui Min
 
 **Problem Statement:** Travel Planner
 
@@ -14,25 +14,15 @@
 
 ### The Problem
 
-Group travel planning breaks down at the moment of **decision**, not at the moment of inspiration.
+Group travel planning breaks down at the moment of **decision**, not at the moment of inspiration. A group can agree on a destination in an hour, then spend three weeks failing to agree on anything bookable — while fares rise, quiet members go unheard, spending goes untracked and one rainstorm wipes out a day nobody can replan on the spot. Every existing tool either records a decision that has already been made or serves one buyer at a time, so the decision itself is left to the group chat, which is exactly where trips get expensive, compromised or abandoned.
 
-There is no shortage of inspiration or of tools. A group of friends can name a destination, a rough month and a budget within an hour of deciding they want to travel together. What consistently fails is everything between that first burst of enthusiasm and someone actually paying for something. The trip sits in a group chat for weeks, gets re-litigated every few days, and either happens in a rushed, expensive, compromised form or quietly dies.
+**Causes as we understand them:**
 
-**A typical failure, end to end.** Someone shares a TikTok of a resort. Three people react with 🔥. Two weeks pass. The organiser opens twelve browser tabs, rebuilds the flight search by hand because the reel never contained a flight number, and posts three options in the chat. One member replies immediately, one replies "up to you", one is asleep in another timezone, and one says the dates do not work but does not say which dates do. Four days later the group converges on option B — and option B is now RM 180 more per person. During the trip a rainstorm cancels the outdoor day, so they improvise a mall visit that nobody enjoys and that costs more than the day it replaced. Afterwards, one person is owed RM 340 across eleven receipts, half of which were split unevenly, and asking for it is uncomfortable enough that they write some of it off.
-
-Every stage of that story is a separate, addressable failure:
-
-1. **Inspiration is trapped in the wrong format.** Travellers save flights, hotels and attractions as TikTok reels, Instagram posts, screenshots and shared links. None of that is structured data — there is no date, no price, no coordinates, no booking reference — so every saved item has to be manually re-searched before it can be compared or booked. The person who does that re-searching is doing unpaid, invisible work, and it is the single biggest reason inspiration never converts.
-2. **Prices move faster than groups decide.** Flight and hotel pricing is dynamic and moves daily, while group agreement moves on a scale of days to weeks. These two clocks are fundamentally mismatched. The group is effectively bidding against a rising price with a decision process that cannot go faster than its slowest member, so the fare that motivated the trip is usually gone by the time everyone has replied. Worse, the group cannot *see* the cost of delay — nothing in a chat thread shows what hesitating for three days is costing them.
-3. **Group consensus has no mechanism.** "Anything also can" is the default answer, and it is rarely honest. Preferences are never captured in a comparable form, so the decision is settled by whoever argues hardest or replies fastest. Two forces make this worse: social pressure means people hide real constraints (especially budget) rather than look difficult in front of friends, and a chat thread has no notion of a decision being *closed*, so any settled question can be reopened by one message. Quiet members end up on a trip shaped entirely by louder ones, which is where the resentment starts.
-4. **Money tracking is manual and socially awkward.** Receipts are paper, and splits are genuinely uneven — one person did not eat the shared dish, another paid the whole taxi, a third covered the deposit two months earlier. Recording this properly requires someone to type every line item during a holiday, which nobody does, so it is reconstructed from memory afterwards. The debt then sits between friends, and chasing it costs more socially than the money is worth. Separately, nobody knows mid-trip whether they are still on budget, so overspending is only discovered when it is too late to absorb.
-5. **Plans are brittle.** An itinerary is written once and then treated as fixed, but the conditions it assumed are not. A rainstorm, a closure or a traffic jam invalidates a full day, and nothing is monitoring for that — the group finds out by walking into it. Replanning then has to happen on a phone, in a foreign country, on roaming data, with tired and hungry people, which is the worst possible context for research. The fallback is whatever is closest and open, which is how groups end up in shopping malls.
-
-**Why it persists.** Each of these is individually solvable, and yet the problem survives because the five failures are *connected* and every existing tool treats them separately. Re-searching links is tedious, so options arrive late; late options make the price pressure worse; price pressure forces a rushed decision that not everyone actually agreed to; a rushed decision produces a fragile plan and unclear money commitments; and when that plan breaks, the group has no agreed basis for choosing a replacement, so it argues again. Fixing only the expense splitting, or only the itinerary layout, leaves the loop intact.
-
-**What it costs.** The visible cost is money — fares missed, days wasted, budgets overrun. The larger cost is that the trip is worse than it should have been, or does not happen at all, and that the friendship absorbs the difference. In our own experience and in the groups we asked, the organiser burns out first and simply stops volunteering, which is why the same group that travelled twice a year gradually stops travelling together.
-
-**Scope.** We are deliberately *not* trying to solve inventory, payments or discovery — Trip.com, Booking.com and TripAdvisor already do those at a scale we cannot approach. Our problem is the decision layer that sits on top of them and that none of them own.
+1. **Inspiration is trapped in the wrong format.** Flights, hotels and attractions are saved as TikTok reels, screenshots and links — no dates, no prices, no coordinates — so every saved item must be manually re-searched before it can be compared or booked.
+2. **Prices move faster than groups decide.** Fares move daily; group agreement moves in days or weeks. The group cannot go faster than its slowest member, and nothing shows what hesitating is costing them.
+3. **Group consensus has no mechanism.** "Anything also can" is rarely honest — social pressure hides real budgets, preferences are never comparable, and a chat has no notion of a closed decision, so the loudest or fastest voice wins.
+4. **Money tracking is manual and socially awkward.** Splits are genuinely uneven, nobody types line items during a holiday, and chasing repayment afterwards costs more socially than the money is worth.
+5. **Plans are brittle.** Nothing monitors the itinerary against weather or traffic, so a broken day is discovered by walking into it — and replanning happens on a phone, abroad, under time pressure.
 
 **Stakeholders:**
 
@@ -88,7 +78,7 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 ### 2.2 Ideation Boards
 
 ![Detailed problem tree](docs/ideation/problem-tree-detailed.png)
-*Source: [`docs/ideation/problem-tree-detailed.png`](docs/ideation/problem-tree-detailed.png), generated from [`docs/ideation/problem-tree-detailed.mmd`](docs/ideation/problem-tree-detailed.mmd).*
+*Source: [`docs/ideation/problem-tree-detailed.png`](docs/ideation/problem-tree-detailed.png)*
 
 ### 2.3 Mentor Consultation
 
@@ -102,8 +92,6 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 ## 3. Design & Prototype
 
 **UI Prototype:** [Public Link — check it opens in an incognito window]
-
-> Replace the placeholders below with screenshots from the running app.
 
 ![Home](docs/screens/home.png)
 *Home — the trip header plus four feature cards, each surfacing a live metric ("2 opportunities · 47h remaining"). The AI insight strip at the top is the only thing competing for attention.*
@@ -156,8 +144,6 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 | Simulates disruptions before they happen | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
 | Completes the booking in-app | ✗ | Partial | ✗ | ✗ | ✓ | Partial | Deep link out, by design |
 
-Trip.com and TripAdvisor are the two strongest incumbents here, and the last row is the one we deliberately concede: Trip.com owns inventory and payment, and we do not try to. TripShield ends at the deep link and competes on everything that happens *before* checkout and *after* the plan breaks — the part neither of them touches.
-
 ---
 
 ## 5. Technical Architecture & Feasibility
@@ -178,31 +164,8 @@ Trip.com and TripAdvisor are the two strongest incumbents here, and the last row
 
 ### System Architecture
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  Expo / React Native client  (iOS · Android · Web)       │
-│                                                          │
-│  Buy Window │ Consensus │ Ledger │ Trip Fix (Self-Heal)  │
-│  shared theme tokens · shared header + nav components    │
-└───────────┬──────────────────────────────┬───────────────┘
-            │                              │
-            │ (planned)                    │ direct, keyless
-            ▼                              ▼
-┌───────────────────────────┐   ┌──────────────────────────┐
-│  Serverless API proxy     │   │  Open-Meteo  (weather)   │
-│  · Gemini link extraction │   │  ArcGIS      (map tiles) │
-│  · Receipt OCR parsing    │   └──────────────────────────┘
-│  · hides API keys         │
-└───────────┬───────────────┘
-            ▼
-┌───────────────────────────┐
-│  Supabase (planned)       │
-│  trips · expenses · votes │
-│  auth · receipt storage   │
-└───────────────────────────┘
-```
-
-Today the client is self-contained and runs entirely against typed mock data. The dashed-in layers are what the building phase adds.
+![System architecture](docs/architecture/system-architecture.png)
+*Source: [`docs/architecture/system-architecture.png`](docs/architecture/system-architecture.png)*
 
 ### Build Plan & Scope
 
@@ -213,15 +176,24 @@ Today the client is self-contained and runs entirely against typed mock data. Th
 - Trip Fix computes a live health score, renders repaired vs original plans day by day, fetches **live** Open-Meteo weather per stop, and shows real street-map route previews.
 - Ledger performs line-item splitting with uneven tax allocation and settlement tracking.
 
-**What we will build during the building phase (deliberately narrow):**
+**What we will build during the building phase.** Five items, in this order. We would rather ship four of them properly than start all five, so items 4 and 5 are explicitly cuttable.
 
-1. **Real link extraction** — replace the mocked parser with a Gemini call behind a serverless proxy, targeting flights and hotels first. Attractions only if time allows.
-2. **Receipt OCR** — camera capture → Gemini vision → editable draft expense. The manual-entry path stays as the fallback, so a failed scan never blocks the user.
-3. **Persistence and multi-user** — Supabase schema for trips, expenses, votes and settlements, plus auth. This is what turns the consensus feature from a demo into something a real group can use.
-4. **Live price signal** — one flight data source wired to the Buy Window countdown, with the risk meter driven by real history instead of mock series.
-5. **Hardening** — offline fallbacks for weather and maps, error states on every network call, and a development build for the camera.
+| # | What ships | Done when | If it slips |
+| --- | --- | --- | --- |
+| 1 | **Real link extraction** — the mocked parser replaced by a Gemini call behind our serverless proxy. **Flights and hotels only**; attractions are not attempted | Pasting a public hotel or flight URL returns a card with name, date, price and location, and the user can correct any field before saving | The manual card form already exists, so unsupported links degrade to manual entry rather than an error |
+| 2 | **Receipt OCR** — camera capture → Gemini vision → an *editable draft* expense. The draft is never committed without review | A photographed receipt produces line items whose total matches the printed total, and every row can be edited before saving | Manual entry stays the default path; a failed scan costs the user nothing |
+| 3 | **Persistence and multi-user** — Supabase schema for trips, votes, expenses and settlements, plus auth and join-by-invite-link | Two phones signed into the same trip see the same votes and expenses after a reload | Local device persistence only, so state survives a restart even without the backend |
+| 4 | **Live price signal** — one flight data source wired into the Buy Window countdown, so the risk meter reads real history | The meter and countdown for at least one real route are driven by fetched prices, not a mock series | Keep the mock series, labelled *sample data* on screen so nothing is misrepresented |
+| 5 | **Hardening** — loading, empty, error and offline states on every network call, cached weather, and an EAS development build for the camera | The app is usable end to end with the network disabled | Ship the dev build for the camera only; the remaining states stay as-is |
 
-**Explicitly out of scope:** in-app payment or checkout (we deep-link out), hotel/flight inventory contracts, AR navigation, social feed, and the B2B partner dashboard. The B2B rerouting angle is presented as the business model, not as shipped software.
+**Risks we already know about:**
+
+- **Gemini latency and free-tier rate limits.** Extraction is a foreground action, so a slow call is visible. We cache by URL, show the card optimistically, and queue rather than block.
+- **Expo Go cannot load a native camera module.** Item 2 therefore depends on an EAS development build, which we create *before* starting OCR rather than at the end.
+- **Flight price APIs are keyed and metered.** We scope item 4 to a single route with a daily cached pull, which keeps us inside a free tier and is enough to prove the mechanism.
+- **Four features, four people.** Each member owns one feature end to end and the shared theme tokens are frozen, so integration is a merge rather than a redesign.
+
+**Explicitly out of scope:** in-app payment or checkout (we deep-link out), hotel and flight inventory contracts, AR navigation, a social feed, push notifications, and the B2B partner dashboard. The B2B rerouting angle is presented as the business model, not as shipped software.
 
 ---
 
