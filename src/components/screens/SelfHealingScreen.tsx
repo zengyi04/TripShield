@@ -7,7 +7,6 @@ import {
   Pressable,
   Modal,
   Linking,
-  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +14,8 @@ import type { ActiveScreen } from '../../types';
 import { WhatIfSimulatorScreen } from './WhatIfSimulatorScreen';
 import { ROOMS, type TripActivity, type TripDay } from '../../data/tripRooms';
 import { fetchPlaceWeather, type WeatherSnapshot } from '../../utils/weather';
+import { resolvePlacePreviewUrl } from '../../utils/mapPreview';
+import { RouteMapPreview } from '../RouteMapPreview';
 import {
   APP_COLORS,
   APP_GRADIENT_LOCATIONS,
@@ -69,9 +70,6 @@ const modeLabel: Record<string, string> = {
   ferry: 'Ferry',
   rail: 'Rail',
 };
-
-const osmMap = (lat: number, lng: number) =>
-  `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=640x280&markers=${lat},${lng},red-pushpin`;
 
 export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   topColor,
@@ -573,9 +571,13 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                 <Text style={styles.detailSub}>
                   {routeTarget.day.weekday}, {routeTarget.day.date} · {routeTarget.activity.time}
                 </Text>
-                <Image
-                  source={{ uri: osmMap(routeTarget.activity.lat, routeTarget.activity.lng) }}
-                  style={styles.mapPreview}
+                <RouteMapPreview
+                  lat={routeTarget.activity.lat}
+                  lng={routeTarget.activity.lng}
+                  previewImageUrl={resolvePlacePreviewUrl(
+                    routeTarget.activity.mapsQuery,
+                    routeTarget.activity.previewImageUrl,
+                  )}
                 />
                 <Text style={styles.routeSummary}>{routeTarget.activity.route.summary}</Text>
                 <Text style={styles.activityNote}>
@@ -978,7 +980,7 @@ const styles = StyleSheet.create({
   weatherGrid: { marginBottom: 8 },
   weatherStat: { fontSize: 32, fontWeight: '900', color: '#1d4ed8' },
   weatherStatLabel: { fontSize: 11, color: '#64748b', fontWeight: '700' },
-  mapPreview: { width: '100%', height: 140, borderRadius: 12, backgroundColor: '#dbeafe', marginBottom: 10 },
+  mapPreview: { marginBottom: 0 },
   legCard: {
     backgroundColor: '#f8fafc',
     borderRadius: 10,

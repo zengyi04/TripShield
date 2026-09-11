@@ -43,6 +43,8 @@
     "src/components/screens/BuyWindowScreen.native.tsx",
     "src/components/screens/LedgerScreen.tsx",
     "src/components/Ledger*.tsx",
+    "src/components/ScreenTopBar.tsx",
+    "src/components/RouteMapPreview.tsx",
     "src/utils/ledger*.ts",
     "src/data/ledgerMockData.ts",
     "src/data/mockUsers.ts"

@@ -18,7 +18,6 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
 import { APP_GRADIENT_LOCATIONS, APP_TOP_HEX, HOME_HEADER_BAR, HOME_HEADER_ICON_BTN, HOME_HEADER_TITLE, screenGradientStops } from './src/utils/appTheme';
-import { appThemeStyles } from './src/utils/appThemeStyles';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import type { ActiveScreen } from './src/types';
 import LedgerScreen from './src/components/screens/LedgerScreen';
