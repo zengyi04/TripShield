@@ -82,10 +82,12 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 ### 2.3 Mentor Consultation
 
+Replace the rows below with your **real** mentor sessions (name, date, what they said, what you did). Each row is one conversation.
+
 | Date | Mentor | Feedback Received | What Was Changed |
 | --- | --- | --- | --- |
-| [DD/MM/YYYY] | [Mentor Name] | [Feedback] | [Change made, or why you chose not to] |
-| [DD/MM/YYYY] | [Mentor Name] | [Feedback] | [Change made, or why you chose not to] |
+| 05/03/2026 | Industry mentor | Do not try to become Trip.com — focus on the group **decision** gap before and after booking. | Kept checkout as a deep link only; built Buy Window + Consensus instead of in-app payment. |
+| 12/03/2026 | Technical mentor | A demo with mock data is fine, but say clearly what is built vs planned (backend, OCR, live prices). | Updated the architecture diagram and build plan table so “built” and “planned” are separated. |
 
 ---
 
