@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start --tunnel",
-    "start:lan": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start",
+    "start": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start --tunnel --clear",
+    "start:lan": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start --lan --clear",
     "dev": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start --web",
     "android": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start --android",
     "ios": "EXPO_NO_TYPESCRIPT_SETUP=1 expo start --ios",

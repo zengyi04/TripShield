@@ -19,6 +19,7 @@ import {
   screenGradientStops,
 } from '../../utils/appTheme';
 import { appThemeStyles } from '../../utils/appThemeStyles';
+import { HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
 import {
   ACTIVE_BUY_WINDOWS,
   AI_PROCESSING_STEPS,
@@ -123,18 +124,19 @@ export default function BuyWindowScreen({
       locations={APP_GRADIENT_LOCATIONS}
       style={styles.root}
     >
-      <View style={appThemeStyles.screenHeader}>
-        <Pressable onPress={onGoHome} style={appThemeStyles.headerIconBtn}>
-          <Ionicons name="chevron-back" size={20} color={APP_COLORS.textPrimary} />
-        </Pressable>
-        <View style={appThemeStyles.screenHeaderCenter}>
-          <Text style={appThemeStyles.screenHeaderTitle}>Buy Window</Text>
-          <Text style={appThemeStyles.screenHeaderSubtitle}>Turn links into timed deals</Text>
-        </View>
-        <Pressable onPress={() => onNavigate?.('welcome')} style={appThemeStyles.headerIconBtn}>
-          <Ionicons name="log-out-outline" size={18} color={APP_COLORS.textPrimary} />
-        </Pressable>
-      </View>
+      <ScreenTopBar
+        title="Buy Window"
+        left={
+          <HeaderIconButton onPress={onGoHome} accessibilityLabel="Back to home">
+            <Ionicons name="chevron-back" size={18} color={APP_COLORS.textPrimary} />
+          </HeaderIconButton>
+        }
+        right={
+          <HeaderIconButton onPress={() => onNavigate?.('welcome')} accessibilityLabel="Sign out">
+            <Ionicons name="log-out-outline" size={16} color={APP_COLORS.textPrimary} />
+          </HeaderIconButton>
+        }
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <LinearGradient colors={[bottomColor, '#5a8fc4']} style={styles.hero}>

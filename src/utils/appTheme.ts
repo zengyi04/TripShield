@@ -33,3 +33,40 @@ export const APP_COLORS = {
   chipBg: '#EFF6FF',
   chipBorder: '#DBEAFE',
 } as const;
+
+/** Matches Home `topBar` glass strip in App.tsx (background, padding, border). */
+export const HOME_HEADER_BAR = {
+  paddingTop: 12,
+  paddingBottom: 14,
+  paddingHorizontal: 14,
+  backgroundColor: 'rgba(255,255,255,0.12)',
+  borderBottomWidth: 1,
+  borderBottomColor: 'rgba(255,255,255,0.22)',
+} as const;
+
+/** Title style aligned with in-app form headers on Home flow. */
+export const HOME_HEADER_TITLE = {
+  fontSize: 14,
+  fontWeight: '800' as const,
+  letterSpacing: 1.2,
+  color: '#1f2937',
+  textTransform: 'uppercase' as const,
+  textAlign: 'center' as const,
+};
+
+/** Home top-bar icon buttons (notifications, etc.). */
+export const HOME_HEADER_ICON_BTN = {
+  width: 32,
+  height: 32,
+  borderRadius: 16,
+  backgroundColor: '#FFFFFF',
+  borderWidth: 1,
+  borderColor: '#E2E8F0',
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+  shadowColor: '#0f172a',
+  shadowOpacity: 0.06,
+  shadowRadius: 6,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 2,
+};

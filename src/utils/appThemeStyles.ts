@@ -1,49 +1,24 @@
 import { StyleSheet } from 'react-native';
-import { APP_COLORS, APP_TYPO } from './appTheme';
+import { APP_COLORS, APP_TYPO, HOME_HEADER_BAR, HOME_HEADER_ICON_BTN, HOME_HEADER_TITLE } from './appTheme';
 
 export const appThemeStyles = StyleSheet.create({
   fullScreen: { flex: 1 },
-  screenHeader: {
+  homeHeaderBar: HOME_HEADER_BAR,
+  screenHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.22)',
+    minHeight: 32,
   },
-  screenHeaderCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
+  headerSideSlot: {
+    width: HOME_HEADER_ICON_BTN.width,
+    height: HOME_HEADER_ICON_BTN.height,
   },
   screenHeaderTitle: {
-    fontSize: APP_TYPO.screenTitle,
-    fontWeight: '700',
-    color: APP_COLORS.textPrimary,
-    letterSpacing: -0.3,
-    textAlign: 'center',
+    flex: 1,
+    ...HOME_HEADER_TITLE,
   },
-  screenHeaderSubtitle: {
-    fontSize: APP_TYPO.screenSubtitle,
-    fontWeight: '600',
-    color: APP_COLORS.textSoft,
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  headerIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
-  },
+  headerIconBtn: HOME_HEADER_ICON_BTN,
   sectionEyebrow: {
     fontSize: APP_TYPO.labelCaps,
     fontWeight: '800',
@@ -80,5 +55,26 @@ export const appThemeStyles = StyleSheet.create({
     fontSize: APP_TYPO.bodySmall,
     color: APP_COLORS.textMuted,
     lineHeight: 20,
+  },
+  /** @deprecated use homeHeaderBar + screenHeaderRow via ScreenTopBar */
+  screenHeader: {
+    ...HOME_HEADER_BAR,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 32,
+  },
+  screenHeaderCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  screenHeaderSubtitle: {
+    fontSize: APP_TYPO.screenSubtitle,
+    fontWeight: '600',
+    color: APP_COLORS.textSoft,
+    textAlign: 'center',
+    marginTop: 2,
   },
 });

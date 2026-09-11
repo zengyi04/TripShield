@@ -22,6 +22,7 @@ import {
   screenGradientStops,
 } from '../../utils/appTheme';
 import { appThemeStyles } from '../../utils/appThemeStyles';
+import { HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
 
 interface SelfHealingScreenProps {
   topColor: string;
@@ -243,12 +244,7 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
       locations={APP_GRADIENT_LOCATIONS}
       style={styles.container}
     >
-      <View style={appThemeStyles.screenHeader}>
-        <View style={appThemeStyles.screenHeaderCenter}>
-          <Text style={appThemeStyles.screenHeaderTitle}>Self-Healing Pivot</Text>
-          <Text style={appThemeStyles.screenHeaderSubtitle}>Live weather · routes · trip health</Text>
-        </View>
-      </View>
+      <ScreenTopBar title="Self-Healing Pivot" />
 
       <ScrollView
         style={styles.scrollArea}
