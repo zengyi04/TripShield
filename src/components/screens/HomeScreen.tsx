@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Bell,
-  Check,
   LogOut,
   Sparkles,
   Timer,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { TripShieldLogo } from '../TripShieldLogo';
 import { ActiveScreen } from '../../types';
+import { Toast } from '../Toast';
 import {
   ACTIVE_TRIP,
   ITINERARY_ITEMS,
@@ -105,14 +105,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       id="tripshield-home-screen"
     >
       {/* ── Toast ──────────────────────────────────────────────────────────── */}
-      {toastMessage && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[340px] bg-slate-900 text-white p-3 rounded-2xl border border-blue-400 shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
-          <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
-            <Check size={14} strokeWidth={3} />
-          </div>
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <Toast message={toastMessage} />
 
       {/* ── Top Header ─────────────────────────────────────────────────────── */}
       <div
@@ -123,7 +116,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <TripShieldLogo size={36} />
+              <TripShieldLogo size={32} />
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
             </div>
             <div>

@@ -3,6 +3,8 @@ import {
   Bell,
   Check,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
   Link2,
   LogOut,
@@ -15,20 +17,46 @@ import {
   ArrowRight,
   RefreshCw,
   Flame,
+  ShieldCheck,
+  Star,
+  Zap,
 } from 'lucide-react';
 import { TripShieldLogo } from '../TripShieldLogo';
+import { Toast } from '../Toast';
 import { ActiveScreen } from '../../types';
 import {
   AI_PROCESSING_STEPS,
   ACTIVE_BUY_WINDOWS,
-  BOOKING_OPTIONS,
   BuyWindow,
   BuyWindowStatus,
   ExtractedItem,
   MOCK_EXTRACTED_ITEMS,
   RECENTLY_IMPORTED,
   ImportedLinkItem,
+  DECISION_STATE_CONFIG,
+  MOCK_CONFIDENCE_FACTORS,
+  MOCK_BOOKING_PLATFORMS,
+  MOCK_FLIGHT_OPTIONS,
+  MOCK_VOUCHERS,
+  MOCK_ALTERNATIVE_DATES,
+  MOCK_FLEXIBILITY_SCORE,
+  MOCK_DEAL_STACK,
+  MOCK_PRICE_BREAKDOWN,
+  MOCK_PRICE_BREAKDOWN_TOTAL,
+  MOCK_SEASON_INFO,
+  MOCK_WAIT_SCENARIO,
+  MOCK_PRICE_RISK,
+  MOCK_MICRO_EXPLANATIONS,
+  BookingPlatform,
+  FlightOption,
 } from '../../data/mockBuyWindow';
+import { DecisionCard } from '../buywindow/DecisionCard';
+import { PriceRiskMeter } from '../buywindow/PriceRiskMeter';
+import { PriceTrendChart } from '../buywindow/PriceTrendChart';
+import { WaitVsBuySimulator } from '../buywindow/WaitVsBuySimulator';
+import { PriceBreakdown } from '../buywindow/PriceBreakdown';
+import { DealStack } from '../buywindow/DealStack';
+import { SeasonInsight } from '../buywindow/SeasonInsight';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface BuyWindowScreenProps {
@@ -258,114 +286,248 @@ function ExtractionResults({
   );
 }
 
-// ─── Buy Window Card ──────────────────────────────────────────────────────────
-function BuyWindowCard({
+// ─── Enhanced Buy Window Card ─────────────────────────────────────────────────
+function EnhancedBuyWindowCard({
   bw,
-  onViewOptions,
+  onCompareAndBuy,
   onReset,
 }: {
   bw: BuyWindow;
-  onViewOptions: () => void;
+  onCompareAndBuy: () => void;
   onReset: () => void;
 }) {
   const cfg = STATUS_CONFIG[bw.status];
   const { hours, minutes, seconds, expired } = useCountdown(bw.expiresAt);
+  const [showSections, setShowSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (key: string) => {
+    setShowSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Voucher countdown
+  const voucher = MOCK_VOUCHERS[0];
+  const voucherHours = Math.floor(voucher.expiresInMs / 3_600_000);
+  const voucherMinutes = Math.floor((voucher.expiresInMs % 3_600_000) / 60_000);
 
   return (
-    <div
-      className={`rounded-2xl border ${cfg.bg} ${cfg.border} overflow-hidden shadow-sm`}
-      id={`buy-window-card-${bw.id}`}
-    >
-      {/* Header */}
-      <div className="px-3.5 pt-3.5 pb-2.5">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <Flame size={18} className={cfg.text} />
-            <div>
-              <p className={`text-[10px] font-extrabold uppercase tracking-wider ${cfg.text}`}>
-                Active Buy Window
-              </p>
-              <p className="text-slate-800 text-sm font-black leading-tight mt-0.5">
-                {bw.route}
-              </p>
-            </div>
-          </div>
-          <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full ${cfg.badgeBg}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-            <span className={`text-[10px] font-extrabold ${cfg.badgeText}`}>
-              {cfg.label}
-            </span>
-          </div>
-        </div>
+    <div className="flex flex-col gap-3">
+      {/* Decision Card */}
+      <DecisionCard bw={bw} />
 
-        {/* Price */}
-        <p className="text-slate-900 text-2xl font-black mt-2.5 tracking-tight">
-          {bw.price}
-        </p>
-        <p className="text-slate-400 text-[10px] font-semibold mt-0.5">
-          Ref range: {bw.referenceRange}
-        </p>
-      </div>
-
-      {/* Countdown or Expired */}
-      <div className="mx-3.5 rounded-xl bg-white/60 border border-white/80 px-3 py-2.5 mb-3">
-        {expired ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-600 text-[10px] font-extrabold uppercase tracking-wider">
-                Window Expired
-              </p>
-              <p className="text-slate-500 text-[10px] font-semibold mt-0.5">
-                TripShield will reassess this opportunity.
-              </p>
+      {/* Countdown Timer */}
+      <div className={`rounded-2xl border ${cfg.bg} ${cfg.border} overflow-hidden shadow-sm`}>
+        <div className="px-4 py-3">
+          {expired ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-600 text-[10px] font-extrabold uppercase tracking-wider">
+                  Window Expired
+                </p>
+                <p className="text-slate-500 text-[10px] font-semibold mt-0.5">
+                  TripShield will reassess this opportunity.
+                </p>
+              </div>
+              <button
+                onClick={onReset}
+                className="flex items-center gap-1 text-blue-600 text-[10px] font-extrabold cursor-pointer hover:text-blue-700"
+              >
+                <RefreshCw size={12} /> Check again
+              </button>
             </div>
-            <button
-              onClick={onReset}
-              className="flex items-center gap-1 text-blue-600 text-[10px] font-extrabold cursor-pointer hover:text-blue-700"
-            >
-              <RefreshCw size={12} /> Check again
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
-                Recommended booking window
-              </p>
-              <div className="flex items-center gap-1 mt-1">
-                <Clock size={12} className={cfg.text} />
-                <span className={`text-sm font-black tabular-nums ${cfg.text}`}>
-                  {String(hours).padStart(2, '0')}h{' '}
-                  {String(minutes).padStart(2, '0')}m{' '}
-                  {String(seconds).padStart(2, '0')}s
-                </span>
-                <span className="text-slate-400 text-[10px] font-semibold ml-0.5">
-                  remaining
-                </span>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
+                  Buy window closes in
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Clock size={12} className={cfg.text} />
+                  <span className={`text-sm font-black tabular-nums ${cfg.text}`}>
+                    {String(hours).padStart(2, '0')}h{' '}
+                    {String(minutes).padStart(2, '0')}m{' '}
+                    {String(seconds).padStart(2, '0')}s
+                  </span>
+                </div>
+              </div>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full ${cfg.badgeBg}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                <span className={`text-[10px] font-extrabold ${cfg.badgeText}`}>{cfg.label}</span>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Compare & Buy CTA */}
+        {!expired && (
+          <div className="px-4 pb-3.5">
+            <button
+              onClick={onCompareAndBuy}
+              className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-md"
+              id="buy-window-compare-buy-btn"
+            >
+              <ShieldCheck size={15} />
+              Compare & Buy
+              <ArrowRight size={14} />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Description */}
-      <p className="px-3.5 text-slate-600 text-[11px] font-semibold leading-relaxed mb-3">
-        {bw.statusDescription}
-      </p>
+      {/* Price Risk Meter */}
+      <PriceRiskMeter />
 
-      {/* CTA */}
-      {!expired && (
-        <div className="px-3.5 pb-3.5">
-          <button
-            onClick={onViewOptions}
-            className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-md"
-            id="buy-window-view-options-btn"
-          >
-            View booking options
-            <ArrowRight size={14} />
-          </button>
+      {/* Expiring Offer Alert */}
+      <div className="rounded-2xl bg-amber-50 border border-amber-200 shadow-sm p-4">
+        <div className="flex items-start gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+            <Zap size={16} className="text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
+              ⚡ Offer Expiring
+            </p>
+            <p className="text-xs font-black text-slate-800 mt-0.5">
+              {voucher.discountFormatted} {voucher.name}
+            </p>
+            <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+              Available for another <span className="font-black text-amber-700">{voucherHours}h {voucherMinutes}m</span>
+            </p>
+            <p className="text-[10px] text-slate-600 font-semibold mt-1.5 leading-relaxed">
+              Using this offer could reduce your current price to{' '}
+              <span className="font-black">RM {(bw.priceNumeric - voucher.discount).toLocaleString()}</span>.
+            </p>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Collapsible Sections */}
+      {/* Wait vs Buy */}
+      <CollapsibleSection
+        title="What if I wait?"
+        emoji="⏳"
+        isOpen={showSections['wait']}
+        onToggle={() => toggleSection('wait')}
+      >
+        <WaitVsBuySimulator />
+      </CollapsibleSection>
+
+      {/* Price Trend */}
+      <CollapsibleSection
+        title="Price trend"
+        emoji="📈"
+        isOpen={showSections['trend']}
+        onToggle={() => toggleSection('trend')}
+      >
+        <PriceTrendChart />
+      </CollapsibleSection>
+
+      {/* Season Insight */}
+      <CollapsibleSection
+        title="Travel timing"
+        emoji="🗓️"
+        isOpen={showSections['season']}
+        onToggle={() => toggleSection('season')}
+      >
+        <SeasonInsight currentPrice={bw.priceNumeric} />
+      </CollapsibleSection>
+
+      {/* Smart Alternatives */}
+      <CollapsibleSection
+        title="Want to save more?"
+        emoji="💡"
+        isOpen={showSections['alt']}
+        onToggle={() => toggleSection('alt')}
+      >
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-4 pt-3 pb-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+              Alternative Dates
+            </p>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {MOCK_ALTERNATIVE_DATES.map(alt => (
+              <div
+                key={alt.id}
+                className={`px-4 py-2.5 flex items-center justify-between ${
+                  alt.isBest ? 'bg-emerald-50' : ''
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[11px] font-extrabold text-slate-800">{alt.label}</p>
+                    {alt.isBest && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                        ⭐ BEST
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{alt.dateShift}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-black text-slate-800 tabular-nums">{alt.priceFormatted}</p>
+                  {alt.saving && (
+                    <p className="text-[10px] font-bold text-emerald-600 mt-0.5">{alt.saving}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Flexibility Score */}
+          <div className="px-4 py-3 border-t border-slate-100">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-2">
+              Date Flexibility
+            </p>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                  style={{ width: `${(MOCK_FLEXIBILITY_SCORE.score / 10) * 100}%` }}
+                />
+              </div>
+              <span className="text-[10px] font-black text-slate-600">{MOCK_FLEXIBILITY_SCORE.score}/10</span>
+            </div>
+            <p className="text-[11px] font-bold text-blue-700">{MOCK_FLEXIBILITY_SCORE.label}</p>
+            <p className="text-[10px] text-slate-500 font-semibold mt-0.5 leading-relaxed">
+              {MOCK_FLEXIBILITY_SCORE.description}
+            </p>
+          </div>
+        </div>
+      </CollapsibleSection>
+    </div>
+  );
+}
+
+// ─── Collapsible Section ──────────────────────────────────────────────────────
+function CollapsibleSection({
+  title,
+  emoji,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string;
+  emoji: string;
+  isOpen?: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between rounded-2xl bg-white border border-slate-200 shadow-sm px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm">{emoji}</span>
+          <span className="text-[11px] font-extrabold text-slate-700">{title}</span>
+        </div>
+        {isOpen ? (
+          <ChevronUp size={16} className="text-slate-400" />
+        ) : (
+          <ChevronDown size={16} className="text-slate-400" />
+        )}
+      </button>
+      {isOpen && <div className="mt-2 animate-fade-in">{children}</div>}
     </div>
   );
 }
@@ -390,97 +552,356 @@ function RecentlyImportedCard({ item }: { item: ImportedLinkItem }) {
   );
 }
 
-// ─── Booking Options Modal ────────────────────────────────────────────────────
-function BookingOptionsModal({
+// ─── Decision Modal ───────────────────────────────────────────────────────────
+type SortMode = 'value' | 'cheapest' | 'fastest' | 'baggage';
+
+function DecisionModal({
   bw,
   onClose,
 }: {
   bw: BuyWindow;
   onClose: () => void;
 }) {
+  const [sortMode, setSortMode] = useState<SortMode>('value');
+  const [expandedAirline, setExpandedAirline] = useState<string | null>(null);
+
+  // Sort platforms
+  const sortedPlatforms = [...MOCK_BOOKING_PLATFORMS].sort((a, b) => {
+    switch (sortMode) {
+      case 'cheapest': return a.price - b.price;
+      case 'fastest': return a.durationMinutes - b.durationMinutes;
+      case 'baggage': return b.baggageKg - a.baggageKg;
+      case 'value': default: return b.valueScore - a.valueScore;
+    }
+  });
+
+  const bestPlatform = sortedPlatforms[0];
+  const bestFlight = MOCK_FLIGHT_OPTIONS.find(f => f.isBestValue) ?? MOCK_FLIGHT_OPTIONS[0];
+  const decisionCfg = DECISION_STATE_CONFIG[bw.decisionState];
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
-      id="booking-options-modal-backdrop"
+      id="decision-modal-backdrop"
     >
       <div
-        className="w-full max-w-[420px] rounded-t-[32px] sm:rounded-3xl bg-white border border-slate-200 shadow-2xl overflow-hidden"
+        className="w-full max-w-[420px] max-h-[90vh] rounded-t-[32px] sm:rounded-3xl bg-slate-100 border border-slate-200 shadow-2xl overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}
-        id="booking-options-modal"
+        id="decision-modal"
       >
-        {/* Header */}
-        <div className="px-5 pt-5 pb-3 border-b border-slate-100 flex items-start justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Timer size={18} className="text-blue-600" />
-            </div>
-            <div>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                Compare booking options
-              </p>
-              <h3 className="text-slate-900 text-sm font-black leading-tight">
-                ✈️ {bw.route}
-              </h3>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* ── Section 1: One-Glance Decision ─────────────────────────── */}
+          <div
+            className="p-5 text-white relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, #1a3c5e 0%, #0f2640 100%)',
+            }}
           >
-            <X size={14} className="text-slate-600" />
-          </button>
-        </div>
-
-        {/* Options */}
-        <div className="px-5 py-4 flex flex-col gap-3">
-          {BOOKING_OPTIONS.map((opt, i) => (
-            <div
-              key={opt.id}
-              className={`rounded-2xl border p-4 flex items-center gap-3 ${
-                i === 0
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'bg-slate-50 border-slate-200'
-              }`}
+            {/* Close */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer transition-colors z-10"
             >
-              <span className="text-2xl leading-none">{opt.platformIcon}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-slate-800 text-xs font-extrabold">
-                    {opt.platform}
-                  </p>
-                  {opt.tag && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                      {opt.tag}
-                    </span>
-                  )}
+              <X size={14} className="text-white" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-3">
+              <ShieldCheck size={18} className="text-blue-300" />
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-300">
+                🔥 TripShield Decision
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">{decisionCfg.emoji}</span>
+              <h2 className="text-xl font-black tracking-tight">{decisionCfg.shortLabel}</h2>
+            </div>
+
+            <p className="text-3xl font-black tracking-tight mb-1">
+              {MOCK_DEAL_STACK.finalPriceFormatted}
+            </p>
+            <p className="text-blue-200 text-[11px] font-semibold">
+              Best available option
+            </p>
+
+            {/* Quick indicators */}
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {[
+                { label: 'Price', value: 'Favorable', color: 'text-emerald-400' },
+                { label: 'Timing', value: 'Good', color: 'text-emerald-400' },
+                { label: 'Deal', value: `${MOCK_VOUCHERS[0].discountFormatted} voucher`, color: 'text-emerald-400' },
+                { label: 'Flight', value: 'Direct', color: 'text-emerald-400' },
+              ].map((ind, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <span className={`text-sm ${ind.color}`}>🟢</span>
+                  <span className="text-[10px] font-semibold text-blue-200">{ind.label}:</span>
+                  <span className="text-[10px] font-bold text-white">{ind.value}</span>
                 </div>
-                <p className="text-slate-500 text-[10px] font-semibold mt-0.5">
-                  {opt.label}
-                </p>
-                <p className="text-slate-900 text-sm font-black mt-1">
-                  {opt.price}
-                </p>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/10">
+              <div>
+                <p className="text-[9px] font-bold text-blue-300 uppercase tracking-wider">Confidence</p>
+                <p className="text-sm font-black">{bw.confidence}%</p>
+              </div>
+              <div className="flex-1">
+                <p className="text-[9px] font-bold text-blue-300 uppercase tracking-wider">Best platform</p>
+                <p className="text-sm font-black">{bestPlatform.platform}</p>
               </div>
               <button
-                onClick={() => window.open(opt.url, '_blank', 'noopener')}
-                className={`px-3 py-2 rounded-xl text-[11px] font-extrabold flex items-center gap-1 cursor-pointer transition-colors ${
-                  i === 0
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                }`}
+                onClick={() => window.open(bestPlatform.url, '_blank', 'noopener')}
+                className="px-4 py-2 rounded-xl bg-white text-slate-900 text-[11px] font-extrabold cursor-pointer hover:bg-slate-100 transition-colors flex items-center gap-1.5 shadow-lg"
+              >
+                View best deal <ExternalLink size={11} />
+              </button>
+            </div>
+          </div>
+
+          <div className="px-4 pt-4 pb-6 flex flex-col gap-4">
+            {/* ── Section 2: Best Deal Card ──────────────────────────────── */}
+            <div className="rounded-2xl bg-white border-2 border-blue-200 shadow-sm p-4">
+              <div className="flex items-center gap-1.5 mb-3">
+                <Sparkles size={14} className="text-blue-600" />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
+                  ✨ Best Deal
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{bestPlatform.platformIcon}</span>
+                  <div>
+                    <p className="text-sm font-black text-slate-900">{bestPlatform.platform}</p>
+                    <p className="text-[10px] text-slate-500 font-semibold">{bestPlatform.label}</p>
+                  </div>
+                </div>
+                <p className="text-lg font-black text-slate-900 tabular-nums">{bestPlatform.priceFormatted}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {bestPlatform.baggage && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                    ✓ {bestPlatform.baggage} baggage
+                  </span>
+                )}
+                {bestPlatform.hasDirectFlight && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                    ✓ Direct flight
+                  </span>
+                )}
+                {bestPlatform.voucher && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    ✓ Voucher available
+                  </span>
+                )}
+              </div>
+
+              <button
+                onClick={() => window.open(bestPlatform.url, '_blank', 'noopener')}
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
               >
                 View deal <ExternalLink size={11} />
               </button>
             </div>
-          ))}
-        </div>
 
-        {/* Footer */}
-        <div className="px-5 pb-5">
-          <p className="text-slate-400 text-[10px] text-center font-semibold">
-            Frontend simulation only · No real bookings are made
-          </p>
+            {/* ── Section 3: Platform Comparison ─────────────────────────── */}
+            <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 pt-3 pb-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-2">
+                  Other Options
+                </p>
+                {/* Sort tabs */}
+                <div className="flex gap-1 mb-2">
+                  {([
+                    { key: 'value' as SortMode, label: 'Best Value' },
+                    { key: 'cheapest' as SortMode, label: 'Cheapest' },
+                    { key: 'fastest' as SortMode, label: 'Fastest' },
+                    { key: 'baggage' as SortMode, label: 'Baggage' },
+                  ]).map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setSortMode(tab.key)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
+                        sortMode === tab.key
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {sortedPlatforms.map((plat, i) => (
+                  <div
+                    key={plat.id}
+                    className={`px-4 py-3 flex items-center gap-3 ${
+                      i === 0 ? 'bg-blue-50/50' : ''
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{plat.platformIcon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-extrabold text-slate-800">{plat.platform}</p>
+                        {plat.tag && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                            {plat.tag}
+                          </span>
+                        )}
+                      </div>
+                      {/* Micro-explanation */}
+                      {plat.label && (
+                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{plat.label}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-black text-slate-800 tabular-nums">{plat.priceFormatted}</p>
+                      {plat.priceDiff && (
+                        <p className="text-[10px] font-bold text-slate-400 tabular-nums">{plat.priceDiff}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Section 4: Airline Comparison ──────────────────────────── */}
+            <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-4 pt-3 pb-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                  Compare Flights
+                </p>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {MOCK_FLIGHT_OPTIONS.map(flight => {
+                  const isExpanded = expandedAirline === flight.id;
+                  return (
+                    <button
+                      key={flight.id}
+                      onClick={() => setExpandedAirline(isExpanded ? null : flight.id)}
+                      className="w-full text-left px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">{flight.airlineIcon}</span>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-xs font-extrabold text-slate-800">{flight.airline}</p>
+                              {flight.isBestValue && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                  ⭐ Best value
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                              {flight.stops === 0 ? 'Direct' : `${flight.stops} stop`} · {flight.flightDuration}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right flex items-center gap-2">
+                          <div>
+                            <p className="text-xs font-black text-slate-800 tabular-nums">{flight.priceFormatted}</p>
+                            {flight.priceDiff && (
+                              <p className="text-[10px] font-bold text-slate-400">{flight.priceDiff}</p>
+                            )}
+                          </div>
+                          {isExpanded ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap gap-1.5 animate-fade-in">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            {flight.baggage} baggage
+                          </span>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            {flight.stops === 0 ? 'Non-stop' : flight.stopDescription ?? `${flight.stops} stop`}
+                          </span>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                            {flight.flightDuration}
+                          </span>
+                          {flight.isBestValue && (
+                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                              Recommended
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Section 5: Price Breakdown ─────────────────────────────── */}
+            <PriceBreakdown />
+
+            {/* ── Section 6: Deal Stack ──────────────────────────────────── */}
+            <DealStack />
+
+            {/* ── Section 7: Final Decision Summary ──────────────────────── */}
+            <div
+              className="rounded-2xl overflow-hidden shadow-sm border border-slate-200"
+              style={{
+                background: 'linear-gradient(145deg, #1a3c5e 0%, #0f2640 100%)',
+              }}
+            >
+              <div className="p-4 text-white">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-300 mb-2">
+                  TripShield Summary
+                </p>
+
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">{decisionCfg.emoji}</span>
+                  <h3 className="text-sm font-black">{decisionCfg.shortLabel}</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3">
+                  {[
+                    { label: 'Best price', value: MOCK_DEAL_STACK.finalPriceFormatted },
+                    { label: 'Best platform', value: bestPlatform.platform },
+                    { label: 'Best airline', value: bestFlight.airline },
+                    { label: 'Current season', value: MOCK_SEASON_INFO.label },
+                    { label: 'Available savings', value: MOCK_DEAL_STACK.totalSavingFormatted },
+                    { label: 'Waiting range', value: MOCK_WAIT_SCENARIO.wait7Days.rangeFormatted },
+                  ].map((item, i) => (
+                    <div key={i}>
+                      <p className="text-[9px] font-bold text-blue-300 uppercase tracking-wider">{item.label}</p>
+                      <p className="text-[11px] font-black text-white mt-0.5">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-xl bg-white/10 border border-white/15 p-3 mb-3">
+                  <p className="text-[9px] font-bold text-blue-300 uppercase tracking-wider mb-1">
+                    Risk of waiting
+                  </p>
+                  <p className="text-[11px] font-semibold text-white/90 leading-relaxed">
+                    If your dates are fixed, booking now is the safer option. The potential saving from waiting is small compared with the potential price increase.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => window.open(bestPlatform.url, '_blank', 'noopener')}
+                  className="w-full py-3 rounded-xl bg-white text-slate-900 text-[11px] font-extrabold flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-colors shadow-lg"
+                >
+                  <ShieldCheck size={14} />
+                  View best deal
+                  <ExternalLink size={11} />
+                </button>
+              </div>
+
+              <div className="px-4 pb-3">
+                <p className="text-blue-400/60 text-[9px] text-center font-semibold">
+                  Frontend simulation only · No real bookings are made
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -548,7 +969,7 @@ export const BuyWindowScreen: React.FC<BuyWindowScreenProps> = ({
     new Set(RECENTLY_IMPORTED.map(i => i.name.toLowerCase()))
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showDecisionModal, setShowDecisionModal] = useState(false);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [buyWindows, setBuyWindows] = useState(ACTIVE_BUY_WINDOWS);
   const [duplicateItem, setDuplicateItem] = useState<ExtractedItem | null>(null);
@@ -652,20 +1073,13 @@ export const BuyWindowScreen: React.FC<BuyWindowScreenProps> = ({
       id="tripshield-buy-window-screen"
     >
       {/* ── Toast ──────────────────────────────────────────────────────────── */}
-      {toastMessage && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[340px] bg-slate-900 text-white p-3 rounded-2xl border border-blue-400 shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
-          <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center shrink-0">
-            <Check size={14} strokeWidth={3} />
-          </div>
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      <Toast message={toastMessage} />
 
-      {/* ── Booking Modal ──────────────────────────────────────────────────── */}
-      {showBookingModal && activeBw && (
-        <BookingOptionsModal
+      {/* ── Decision Modal ─────────────────────────────────────────────────── */}
+      {showDecisionModal && activeBw && (
+        <DecisionModal
           bw={activeBw}
-          onClose={() => setShowBookingModal(false)}
+          onClose={() => setShowDecisionModal(false)}
         />
       )}
 
@@ -808,25 +1222,23 @@ export const BuyWindowScreen: React.FC<BuyWindowScreenProps> = ({
             />
           )}
 
-          {/* ── Active Buy Windows ────────────────────────────────────────── */}
+          {/* ── Active Buy Windows (Enhanced) ──────────────────────────────── */}
           {buyWindows.length > 0 && (
             <div id="buy-window-active-section">
               <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-2">
                 🔥 Active Buy Windows
               </p>
-              <div className="flex flex-col gap-3">
-                {buyWindows.map(bw => (
-                  <BuyWindowCard
-                    key={bw.id}
-                    bw={bw}
-                    onViewOptions={() => {
-                      setActiveWindowId(bw.id);
-                      setShowBookingModal(true);
-                    }}
-                    onReset={() => handleResetWindow(bw.id)}
-                  />
-                ))}
-              </div>
+              {buyWindows.map(bw => (
+                <EnhancedBuyWindowCard
+                  key={bw.id}
+                  bw={bw}
+                  onCompareAndBuy={() => {
+                    setActiveWindowId(bw.id);
+                    setShowDecisionModal(true);
+                  }}
+                  onReset={() => handleResetWindow(bw.id)}
+                />
+              ))}
             </div>
           )}
 
