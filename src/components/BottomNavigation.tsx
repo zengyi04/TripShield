@@ -7,18 +7,19 @@ interface BottomNavigationProps {
   currentTab: FeatureTab;
   onTabChange: (tab: FeatureTab) => void;
   barBgColor?: string;
+  showSelfHealBadge?: boolean;
 }
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   currentTab,
   onTabChange,
+  showSelfHealBadge,
 }) => {
   const tabs = [
     {
       id: 'home' as FeatureTab,
       label: 'Home',
       icon: Home,
-      hasDot: false,
     },
     {
       id: 'buy-window' as FeatureTab,
@@ -30,13 +31,11 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       id: 'consensus' as FeatureTab,
       label: 'Consensus',
       icon: Sparkles,
-      hasDot: false,
     },
     {
       id: 'ledger' as FeatureTab,
       label: 'Ledger',
       icon: Receipt,
-      hasDot: false,
     },
     {
       id: 'self-healing' as FeatureTab,
@@ -83,6 +82,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
                     'bg-red-500'
                   } border border-white`}
                 />
+              {tab.id === 'self-healing' && showSelfHealBadge && (
+                <span className="absolute top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white" />
               )}
             </div>
 

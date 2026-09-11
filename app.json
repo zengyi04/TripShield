@@ -22,5 +22,15 @@
       "expo-font"
     ],
     "main": "index.js"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#B7D4F2"
+        }
+      ]
+    ]
   }
 }
