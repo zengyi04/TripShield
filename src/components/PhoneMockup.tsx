@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Wifi, Battery, Signal, User, LogOut, ShieldCheck, ArrowRight, Settings } from 'lucide-react';
+import { Wifi, Battery, Signal, LogOut, ShieldCheck } from 'lucide-react';
 import { ActiveScreen } from '../types';
 import { WelcomeScreen } from './screens/WelcomeScreen';
 import { SignUpScreen } from './screens/SignUpScreen';
 import { LoginScreen } from './screens/LoginScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { BuyWindowScreen } from './screens/BuyWindowScreen';
 import { BottomNavigation, FeatureTab } from './BottomNavigation';
 import { FeaturePreviewModal } from './FeaturePreviewModal';
 
@@ -33,18 +34,50 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
   showPhoneFrame,
 }) => {
   const [currentTab, setCurrentTab] = useState<FeatureTab>('home');
+  // Preview modal is now only for consensus/ledger; buy-window has a real screen.
   const [activePreviewFeature, setActivePreviewFeature] = useState<FeatureTab | null>(null);
   const [showAccountModal, setShowAccountModal] = useState(false);
 
   const handleTabChange = (tab: FeatureTab) => {
     setCurrentTab(tab);
+
     if (tab === 'home') {
-      onNavigate('home');
-    } else if (tab === 'consensus') {
-      setActivePreviewFeature(tab);
-    } else {
+      // Go to home, close any preview
       setActivePreviewFeature(null);
+      if (activeScreen !== 'home') onNavigate('home');
+    } else if (tab === 'buy-window') {
+      // Buy Window has its own full screen — no modal preview
+      setActivePreviewFeature(null);
+      if (activeScreen !== 'home') onNavigate('home');
+    } else if (tab === 'self-healing') {
+      // Self-healing navigates to its own active screen
+      setActivePreviewFeature(null);
+      if (activeScreen !== 'home' && activeScreen !== 'self-healing') onNavigate('home');
+    } else {
+      // Consensus / Ledger → show feature preview modal (existing behaviour)
+      setActivePreviewFeature(tab);
     }
+  };
+
+  /** Called from HomeScreen or BuyWindowScreen to switch to Buy Window tab */
+  const switchToBuyWindow = () => {
+    setCurrentTab('buy-window');
+    setActivePreviewFeature(null);
+    if (activeScreen !== 'home') onNavigate('home');
+  };
+
+  /** Called from HomeScreen to open consensus */
+  const openConsensus = () => {
+    setCurrentTab('consensus');
+    setActivePreviewFeature('consensus');
+    if (activeScreen !== 'home') onNavigate('home');
+  };
+
+  /** Called from HomeScreen to open self-healing */
+  const openSelfHealing = () => {
+    setCurrentTab('self-healing');
+    setActivePreviewFeature(null);
+    if (activeScreen !== 'home' && activeScreen !== 'self-healing') onNavigate('home');
   };
 
   const renderScreen = () => {
@@ -53,15 +86,29 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
         return (
           <div className="w-full h-full flex flex-col justify-between overflow-hidden relative">
             <div className="flex-1 w-full overflow-hidden">
-              <HomeScreen
-                topColor={topColor}
-                bottomColor={bottomColor}
-                buttonBg={buttonBg}
-                buttonHover={buttonHover}
-                onNavigate={onNavigate}
-              />
+              {/* ── Tab-based content switching ── */}
+              {currentTab === 'buy-window' ? (
+                <BuyWindowScreen
+                  topColor={topColor}
+                  bottomColor={bottomColor}
+                  buttonBg={buttonBg}
+                  onNavigate={onNavigate}
+                  onGoHome={() => handleTabChange('home')}
+                />
+              ) : (
+                <HomeScreen
+                  topColor={topColor}
+                  bottomColor={bottomColor}
+                  buttonBg={buttonBg}
+                  buttonHover={buttonHover}
+                  onNavigate={onNavigate}
+                  onSwitchToBuyWindow={switchToBuyWindow}
+                  onOpenConsensus={openConsensus}
+                  onOpenSelfHealing={openSelfHealing}
+                />
+              )}
             </div>
-            {/* Bottom navigation bar: Home + 4 Features */}
+            {/* Bottom navigation bar */}
             <BottomNavigation
               currentTab={currentTab}
               onTabChange={handleTabChange}
@@ -69,6 +116,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
             />
           </div>
         );
+
       case 'signup':
         return (
           <SignUpScreen
@@ -79,6 +127,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
             buttonHover={buttonHover}
           />
         );
+
       case 'login':
         return (
           <LoginScreen
@@ -89,6 +138,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
             buttonHover={buttonHover}
           />
         );
+
       case 'dashboard':
         return (
           <DashboardScreen
@@ -99,6 +149,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
             buttonHover={buttonHover}
           />
         );
+
       case 'welcome':
       default:
         return (
@@ -116,13 +167,12 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
   };
 
   if (!showPhoneFrame) {
-    // Borderless / Seamless Mode
     return (
       <div
         className="w-full max-w-[390px] h-[780px] rounded-[36px] overflow-hidden shadow-2xl relative flex flex-col transition-all duration-300"
         id="phone-screen-frameless"
       >
-        {/* Simple Status Bar */}
+        {/* Status Bar */}
         <div
           className="w-full px-7 pt-3 pb-1 flex items-center justify-between text-slate-800 text-xs font-bold transition-colors duration-300 z-20"
           style={{ backgroundColor: topColor }}
@@ -140,16 +190,20 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
           {renderScreen()}
         </div>
 
-        {/* 4-Feature Next Phase Preview Modal */}
+        {/* Feature Preview Modal (consensus / ledger only) */}
         <FeaturePreviewModal
           featureTab={activePreviewFeature}
-          onClose={() => setActivePreviewFeature(null)}
+          onClose={() => {
+            setActivePreviewFeature(null);
+            setCurrentTab('home');
+          }}
           accentColor={bottomColor}
         />
       </div>
     );
   }
 
+  // ── Full-screen phone frame (showPhoneFrame = true) ──────────────────────
   return (
     <div
       className="relative mx-auto transition-all duration-300 w-full h-[100dvh] flex flex-col overflow-hidden"
@@ -160,16 +214,14 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
     >
       <div
         className="w-full h-full overflow-hidden flex flex-col relative select-none"
-        style={{
-          backgroundColor: topColor,
-        }}
+        style={{ backgroundColor: topColor }}
         id="phone-inner-screen"
       >
         <div className="flex-1 w-full overflow-hidden flex flex-col relative">
           {renderScreen()}
         </div>
 
-        {/* 4-Feature Next Phase Preview Modal */}
+        {/* Feature Preview Modal (consensus / ledger only) */}
         <FeaturePreviewModal
           featureTab={activePreviewFeature}
           onClose={() => {
@@ -179,7 +231,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
           accentColor={bottomColor}
         />
 
-        {/* Account Modal (Solid Non-Transparent) */}
+        {/* Account Modal */}
         {showAccountModal && (
           <div
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70"
@@ -214,7 +266,7 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-semibold">Active Group</span>
-                  <span className="font-bold text-slate-800">Shenzhen &amp; Tokyo &apos;26</span>
+                  <span className="font-bold text-slate-800">Paris &amp; Friends &apos;26</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-semibold">Decision Engine</span>
@@ -225,7 +277,6 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
                 </div>
               </div>
 
-              {/* Log Out to Frontpage Button */}
               <button
                 onClick={() => {
                   setShowAccountModal(false);
