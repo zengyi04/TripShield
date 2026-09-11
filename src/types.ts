@@ -118,3 +118,4 @@ export interface DraftExpense {
   receiptTitle?: string; // e.g. "Review Receipt" / "Review Ride", detected from the scanned receipt
   receiptSubtitle?: string; // e.g. merchant name, or "Unknown Merchant"
 }
+export type ActiveScreen = 'home' | 'welcome' | 'signup' | 'login' | 'dashboard' | 'self-healing';

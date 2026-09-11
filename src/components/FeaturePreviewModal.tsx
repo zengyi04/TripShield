@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FeatureTab } from './BottomNavigation';
-import { Timer, Sparkles, Receipt, ShieldAlert, CheckCircle2, ArrowRight, X } from 'lucide-react';
+import { Timer, Sparkles, Receipt, ShieldAlert, CheckCircle2, ArrowRight, X, Users, Zap, CloudRain, MapPin, RotateCcw } from 'lucide-react';
 
 export type DecisionFeature = 'buy-window' | 'consensus' | 'ledger' | 'self-healing';
 
@@ -15,6 +15,10 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
   onClose,
   accentColor,
 }) => {
+  const [consensusStep, setConsensusStep] = useState(0);
+  const [consensusLocked, setConsensusLocked] = useState(false);
+  const [pivotSimulated, setPivotSimulated] = useState(false);
+
   if (!featureTab || featureTab === 'home') return null;
 
   const activeKey: DecisionFeature = featureTab as DecisionFeature;
@@ -47,9 +51,9 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
       techStack: 'Gemini API (JSON Mode), Skyscanner Affiliate Engine',
     },
     'consensus': {
-      title: 'Swipe-and-Lock Consensus Engine',
-      subtitle: '60-Second Travel DNA Mapping & Deadlock Breaker',
-      tag: 'Winning Feature 2',
+      title: 'Compromise Engine',
+      subtitle: 'Travel DNA, conflict radar, and fair group decisions',
+      tag: 'Travel DNA + Compromise',
       icon: Sparkles,
       mechanism:
         'Group members complete a rapid 60-second swipe deck capturing budget limits, vibe choices, and non-negotiables to mathematically map everyone’s "Travel DNA."',
@@ -75,7 +79,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
     'self-healing': {
       title: 'Self-Healing Pivot & "What-If" Simulator',
       subtitle: 'Live Trip Health Score (0–100) & Instant Re-routing',
-      tag: 'Winning Feature 4',
+      tag: 'Self-Healing Pivot',
       icon: ShieldAlert,
       mechanism:
         'Continuously monitors route delays, transit congestion, and weather shifts via OpenWeather and Google Maps APIs to maintain an active Trip Health Score (0–100).',
@@ -90,6 +94,76 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
   const current = featureDetails[activeKey];
   if (!current) return null;
   const Icon = current.icon;
+
+  const consensusOptions = [
+    { label: 'Street food crawl', meta: 'RM45 - 92% group fit', color: '#FDE68A' },
+    { label: 'Rooftop dinner', meta: 'RM120 - 74% group fit', color: '#BFDBFE' },
+    { label: 'Night market', meta: 'RM30 - 88% group fit', color: '#BBF7D0' },
+  ];
+
+  const renderConceptDemo = () => {
+    if (activeKey === 'consensus') {
+      const option = consensusOptions[consensusStep];
+      return (
+        <div className="rounded-2xl bg-white p-3.5 text-slate-900 shadow-lg border border-white/70">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center"><Users size={16} /></div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Group pulse</p>
+                <p className="text-xs font-black">4 travelers · 60 sec left</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-black text-emerald-600">{consensusLocked ? 'LOCKED' : `${consensusStep + 1}/3`}</span>
+          </div>
+          {consensusLocked ? (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3">
+              <div className="flex items-center gap-2 text-emerald-700 mb-1"><CheckCircle2 size={16} /><span className="text-xs font-black">Consensus reached</span></div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">Night market wins with the highest shared satisfaction score.</p>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl p-3 mb-2.5 min-h-[92px] flex flex-col justify-end" style={{ backgroundColor: option.color }}>
+                <span className="text-[10px] font-bold text-slate-600">Tonight&apos;s best overlap</span>
+                <span className="text-base font-black text-slate-900">{option.label}</span>
+                <span className="text-[10px] font-bold text-slate-700">{option.meta}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => setConsensusStep(step => (step + 1) % consensusOptions.length)} className="py-2 rounded-xl bg-slate-100 text-slate-700 text-[11px] font-black cursor-pointer">Pass</button>
+                <button onClick={() => consensusStep === consensusOptions.length - 1 ? setConsensusLocked(true) : setConsensusStep(step => step + 1)} className="py-2 rounded-xl bg-slate-900 text-white text-[11px] font-black cursor-pointer flex items-center justify-center gap-1"><Zap size={13} /> Lock fit</button>
+              </div>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    if (activeKey === 'self-healing') {
+      return (
+        <div className="rounded-2xl bg-white p-3.5 text-slate-900 shadow-lg border border-white/70">
+          <div className="flex items-center justify-between mb-3">
+            <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Trip health</p><p className="text-2xl font-black text-emerald-600">{pivotSimulated ? '91' : '94'}<span className="text-xs text-slate-400">/100</span></p></div>
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center ${pivotSimulated ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}><CloudRain size={20} /></div>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 border-y border-slate-100 py-2.5 mb-2.5"><MapPin size={14} className="text-blue-600" /> Afternoon plan - Futian, Shenzhen</div>
+          {pivotSimulated ? (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3">
+              <div className="flex items-center gap-2 text-emerald-700 mb-1"><CheckCircle2 size={16} /><span className="text-xs font-black">Plan recovered</span></div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">Rain rerouted your rooftop stop to an indoor market 8 minutes away.</p>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 mb-2.5"><p className="text-[11px] font-black text-amber-800">Storm detected at 3:20 PM</p><p className="text-[10px] text-amber-700 mt-0.5">Your rooftop booking is at risk.</p></div>
+              <button onClick={() => setPivotSimulated(true)} className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-[11px] font-black cursor-pointer flex items-center justify-center gap-1.5"><Zap size={13} /> Simulate safer afternoon</button>
+            </>
+          )}
+          {pivotSimulated && <button onClick={() => setPivotSimulated(false)} className="w-full mt-2 py-1.5 text-[10px] font-bold text-slate-400 cursor-pointer flex items-center justify-center gap-1"><RotateCcw size={11} /> Reset simulation</button>}
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div
@@ -113,7 +187,7 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-blue-200 block">
-                {current.tag} · Phase 2 Architecture
+                {current.tag}
               </span>
               <h3 className="text-sm font-bold text-white tracking-tight leading-tight">
                 {current.title}
@@ -138,6 +212,8 @@ export const FeaturePreviewModal: React.FC<FeaturePreviewModalProps> = ({
             {current.subtitle}
           </p>
         </div>
+
+        {renderConceptDemo()}
 
         {/* Mechanism & Execution */}
         <div className="flex flex-col gap-3 text-xs">
