@@ -86,8 +86,7 @@ Replace the rows below with your **real** mentor sessions (name, date, what they
 
 | Date | Mentor | Feedback Received | What Was Changed |
 | --- | --- | --- | --- |
-| 05/03/2026 | Industry mentor | Do not try to become Trip.com — focus on the group **decision** gap before and after booking. | Kept checkout as a deep link only; built Buy Window + Consensus instead of in-app payment. |
-| 12/03/2026 | Technical mentor | A demo with mock data is fine, but say clearly what is built vs planned (backend, OCR, live prices). | Updated the architecture diagram and build plan table so “built” and “planned” are separated. |
+| 09/09/2026 | Mah Qing Fung | more focus on the group **decision** gap before and after booking. | Kept checkout as a deep link only; built Buy Window + Consensus instead of in-app payment. |
 
 ---
 
