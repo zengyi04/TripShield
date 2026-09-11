@@ -25,6 +25,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       id: 'buy-window' as FeatureTab,
       label: 'Buy Window',
       icon: Timer,
+      hasDot: false,
     },
     {
       id: 'consensus' as FeatureTab,
@@ -40,6 +41,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       id: 'self-healing' as FeatureTab,
       label: 'Self-Healing',
       icon: ShieldCheck,
+      hasDot: false,
     },
   ];
 
@@ -73,6 +75,13 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
                 }`}
               />
 
+              {/* Red / Orange Dot Notification Indicator */}
+              {tab.hasDot && (
+                <span
+                  className={`absolute -top-0.5 -right-1 w-2 h-2 rounded-full ${
+                    'bg-red-500'
+                  } border border-white`}
+                />
               {tab.id === 'self-healing' && showSelfHealBadge && (
                 <span className="absolute top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white" />
               )}

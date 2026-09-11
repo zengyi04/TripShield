@@ -5,7 +5,8 @@
     "useDefineForClassFields": false,
     "module": "ESNext",
     "lib": [
-      "ES2022"
+      "ES2022",
+      "DOM"
     ],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -22,7 +23,8 @@
     "noEmit": true,
     "types": [
       "react",
-      "react-native"
+      "react-native",
+      "react-dom"
     ]
   },
   "include": [
@@ -40,5 +42,5 @@
     "src/main.tsx",
     "src/App.tsx"
   ],
-  "extends": "expo/tsconfig.base"
+  "extends": "./node_modules/expo/tsconfig.base.json"
 }

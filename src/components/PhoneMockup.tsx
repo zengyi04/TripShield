@@ -40,8 +40,10 @@ export const PhoneMockup: React.FC<PhoneMockupProps> = ({
     setCurrentTab(tab);
     if (tab === 'home') {
       onNavigate('home');
-    } else {
+    } else if (tab === 'consensus') {
       setActivePreviewFeature(tab);
+    } else {
+      setActivePreviewFeature(null);
     }
   };
 
