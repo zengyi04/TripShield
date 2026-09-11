@@ -14,7 +14,6 @@ import type { ActiveScreen } from '../../types';
 import { WhatIfSimulatorScreen } from './WhatIfSimulatorScreen';
 import { ROOMS, type TripActivity, type TripDay } from '../../data/tripRooms';
 import { fetchPlaceWeather, type WeatherSnapshot } from '../../utils/weather';
-import { resolvePlacePreviewUrl } from '../../utils/mapPreview';
 import { RouteMapPreview } from '../RouteMapPreview';
 import {
   APP_COLORS,
@@ -579,10 +578,9 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
                 <RouteMapPreview
                   lat={routeTarget.activity.lat}
                   lng={routeTarget.activity.lng}
-                  previewImageUrl={resolvePlacePreviewUrl(
-                    routeTarget.activity.mapsQuery,
-                    routeTarget.activity.previewImageUrl,
-                  )}
+                  mapsQuery={routeTarget.activity.mapsQuery}
+                  activityType={routeTarget.activity.type}
+                  previewImageUrl={routeTarget.activity.previewImageUrl}
                 />
                 <Text style={styles.routeSummary}>{routeTarget.activity.route.summary}</Text>
                 <Text style={styles.activityNote}>

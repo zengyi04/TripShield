@@ -1,19 +1,37 @@
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import type { ActivityType } from '../data/tripRooms';
 import { buildRouteMapPreviewUrls } from '../utils/mapPreview';
 
 type RouteMapPreviewProps = {
   lat: number;
   lng: number;
+  mapsQuery: string;
+  activityType: ActivityType;
   previewImageUrl?: string;
   style?: ViewStyle;
   height?: number;
 };
 
-export function RouteMapPreview({ lat, lng, previewImageUrl, style, height = 140 }: RouteMapPreviewProps) {
+export function RouteMapPreview({
+  lat,
+  lng,
+  mapsQuery,
+  activityType,
+  previewImageUrl,
+  style,
+  height = 140,
+}: RouteMapPreviewProps) {
   const urls = useMemo(
-    () => buildRouteMapPreviewUrls(lat, lng, previewImageUrl, 640, Math.round(height * 2)),
-    [lat, lng, previewImageUrl, height],
+    () =>
+      buildRouteMapPreviewUrls(
+        lat,
+        lng,
+        { previewImageUrl, mapsQuery, activityType },
+        640,
+        Math.round(height * 2),
+      ),
+    [lat, lng, previewImageUrl, mapsQuery, activityType, height],
   );
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -35,7 +53,7 @@ export function RouteMapPreview({ lat, lng, previewImageUrl, style, height = 140
             source={{ uri }}
             style={styles.image}
             resizeMode="cover"
-            accessibilityLabel="Route map preview"
+            accessibilityLabel="Route and building preview"
             onLoadEnd={() => setLoading(false)}
             onError={() => {
               if (index < urls.length - 1) {
@@ -50,7 +68,7 @@ export function RouteMapPreview({ lat, lng, previewImageUrl, style, height = 140
         </>
       ) : (
         <View style={styles.fallback}>
-          <Text style={styles.fallbackText}>Map preview unavailable — use Open in Google Maps below.</Text>
+          <Text style={styles.fallbackText}>Route preview unavailable — use Open in Google Maps below.</Text>
         </View>
       )}
     </View>
