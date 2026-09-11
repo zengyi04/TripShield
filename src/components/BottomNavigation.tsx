@@ -74,9 +74,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
               />
 
               {tab.id === 'self-healing' && showSelfHealBadge && (
-                <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border border-white flex items-center justify-center">
-                  <span className="text-[7px] leading-none text-white font-black">▲</span>
-                </span>
+                <span className="absolute top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white" />
               )}
             </div>
 

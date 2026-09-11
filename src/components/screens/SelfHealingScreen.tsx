@@ -502,14 +502,14 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    paddingTop: 14,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingTop: 12,
+    paddingHorizontal: 14,
+    paddingBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F4F7FB',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D9E4F0',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.22)',
   },
   pressed: { opacity: 0.75 },
   headerTitle: {

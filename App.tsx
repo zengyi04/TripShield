@@ -1,7 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -23,6 +25,11 @@ const SAFE_TOP_COLOR = '#B7D4F2';
 type FeatureTab = 'home' | 'buy-window' | 'consensus' | 'ledger' | 'self-healing';
 
 function App() {
+  const [fontsLoaded] = useFonts({
+    ...Ionicons.font,
+    ...Feather.font,
+    ...MaterialIcons.font,
+  });
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('welcome');
   const topColor = SAFE_TOP_COLOR;
   const harmonizedDerived = useMemo(
@@ -31,6 +38,14 @@ function App() {
   );
   const bottomColor = harmonizedDerived.hex;
   const buttonTones = useMemo(() => deriveButtonTones(bottomColor, 16), [bottomColor]);
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.fontLoading}>
+        <ActivityIndicator size="large" color="#B7D4F2" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
@@ -435,11 +450,7 @@ function BottomNavigation({
           <Pressable key={tab.id} onPress={() => onTabChange(tab.id)} style={({ pressed }) => [styles.navItem, pressed && styles.pressedGlass]}>
             <View style={styles.navIconWrap}>
               <Ionicons name={iconName} size={22} color={isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)'} />
-              {showHealBadge && (
-                <View style={styles.navHealBadge}>
-                  <Ionicons name="caret-up" size={8} color="#fff" />
-                </View>
-              )}
+              {showHealBadge && <View style={styles.navHealBadge} />}
             </View>
             <Text style={[styles.navLabel, { color: isActive ? '#D9EEFF' : 'rgba(255,255,255,0.72)', fontWeight: isActive ? '800' : '600' }]}>{tab.label}</Text>
           </Pressable>
@@ -497,11 +508,52 @@ function HomeScreen({
         {showNotificationPopup && (
           <View style={styles.notificationCard}>
             <View style={styles.notificationHeader}>
-              <Text style={styles.notificationTitle}>Travel Alerts</Text>
+              <Text style={styles.notificationTitle}>Notifications</Text>
               <Pressable onPress={() => setShowNotificationPopup(false)}><Text style={styles.notificationClose}>✕</Text></Pressable>
             </View>
-            <View style={styles.notificationItem}><Text style={styles.notificationItemTitle}>✈️ Flight Fare Alert</Text><Text style={styles.notificationText}>Kuala Lumpur to Shenzhen fares dropped to RM450.</Text></View>
-            <View style={styles.notificationItem}><Text style={styles.notificationItemTitle}>🏨 Exclusive Hotel Discount</Text><Text style={styles.notificationText}>Up to 40% off top-rated villas & stays in Tokyo.</Text></View>
+
+            <Pressable
+              onPress={() => {
+                setShowNotificationPopup(false);
+                onOpenSelfHealing?.();
+              }}
+              style={({ pressed }) => [styles.notificationSelfHeal, pressed && styles.pressedGlass]}
+            >
+              <View style={styles.notificationSelfHealTop}>
+                <View style={styles.homeHealthDial}>
+                  <Text style={styles.homeHealthDialText}>34</Text>
+                  <Text style={styles.homeHealthDialSub}>/100</Text>
+                </View>
+                <View style={styles.homeHealthInfo}>
+                  <View style={styles.homeHealthBadgeRow}>
+                    <View style={styles.criticalBadge}>
+                      <Ionicons name="warning" size={9} color="#fff" />
+                      <Text style={styles.criticalBadgeText}>DISRUPTION DETECTED</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.homeHealthApiTag}>OpenWeather · Google Maps</Text>
+                  <Text style={styles.homeHealthTitle}>Flight CZ3028 Delayed 3h 15m</Text>
+                  <Text style={styles.homeHealthDesc}>
+                    Afternoon schedule broken · Tap to auto-reroute to partner businesses
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.notificationSelfHealAction}>
+                <Ionicons name="shield-checkmark" size={16} color="#bfdbfe" />
+                <Text style={styles.homeHealthActionText}>Open Self-Heal</Text>
+                <Ionicons name="chevron-forward" size={14} color="#93c5fd" />
+              </View>
+            </Pressable>
+
+            <Text style={styles.notificationSectionLabel}>Other alerts</Text>
+            <View style={styles.notificationItem}>
+              <Text style={styles.notificationItemTitle}>✈️ Flight Fare Alert</Text>
+              <Text style={styles.notificationText}>Kuala Lumpur to Shenzhen fares dropped to RM450.</Text>
+            </View>
+            <View style={styles.notificationItem}>
+              <Text style={styles.notificationItemTitle}>🏨 Exclusive Hotel Discount</Text>
+              <Text style={styles.notificationText}>Up to 40% off top-rated villas & stays in Tokyo.</Text>
+            </View>
           </View>
         )}
 
@@ -517,36 +569,7 @@ function HomeScreen({
 
       </View>
 
-      <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent}>
-        <Pressable
-          onPress={onOpenSelfHealing}
-          style={({ pressed }) => [styles.homeHealthBanner, pressed && styles.pressedGlass]}
-        >
-          <View style={styles.homeHealthLeft}>
-            <View style={styles.homeHealthDial}>
-              <Text style={styles.homeHealthDialText}>34</Text>
-              <Text style={styles.homeHealthDialSub}>/100</Text>
-            </View>
-            <View style={styles.homeHealthInfo}>
-              <View style={styles.homeHealthBadgeRow}>
-                <View style={styles.criticalBadge}>
-                  <Ionicons name="warning" size={9} color="#fff" />
-                  <Text style={styles.criticalBadgeText}>DISRUPTION DETECTED</Text>
-                </View>
-                <Text style={styles.homeHealthApiTag}>OpenWeather · Google Maps</Text>
-              </View>
-              <Text style={styles.homeHealthTitle}>Flight CZ3028 Delayed 3h 15m</Text>
-              <Text style={styles.homeHealthDesc}>
-                Afternoon schedule broken · Tap to Auto-Reroute to Partner Businesses
-              </Text>
-            </View>
-          </View>
-          <View style={styles.homeHealthArrow}>
-            <Ionicons name="shield-checkmark" size={20} color="#2563eb" />
-            <Text style={styles.homeHealthActionText}>Self-Heal ➔</Text>
-          </View>
-        </Pressable>
-      </ScrollView>
+      <ScrollView style={styles.offerScroll} contentContainerStyle={styles.offerContent} />
     </LinearGradient>
   );
 }
@@ -657,6 +680,12 @@ function TripShieldLogo({ size = 96 }: { size?: number }) {
 }
 
 const styles = StyleSheet.create({
+  fontLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dde5eb',
+  },
   root: { flex: 1, backgroundColor: '#dde5eb' },
   appShell: {
     flex: 1,
@@ -740,19 +769,25 @@ const styles = StyleSheet.create({
   navLabel: { fontSize: 11, letterSpacing: -0.1 },
   navHealBadge: {
     position: 'absolute',
-    top: -5,
-    right: -8,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#10b981',
-    borderWidth: 1,
+    top: 2,
+    right: -6,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#ef4444',
+    borderWidth: 1.5,
     borderColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   homeScreen: { flex: 1, position: 'relative' },
-  topBar: { paddingTop: 12, paddingBottom: 14, paddingHorizontal: 14, position: 'relative', backgroundColor: '#F4F7FB', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#D9E4F0' },
+  topBar: {
+    paddingTop: 12,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
+    position: 'relative',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.22)',
+  },
   topBarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   userRow: { flexDirection: 'row', alignItems: 'center' },
   identityRow: { flexDirection: 'row', alignItems: 'center' },
@@ -763,10 +798,52 @@ const styles = StyleSheet.create({
   userSubtitle: { color: '#334155', fontSize: 10, fontWeight: '800', marginTop: 2 },
   topActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   iconButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center', position: 'relative', shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  redDot: { position: 'absolute', top: 4, right: 5, width: 8, height: 8, backgroundColor: '#ef4444', borderRadius: 4, borderWidth: 1, borderColor: '#fff' },
+  redDot: { position: 'absolute', top: 7, right: 4, width: 8, height: 8, backgroundColor: '#ef4444', borderRadius: 4, borderWidth: 1, borderColor: '#fff' },
   logoutPill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 30, paddingHorizontal: 10, backgroundColor: '#FFFFFF', borderWidth: StyleSheet.hairlineWidth, borderColor: '#E2E8F0', borderRadius: 999, shadowColor: '#0f172a', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   logoutText: { color: '#334155', fontSize: 10, fontWeight: '800' },
-  notificationCard: { position: 'absolute', top: 60, right: 14, width: 260, backgroundColor: 'rgba(24,70,112,0.88)', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(190,225,255,0.48)', padding: 12, zIndex: 40, shadowColor: '#102f50', shadowOpacity: 0.35, shadowRadius: 16, elevation: 12 },
+  notificationCard: {
+    position: 'absolute',
+    top: 56,
+    right: 10,
+    left: 10,
+    backgroundColor: 'rgba(15,40,68,0.92)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(190,225,255,0.45)',
+    padding: 12,
+    zIndex: 40,
+    shadowColor: '#102f50',
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  notificationSelfHeal: {
+    backgroundColor: 'rgba(8,24,45,0.72)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(248,113,113,0.45)',
+    padding: 10,
+    marginBottom: 10,
+  },
+  notificationSelfHealTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  notificationSelfHealAction: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.12)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  notificationSectionLabel: {
+    color: 'rgba(191,219,254,0.85)',
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
   notificationHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(210,235,255,0.25)', paddingBottom: 6, marginBottom: 8 },
   notificationTitle: { color: '#D9EEFF', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2 },
   notificationClose: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
