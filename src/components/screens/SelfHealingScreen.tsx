@@ -23,7 +23,7 @@ import {
   screenGradientStops,
 } from '../../utils/appTheme';
 import { appThemeStyles } from '../../utils/appThemeStyles';
-import { HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
+import { HeaderBackButton, HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
 
 interface SelfHealingScreenProps {
   topColor: string;
@@ -74,6 +74,7 @@ const modeLabel: Record<string, string> = {
 export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
   topColor,
   bottomColor,
+  onNavigateHome,
   onHealthChange,
 }) => {
   const [view, setView] = useState<'pivot' | 'simulator'>('pivot');
@@ -242,7 +243,10 @@ export const SelfHealingScreen: React.FC<SelfHealingScreenProps> = ({
       locations={APP_GRADIENT_LOCATIONS}
       style={styles.container}
     >
-      <ScreenTopBar title="Self-Healing Pivot" />
+      <ScreenTopBar
+        title="Self-Healing Pivot"
+        left={onNavigateHome ? <HeaderBackButton onPress={onNavigateHome} /> : undefined}
+      />
 
       <ScrollView
         style={styles.scrollArea}

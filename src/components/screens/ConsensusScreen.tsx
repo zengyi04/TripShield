@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { MOCK_USERS, MockUser } from '../../data/mockUsers';
 import { APP_GRADIENT_LOCATIONS, screenGradientStops } from '../../utils/appTheme';
-import { ScreenTopBar } from '../ScreenTopBar';
+import { HeaderBackButton, ScreenTopBar } from '../ScreenTopBar';
 
 const modeLabel: Record<string, string> = { walk: 'Walk', metro: 'Subway', bus: 'Bus', taxi: 'Taxi', flight: 'Flight', ferry: 'Ferry', rail: 'Rail' };
 const mapsDir = (from: string, to: string) => `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&travelmode=transit`;
@@ -14,11 +14,12 @@ const openMaps = (url: string) => { Linking.openURL(url).catch(() => undefined);
 interface ConsensusScreenProps {
   topColor: string;
   bottomColor: string;
+  onGoHome?: () => void;
 }
 
  type ConsensusPhase = 'hub' | 'setup' | 'join' | 'questions' | 'group' | 'itinerary' | 'dna' | 'radar' | 'tokens' | 'result';
 
-export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps) {
+export function ConsensusScreen({ topColor, bottomColor, onGoHome }: ConsensusScreenProps) {
   const [phase, setPhase] = useState<ConsensusPhase>('hub');
   const [roomCreated, setRoomCreated] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -548,7 +549,12 @@ export function ConsensusScreen({ topColor, bottomColor }: ConsensusScreenProps)
   return (
     <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.page}>
       {/* Header - only show for hub */}
-      {phase === 'hub' && <ScreenTopBar title="Trip rooms" />}
+      {phase === 'hub' && (
+        <ScreenTopBar
+          title="Trip rooms"
+          left={onGoHome ? <HeaderBackButton onPress={onGoHome} /> : undefined}
+        />
+      )}
 
       {/* Floating back button for room phases */}
       {phase !== 'hub' && phase !== 'join' && !viewingCompleted && (

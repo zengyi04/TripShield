@@ -17,7 +17,8 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
 import { deriveButtonTones, deriveDarkerTone } from './src/utils/color';
-import { APP_GRADIENT_LOCATIONS, APP_TOP_HEX, HOME_HEADER_BAR, HOME_HEADER_ICON_BTN, HOME_HEADER_TITLE, screenGradientStops } from './src/utils/appTheme';
+import { APP_GRADIENT_LOCATIONS, APP_TOP_HEX, screenGradientStops } from './src/utils/appTheme';
+import { HeaderBackButton, HeaderIconButton, ScreenTopBar } from './src/components/ScreenTopBar';
 import { ConsensusScreen as DedicatedConsensusScreen } from './src/components/screens/ConsensusScreen';
 import type { ActiveScreen } from './src/types';
 import LedgerScreen from './src/components/screens/LedgerScreen';
@@ -147,7 +148,11 @@ function PhoneMockup({
                 buttonHover={buttonHover}
               />
             ) : currentTab === 'consensus' ? (
-              <DedicatedConsensusScreen topColor={topColor} bottomColor={bottomColor} />
+              <DedicatedConsensusScreen
+                topColor={topColor}
+                bottomColor={bottomColor}
+                onGoHome={() => handleTabChange('home')}
+              />
             ) : currentTab === 'buy-window' ? (
               <BuyWindowScreen
                 topColor={topColor}
@@ -362,11 +367,7 @@ function SignUpScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover
 
   return (
     <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
-      <View style={styles.formHeader}> 
-        <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
-        <Text style={styles.formTitle}>Get Started</Text>
-        <View style={{ width: HOME_HEADER_ICON_BTN.width }} />
-      </View>
+      <ScreenTopBar title="Get Started" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
       <View style={styles.formBody}> 
         <View>
           <View style={styles.inlineHeader}><Ionicons name="star" size={18} color="rgba(255,255,255,0.8)" /><Text style={styles.sectionHeading}>Create account</Text></View>
@@ -405,11 +406,7 @@ function LoginScreen({ onNavigate, topColor, bottomColor, buttonBg, buttonHover 
 
   return (
     <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
-      <View style={styles.formHeader}> 
-        <Pressable onPress={() => onNavigate('welcome')} style={({ pressed }) => [styles.iconCircle, pressed && styles.pressedGlass]}><Ionicons name="arrow-back" size={20} color="#1f2937" /></Pressable>
-        <Text style={styles.formTitle}>Sign In</Text>
-        <View style={{ width: HOME_HEADER_ICON_BTN.width }} />
-      </View>
+      <ScreenTopBar title="Sign In" left={<HeaderBackButton onPress={() => onNavigate('welcome')} />} />
       <View style={styles.formBody}> 
         <View>
           <View style={styles.inlineHeader}><Ionicons name="key-outline" size={18} color="rgba(255,255,255,0.8)" /><Text style={styles.sectionHeading}>Welcome back</Text></View>
@@ -1085,15 +1082,8 @@ const styles = StyleSheet.create({
   maybeLater: { color: '#fff', fontSize: 15, fontWeight: '700', textDecorationLine: 'underline', marginTop: 10, alignSelf: 'center' },
   legalText: { color: 'rgba(255,255,255,0.7)', fontSize: 11, textAlign: 'center', maxWidth: 270, lineHeight: 18 },
   linkText: { color: '#fff', fontWeight: '600', textDecorationLine: 'underline' },
-  formHeader: {
-    ...HOME_HEADER_BAR,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  formTitle: { ...HOME_HEADER_TITLE, flex: 1 },
   formBody: { flex: 1, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 32, paddingTop: 28, paddingBottom: 32, justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  iconCircle: { ...HOME_HEADER_ICON_BTN },
+  iconCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
   inlineHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   sectionHeading: { color: '#fff', fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
   formSubtitle: { color: 'rgba(255,255,255,0.75)', fontSize: 14, marginBottom: 20 },
@@ -1141,8 +1131,13 @@ const styles = StyleSheet.create({
   },
   homeScreen: { flex: 1, position: 'relative' },
   topBar: {
-    ...HOME_HEADER_BAR,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 20,
     position: 'relative',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.22)',
   },
   topBarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   userRow: { flexDirection: 'row', alignItems: 'center' },

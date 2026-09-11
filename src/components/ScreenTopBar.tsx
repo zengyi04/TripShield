@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View, ViewStyle } from 'react-native';
-import { appThemeStyles } from '../utils/appThemeStyles';
+import { Ionicons } from '@expo/vector-icons';
+import { ledgerStyles as s } from '../utils/ledgerTheme';
 
 type ScreenTopBarProps = {
   title: string;
@@ -9,14 +10,17 @@ type ScreenTopBarProps = {
   style?: ViewStyle;
 };
 
+/** Shared top bar — matches Ledger header theme (size, color, padding). */
 export function ScreenTopBar({ title, left, right, style }: ScreenTopBarProps) {
   return (
-    <View style={[appThemeStyles.homeHeaderBar, appThemeStyles.screenHeaderRow, style]}>
-      {left ?? <View style={appThemeStyles.headerSideSlot} />}
-      <Text style={appThemeStyles.screenHeaderTitle} numberOfLines={1}>
-        {title}
-      </Text>
-      {right ?? <View style={appThemeStyles.headerSideSlot} />}
+    <View style={[s.header, style]}>
+      {left ?? <View style={s.headerSideSpacer} />}
+      <View style={s.headerTitleWrap}>
+        <Text style={s.headerTitle} numberOfLines={1}>
+          {title}
+        </Text>
+      </View>
+      {right ?? <View style={s.headerSideSpacer} />}
     </View>
   );
 }
@@ -34,9 +38,24 @@ export function HeaderIconButton({
     <Pressable
       onPress={onPress}
       accessibilityLabel={accessibilityLabel}
-      style={({ pressed }) => [appThemeStyles.headerIconBtn, pressed && { opacity: 0.85 }]}
+      style={({ pressed }) => [s.iconCircle, pressed && s.pressedGlass]}
     >
       {children}
     </Pressable>
+  );
+}
+
+/** Left back control — same pattern as Buy Window. */
+export function HeaderBackButton({
+  onPress,
+  accessibilityLabel = 'Back',
+}: {
+  onPress?: () => void;
+  accessibilityLabel?: string;
+}) {
+  return (
+    <HeaderIconButton onPress={onPress} accessibilityLabel={accessibilityLabel}>
+      <Ionicons name="chevron-back" size={20} color="#1f2937" />
+    </HeaderIconButton>
   );
 }

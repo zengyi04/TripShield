@@ -2,7 +2,6 @@ import React from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ledgerStyles as s } from '../utils/ledgerTheme';
-import { appThemeStyles } from '../utils/appThemeStyles';
 
 export default function LedgerHeader({
   title,
@@ -18,16 +17,16 @@ export default function LedgerHeader({
   onSubtitleChange?: (value: string) => void;
 }) {
   return (
-    <View style={[appThemeStyles.homeHeaderBar, appThemeStyles.screenHeaderRow]}>
+    <View style={s.header}>
       {onBack ? (
-        <Pressable onPress={onBack} style={({ pressed }) => [appThemeStyles.headerIconBtn, pressed && s.pressedGlass]}>
-          <Ionicons name="arrow-back" size={18} color="#1f2937" />
+        <Pressable onPress={onBack} style={({ pressed }) => [s.iconCircle, pressed && s.pressedGlass]}>
+          <Ionicons name="chevron-back" size={20} color="#1f2937" />
         </Pressable>
       ) : (
-        <View style={appThemeStyles.headerSideSlot} />
+        <View style={s.headerSideSpacer} />
       )}
       <View style={s.headerTitleWrap}>
-        <Text style={appThemeStyles.screenHeaderTitle} numberOfLines={1}>
+        <Text style={s.headerTitle} numberOfLines={1}>
           {title}
         </Text>
         {subtitle !== undefined && subtitle !== ''
@@ -46,7 +45,7 @@ export default function LedgerHeader({
               )
           : null}
       </View>
-      {right || <View style={appThemeStyles.headerSideSlot} />}
+      {right || <View style={s.headerSideSpacer} />}
     </View>
   );
 }

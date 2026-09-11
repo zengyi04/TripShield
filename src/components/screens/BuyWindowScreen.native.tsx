@@ -19,7 +19,7 @@ import {
   screenGradientStops,
 } from '../../utils/appTheme';
 import { appThemeStyles } from '../../utils/appThemeStyles';
-import { HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
+import { HeaderBackButton, HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
 import {
   ACTIVE_BUY_WINDOWS,
   AI_PROCESSING_STEPS,
@@ -126,14 +126,10 @@ export default function BuyWindowScreen({
     >
       <ScreenTopBar
         title="Buy Window"
-        left={
-          <HeaderIconButton onPress={onGoHome} accessibilityLabel="Back to home">
-            <Ionicons name="chevron-back" size={18} color={APP_COLORS.textPrimary} />
-          </HeaderIconButton>
-        }
+        left={<HeaderBackButton onPress={onGoHome} accessibilityLabel="Back to home" />}
         right={
           <HeaderIconButton onPress={() => onNavigate?.('welcome')} accessibilityLabel="Sign out">
-            <Ionicons name="log-out-outline" size={16} color={APP_COLORS.textPrimary} />
+            <Ionicons name="log-out-outline" size={18} color="#1f2937" />
           </HeaderIconButton>
         }
       />

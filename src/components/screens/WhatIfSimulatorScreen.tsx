@@ -10,13 +10,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  APP_COLORS,
-  APP_GRADIENT_LOCATIONS,
-  screenGradientStops,
-} from '../../utils/appTheme';
-import { appThemeStyles } from '../../utils/appThemeStyles';
-import { HeaderIconButton, ScreenTopBar } from '../ScreenTopBar';
+import { APP_GRADIENT_LOCATIONS, screenGradientStops } from '../../utils/appTheme';
+import { HeaderBackButton, ScreenTopBar } from '../ScreenTopBar';
 
 export interface GlobalCondition {
   id: string;
@@ -188,26 +183,7 @@ export const WhatIfSimulatorScreen: React.FC<WhatIfSimulatorScreenProps> = ({
       locations={APP_GRADIENT_LOCATIONS}
       style={styles.container}
     >
-      <ScreenTopBar
-        title="What-If Simulator"
-        left={
-          <HeaderIconButton onPress={onBack} accessibilityLabel="Back">
-            <Ionicons name="arrow-back" size={18} color={APP_COLORS.textPrimary} />
-          </HeaderIconButton>
-        }
-        right={
-          <HeaderIconButton
-            onPress={() => {
-              setSelected({});
-              setSimOpen(false);
-              setSimReady(false);
-            }}
-            accessibilityLabel="Reset simulation"
-          >
-            <Ionicons name="refresh-outline" size={17} color={APP_COLORS.textPrimary} />
-          </HeaderIconButton>
-        }
-      />
+      <ScreenTopBar title="What-If Simulator" left={<HeaderBackButton onPress={onBack} />} />
 
       <View style={styles.content}>
         <View style={styles.card}>
