@@ -1,0 +1,117 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 15px
+    fontFamily: "Segoe UI, Helvetica, Arial, sans-serif"
+  flowchart:
+    nodeSpacing: 30
+    rankSpacing: 46
+    padding: 10
+    curve: basis
+---
+flowchart TD
+
+    subgraph RC1[" Why preferences clash "]
+        direction TB
+        R1["No structured way to capture<br/>individual preferences<br/>before planning begins"]
+        R2["Social pressure to seem agreeable —<br/>&quot;anything also can&quot; hides<br/>real budgets and limits"]
+        R3["Non-negotiables surface late,<br/>after the plan is already built"]
+    end
+
+    subgraph RC2[" Why debates never end "]
+        direction TB
+        R4["Chat is linear — options and prices<br/>scroll away and get re-argued<br/>from scratch"]
+        R5["No owner and no deadline<br/>attached to any single decision"]
+        R6["Silent members block closure;<br/>partial participation stalls<br/>the whole group"]
+    end
+
+    subgraph RC3[" Why money gets awkward "]
+        direction TB
+        R7["Receipts are paper and unstructured —<br/>nothing is machine-readable"]
+        R8["Consumption is uneven, so equal<br/>splits feel unfair and get disputed"]
+        R9["Chasing repayment is socially costly,<br/>so debts go unspoken"]
+    end
+
+    subgraph RC4[" Why plans break "]
+        direction TB
+        R10["Itineraries are stored as prose,<br/>not as data with constraints"]
+        R11["Nothing monitors weather or traffic<br/>against the live plan"]
+        R12["Replanning abroad on mobile means<br/>redoing every search under<br/>time pressure"]
+    end
+
+    C1["<b>Clashing Personal Preferences<br/>&amp; Vibe Choices</b><br/>• Differing budgets and travel styles<br/>• Conflicting non-negotiables"]
+    C2["<b>Endless Chat Debates<br/>&amp; Decision Fatigue</b><br/>• Days wasted in WhatsApp loops<br/>• Inability to reach consensus"]
+    C3["<b>Awkward Budget Disputes<br/>&amp; Manual Spreadsheets</b><br/>• Split-bill confusion on paper<br/>• Unbalanced daily spending"]
+    C4["<b>Static Itineraries that Break<br/>During Disruptions</b><br/>• Sudden weather shifts and delays<br/>• Rigid schedules with no fallback"]
+
+    CORE["<b>CORE PROBLEM</b><br/>Group Travel Decision Paralysis &amp; Friction<br/><i>Inspiration is abundant — commitment is not</i>"]
+
+    E1["<b>Delayed Bookings &amp;<br/>Missed Cheap Flights</b><br/>• Expired promo windows<br/>• Higher last-minute costs"]
+    E2["<b>Ruined Friendships &amp;<br/>High Planning Stress</b><br/>• Frustration before the trip starts<br/>• Interpersonal tension"]
+    E3["<b>Overspending &amp;<br/>Financial Awkwardness</b><br/>• Untracked expenses<br/>• Reluctance to discuss money"]
+    E4["<b>Wasted Travel Time<br/>When Plans Fail</b><br/>• Stranded groups during delays<br/>• Lost reservation deposits"]
+
+    U1["<i>Ultimate impact</i><br/><b>Trips downgraded,<br/>postponed or abandoned</b>"]
+    U2["<i>Ultimate impact</i><br/><b>Groups shrink as members<br/>quietly drop out</b>"]
+    U3["<i>Ultimate impact</i><br/><b>Budget burned on penalties and<br/>last-minute prices, not experiences</b>"]
+    U4["<i>Ultimate impact</i><br/><b>Local businesses lose same-day<br/>demand they could have filled</b>"]
+
+    GOAL["<b>TRIPSHIELD</b><br/>Compress the distance between<br/>seeing an option and committing to it"]
+
+    S1["<b>Decisive Buy Window &amp;<br/>Smart Link Aggregator</b><br/>Social links become bookable cards<br/>with a shared price countdown<br/><i>fixes: endless debate, missed fares</i>"]
+    S2["<b>Swipe-and-Lock<br/>Consensus Engine</b><br/>Travel DNA captured privately,<br/>resolved by a constraint solver<br/><i>fixes: clashing preferences</i>"]
+    S3["<b>Adaptive Ledger &amp;<br/>Dynamic Budget Splitter</b><br/>OCR line-item splits that rebalance<br/>the remaining days<br/><i>fixes: budget disputes, overspending</i>"]
+    S4["<b>Self-Healing Pivot &amp;<br/>What-If Simulator</b><br/>Live health score with a one-tap<br/>repaired itinerary<br/><i>fixes: broken plans, wasted time</i>"]
+
+    RC1 --> C1
+    RC2 --> C2
+    RC3 --> C3
+    RC4 --> C4
+
+    C1 --> CORE
+    C2 --> CORE
+    C3 --> CORE
+    C4 --> CORE
+
+    CORE --> E1
+    CORE --> E2
+    CORE --> E3
+    CORE --> E4
+
+    E1 --> U1
+    E2 --> U2
+    E3 --> U3
+    E4 --> U4
+
+    U1 --> GOAL
+    U2 --> GOAL
+    U3 --> GOAL
+    U4 --> GOAL
+
+    GOAL --> S1
+    GOAL --> S2
+    GOAL --> S3
+    GOAL --> S4
+
+    classDef root fill:#EAF3FB,stroke:#7FA8C9,stroke-width:1px,color:#1f2937
+    classDef cause fill:#FAE29C,stroke:#DAA520,stroke-width:1.5px,color:#1f2937
+    classDef core fill:#F08080,stroke:#CD5C5C,stroke-width:2.5px,color:#1f2937
+    classDef effect fill:#D8BFD8,stroke:#9370DB,stroke-width:1.5px,color:#1f2937
+    classDef impact fill:#F3D9E8,stroke:#C77BA8,stroke-width:1.5px,color:#1f2937
+    classDef fix fill:#C1E1C1,stroke:#6B8E23,stroke-width:1.5px,color:#1f2937
+
+    class R1,R2,R3,R4,R5,R6,R7,R8,R9,R10,R11,R12 root
+    class C1,C2,C3,C4 cause
+    class CORE core
+    class E1,E2,E3,E4 effect
+    class U1,U2,U3,U4 impact
+    class S1,S2,S3,S4 fix
+    class GOAL goal
+
+    classDef goal fill:#9BBFE3,stroke:#4A7BA7,stroke-width:2.5px,color:#0f172a
+
+    style RC1 fill:#F7FAFD,stroke:#C3D4E2,stroke-dasharray: 4 4,color:#334155
+    style RC2 fill:#F7FAFD,stroke:#C3D4E2,stroke-dasharray: 4 4,color:#334155
+    style RC3 fill:#F7FAFD,stroke:#C3D4E2,stroke-dasharray: 4 4,color:#334155
+    style RC4 fill:#F7FAFD,stroke:#C3D4E2,stroke-dasharray: 4 4,color:#334155

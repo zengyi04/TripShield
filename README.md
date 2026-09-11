@@ -75,10 +75,13 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 ### 2.2 Ideation Boards
 
-> Replace the placeholders below with your own board exports and keep the 1–2 line captions.
-
 ![Problem tree](docs/ideation/problem-tree.png)
-*Problem tree — we traced "group trips die before booking" down to four root causes (unstructured inspiration, price volatility, no consensus mechanism, brittle plans), which became our four features.*
+*Problem tree (first pass) — we put "Group Travel Decision Paralysis & Friction" at the centre and worked outwards. Four causes (clashing preferences, endless chat debates, budget disputes, static itineraries) each produce a distinct consequence, and those four consequences are what the four TripShield features exist to remove.*
+
+![Detailed problem tree](docs/ideation/problem-tree-detailed.png)
+*Problem tree (expanded) — we pushed each cause one level deeper to find the **root** cause, because "people can't agree" is a symptom, not something you can build against. Drilling down gave us the twelve blue root causes at the top, and those are what the features actually attack: "social pressure to seem agreeable hides real budgets" is why consensus is captured **privately** as Travel DNA, and "nothing monitors weather against the live plan" is why Trip Fix runs a continuous health score. The bottom row shows which mechanism answers which root cause. Source: [`problem-tree-detailed.mmd`](docs/ideation/problem-tree-detailed.mmd).*
+
+> The remaining boards below are placeholders — replace them with your own exports and keep the 1–2 line captions.
 
 ![Mindmap](docs/ideation/mindmap.png)
 *Mindmap of the first session — every idea we generated before filtering, including the ones dropped in 2.1. The cluster on the right is what became TripShield.*
