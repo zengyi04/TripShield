@@ -115,22 +115,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <TripShieldLogo size={32} />
+            <div className="relative shrink-0">
+              <TripShieldLogo size={28} />
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight leading-none">
+              <h1 className="text-sm font-black text-slate-900 tracking-tight leading-none">
+                TripShield
+              </h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[10px] font-bold text-slate-700 leading-none">
                   Alex Morgan
-                </h1>
+                </span>
                 <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-white text-blue-900 leading-none shadow-xs">
                   PRO
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-slate-700 leading-tight mt-0.5">
-                TripShield Travel
-              </p>
             </div>
           </div>
 
