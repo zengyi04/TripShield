@@ -82,8 +82,6 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 ### 2.3 Mentor Consultation
 
-Replace the rows below with your **real** mentor sessions (name, date, what they said, what you did). Each row is one conversation.
-
 | Date | Mentor | Feedback Received | What Was Changed |
 | --- | --- | --- | --- |
 | 09/09/2026 | Mah Qing Fung | more focus on the group **decision** gap before and after booking. | Kept checkout as a deep link only; built Buy Window + Consensus instead of in-app payment. |
@@ -92,7 +90,7 @@ Replace the rows below with your **real** mentor sessions (name, date, what they
 
 ## 3. Design & Prototype
 
-**UI Prototype:** [Public Link — check it opens in an incognito window]
+**UI Prototype:** https://www.figma.com/design/Cvm1n2sWtqcTqd3zDarNtU/Untitled?node-id=0-1&t=Ndm2XFmKttBEd0bM-1
 
 <img src="docs/screens/trip-fix.png" width="150" alt="Trip Fix (Trip Flex)" />
 
