@@ -114,18 +114,36 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 6. **Disruption rehearsal (What-If).** Simulating alternative timelines *before* the disruption happens is, as far as we can find, absent from mainstream consumer travel apps.
 7. **B2B demand matching as a side effect of rerouting.** When we reroute a group, the replacement stop can be a partner business with unsold same-day capacity — the recovery mechanism doubles as the revenue model.
 
-**Comparison:**
+**TripShield vs competitors — planning functions**
 
-| Capability | Wanderlog | Google Travel | Splitwise | TripIt | Trip.com | TripAdvisor | **TripShield** |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Extracts bookable items from social links | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Tells you *when* to buy (price window) | ✗ | Partial | ✗ | ✗ | Partial | Partial | **✓** |
-| Algorithmic group consensus | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Receipt OCR with uneven line-item splits | ✗ | ✗ | Partial | ✗ | ✗ | ✗ | **✓** |
-| Forward-looking budget rebalancing | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Repairs a broken day automatically | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Simulates disruptions before they happen | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Completes the booking in-app | ✗ | Partial | ✗ | ✗ | ✓ | Partial | Deep link out, by design |
+Booking apps (Trip.com, Skyscanner, Booking.com, Agoda, Traveloka) optimise **search and checkout for one buyer**. TripShield optimises **group planning, decisions, money, and recovery** — the layer none of them ship.
+
+| Planning function | Trip.com | Skyscanner | Booking.com | Agoda | Traveloka | **TripShield** |
+| --- | --- | --- | --- | --- | --- | --- |
+| Import travel ideas from TikTok / Instagram links | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Turn links into itinerary cards | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Group member preference collection | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Budget preference collection from each member | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Travel “vibe” / Travel DNA matching | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Automatically find overlap between group preferences | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Automatically resolve group disagreement | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Deadlock breaker | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Automatically lock a group decision | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Price-based Buy Window | ❌ | ⚠️ Price discovery | ❌ | ❌ | ⚠️ Price alerts | **✅** |
+| Countdown to encourage group decision | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Shared group expense tracking | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Receipt OCR for expense splitting | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Real-time IOU calculation | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Adjust future spending after overspending | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Monitor trip health | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Detect weather / route / schedule problems | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| What-if itinerary simulation | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Automatically re-plan after disruption | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+| Suggest alternative activities when plans break | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
+
+**The important difference:** Competitors help someone **find and pay for a fare or room**. TripShield helps a **group decide together**, **stay on budget during the trip**, and **recover when the plan breaks** — with a shared Buy Window, consensus engine, adaptive ledger, and Trip Fix / What-If. We still **deep-link to booking sites** for payment; we do not compete on inventory.
+
+**What we deliberately concede:** In-app checkout and supplier contracts (Trip.com / Booking.com / Agoda own that). Skyscanner and Traveloka may surface **individual** fares or alerts; they do not close a **group** decision or run the rows above.
 
 ---
 
@@ -147,7 +165,7 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 ### System Architecture
 
-<img src="docs/architecture/system-architecture.png" width="720" alt="TripShield system architecture and build plan" />
+<img src="docs/architecture/system-architecture.png" width="660" alt="TripShield system architecture and build plan" />
 
 *Source: [`docs/architecture/system-architecture.png`](docs/architecture/system-architecture.png)*
 
