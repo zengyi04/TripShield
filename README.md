@@ -90,15 +90,37 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 ## 3. Design & Prototype
 
-**UI Prototype:** https://www.figma.com/design/Cvm1n2sWtqcTqd3zDarNtU/Untitled?node-id=0-1&t=Ndm2XFmKttBEd0bM-1
+**UI Prototype (Figma):** https://www.figma.com/design/Cvm1n2sWtqcTqd3zDarNtU/Untitled?node-id=0-1&t=Ndm2XFmKttBEd0bM-1
 
-<img src="docs/screens/trip-fix.png" width="150" alt="Trip Fix (Trip Flex)" />
+Screens below are from the running Expo app (same flows as the prototype). Each image is cropped to the phone frame.
 
-*Trip Fix — live Trip Health Score, active disruptions, **Auto-Fix Plan**, travel room, and itinerary summary.*
+<img src="docs/screens/welcome.png" width="150" alt="Welcome" />
+
+*Welcome — TripShield logo, **Sign Up** / **Login**, and a skip path for demo reviewers.*
+
+<img src="docs/screens/home.png" width="150" alt="Home" />
+
+*Home — active trip card, **Buy Window** alert on a fare opportunity, and **TripShield Insight** pointing at decisions that need action.*
+
+<img src="docs/screens/buy-window.png" width="150" alt="Buy Window" />
+
+*Buy Window — paste a TikTok or booking link, see **active buy windows** with price and countdown, plus recently imported ideas.*
+
+<img src="docs/screens/consensus-hub.png" width="150" alt="Group Plan" />
+
+*Group Plan — create or join a trip room, then continue **Seoul Friends Trip** or open a completed plan like **Tokyo 2025**.*
+
+<img src="docs/screens/ledger.png" width="150" alt="Budget" />
+
+*Budget — overall trip spend vs cap, **today’s target**, overspend warnings, and receipt scan entry for splits.*
+
+<img src="docs/screens/trip-fix.png" width="150" alt="Trip Fix" />
+
+*Trip Fix — **Trip Health** score, listed disruptions, **Auto-Fix Plan**, and the group itinerary with a link to **What-If** simulation.*
 
 <img src="docs/screens/what-if.png" width="150" alt="What-If Simulator" />
 
-*What-If Simulator — select disruption conditions, then **Run AI Simulation** for a contingency preview.*
+*What-If — pick disruption scenarios and **Run AI Simulation** before committing to a reroute.*
 
 ---
 

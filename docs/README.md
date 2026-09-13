@@ -22,7 +22,12 @@ If you add more boards (mindmaps, crazy eights, 5 Whys, user flows), drop them h
 
 | File | Screen |
 | --- | --- |
-| `trip-fix.png` | Trip Fix (Trip Flex) — cropped to phone frame, ~150px wide in README |
-| `what-if.png` | What-If Simulator — cropped to phone frame, ~150px wide in README |
+| `welcome.png` | Sign up / login entry |
+| `home.png` | Home dashboard and buy-window alert |
+| `buy-window.png` | Link paste, active buy windows, imports |
+| `consensus-hub.png` | Group Plan — trip rooms |
+| `ledger.png` | Trip budget and daily spend |
+| `trip-fix.png` | Trip Health, auto-fix, itinerary |
+| `what-if.png` | What-If disruption simulation |
 
-Add more captures here when ready and embed them in section 3 with `<img … width="150">` so they stay phone-sized on GitHub.
+Embed in section 3 with `<img … width="150">`. Re-export from Expo and re-run crop if you replace a PNG.
