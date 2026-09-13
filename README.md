@@ -16,12 +16,6 @@
 
 Group travel planning breaks down at the moment of **decision**, not at the moment of inspiration. A group can agree on a destination in an hour, then spend three weeks failing to agree on anything bookable — while fares rise, quiet members go unheard, spending goes untracked and one rainstorm wipes out a day nobody can replan on the spot. Every existing tool either records a decision that has already been made or serves one buyer at a time, so the decision itself is left to the group chat, which is exactly where trips get expensive, compromised or abandoned.
 
-**Who we are building for**
-
-- **Primary:** Groups of **2–6 friends** (especially **Gen Z and young adults**) planning a **multi-day trip on a shared budget** — the same segment where industry surveys report the highest group-travel friction.
-- **Secondary:** The *de facto* organiser who does the research, chases replies, and reconciles money after the trip.
-- **Not our focus:** Solo business travel, large tour groups, or in-trip booking marketplaces (we deep-link out for payment).
-
 **Evidence that the problem is real**
 
 Planning a trip with friends sounds exciting, but it can quickly become stressful. The issue is not travelling together — it is getting everyone to agree on **money, activities, and expectations** before and during the trip.
@@ -30,9 +24,6 @@ Planning a trip with friends sounds exciting, but it can quickly become stressfu
 | --- | --- | --- |
 | **[Vrbo — *Group travel made easy*](https://www.expedia.ca/newsroom/vrbos-guide-to-spring-break-and-group-travel/)** (Expedia Newsroom, 5 Mar 2026) | **37%** of Canadian travellers said they had gotten into a **fight** on a group vacation; **57%** among **Gen Z**. Friction around **money**, **accommodation expectations**, and **different preferences**. | Matches our problem tree: budget disputes, clashing preferences, and chat-driven deadlock — not a lack of inspiration. |
 | **[Song, Wang & Sparks (2017)](https://doi.org/10.1080/10548408.2017.1421117)** — *How do young Chinese friendship groups make travel decisions?* | Observed **10 friendship groups**; destination choice hinged on **activities, cost, timing, transport, climate, safety, distance** — with heavy **group discussion** and social pressure to keep harmony. | Academic backing that group trips are multi-factor and **consensus-heavy**; a structured decision layer beats an open-ended chat. |
-
-**Story → problem → TripShield (for presentations):**  
-*"A 2026 Vrbo study found more than a third of group travellers had fought on vacation — higher still for Gen Z. TripShield does not replace booking sites; it turns each member’s preferences and constraints into one **decision** the group can lock — Buy Window, Consensus, Budget, and Trip Fix — instead of endless group-chat threads."*
 
 **Causes as we understand them:**
 
