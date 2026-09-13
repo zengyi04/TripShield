@@ -110,8 +110,6 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 **UI Prototype (Figma):** https://www.figma.com/design/Cvm1n2sWtqcTqd3zDarNtU/Untitled?node-id=0-1&t=Ndm2XFmKttBEd0bM-1
 
-Screens below are from the running Expo app (same flows as the prototype). Each image is cropped to the phone frame.
-
 <img src="docs/screens/welcome.png" width="150" alt="Welcome" />
 
 *Welcome — TripShield logo, **Sign Up** / **Login**, and a skip path for demo reviewers.*
