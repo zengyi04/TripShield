@@ -102,8 +102,7 @@ TripShield is a mobile **travel decision engine**, not another itinerary notepad
 
 | Date | Mentor | Feedback Received | What Was Changed |
 | --- | --- | --- | --- |
-| 09/09/2026 | Mah Qing Fung | Focus on the group **decision** gap before and after booking, not becoming an OTA. | Kept checkout as a deep link only; prioritised Buy Window + Consensus over in-app payment. |
-| 13/09/2026 | Looi Wei | Strengthen the **README** (not only the video): cite **research** for the problem statement, state the **target group** clearly, and align non-video submission items with the template. Asked how receipt OCR knows *who ordered what* — clarified it is **scan → draft lines → user assigns people** (calculator-style split, not automatic face matching). UI is clear; live video was hard to follow when voiceover did not track the on-screen flow (noted for future pitches). | Added **Evidence that the problem is real** (Vrbo 2026 + Song et al. 2017), a **Who we are building for** block, and clearer ledger wording on **manual assignment** after scan. Checked README against the submission template before deadline. |
+| 13/09/2026 | Looi Wei En | Strengthen the **README** (not only the video): cite **research** for the problem statement, state the **target group** clearly, and align non-video submission items with the template. Asked how receipt OCR knows *who ordered what* — clarified it is **scan → draft lines → user assigns people** (calculator-style split, not automatic face matching). UI is clear; live video was hard to follow when voiceover did not track the on-screen flow (noted for future pitches). | Added **Evidence that the problem is real** , a **Who we are building for** block, and clearer ledger wording on **manual assignment** after scan. Checked README against the submission template before deadline. |
 
 ---
 
