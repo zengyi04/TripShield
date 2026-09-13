@@ -31,6 +31,7 @@ import {
   ITINERARY_ITEMS,
 } from './src/data/mockBuyWindow';
 import { SelfHealingScreen, LOW_TRIP_HEALTH, computeTripHealthScore } from './src/components/screens/SelfHealingScreen';
+import { TripShieldBrandLockup, TripShieldLogoNative } from './src/components/TripShieldLogo.native';
 
 const SAFE_TOP_COLOR = APP_TOP_HEX;
 
@@ -332,7 +333,7 @@ function WelcomeScreen({
   return (
     <LinearGradient colors={screenGradientStops(topColor, bottomColor)} locations={APP_GRADIENT_LOCATIONS} style={styles.fullScreen}>
       <View style={styles.welcomeTop}> 
-        <TripShieldLogo size={190} />
+        <TripShieldLogoNative size={190} />
       </View>
       <View style={styles.welcomeBottom}> 
         <Text style={styles.welcomeTitle}>Welcome back</Text>
@@ -645,8 +646,8 @@ function HomeScreen({
         <View style={styles.topBarRow}>
           <View style={styles.userRow}>
             <View>
-              <View style={styles.identityRow}>
-                <Ionicons name="person-circle" size={28} color="#D9EEFF" style={styles.profileIcon} />
+              <TripShieldBrandLockup logoSize={28} />
+              <View style={[styles.identityRow, { marginTop: 4 }]}>
                 <Text style={styles.userText}>Alex Morgan</Text>
                 <View style={styles.proBadge}><Text style={styles.proText}>PRO</Text></View>
               </View>
@@ -896,17 +897,6 @@ function FeaturePreviewModal({
   );
 }
 
-function TripShieldLogo({ size = 96 }: { size?: number }) {
-  return (
-    <View style={[styles.logoBase, { width: size, height: size, borderRadius: size / 2 }]}>
-      <View style={[styles.logoCore, { width: size * 0.76, height: size * 0.76, borderRadius: size * 0.38 }]}> 
-        <Ionicons name="location" size={size * 0.56} color="rgba(255,255,255,0.92)" />
-        <Ionicons name="airplane" size={size * 0.26} color="#B7D4F2" style={styles.logoPlaneIcon} />
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   fontLoading: {
     flex: 1,
@@ -1152,7 +1142,6 @@ const styles = StyleSheet.create({
   topBarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   userRow: { flexDirection: 'row', alignItems: 'center' },
   identityRow: { flexDirection: 'row', alignItems: 'center' },
-  profileIcon: { marginRight: 6 },
   userText: { color: '#0f172a', fontSize: 12, fontWeight: '900' },
   proBadge: { marginLeft: 6, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 4, paddingVertical: 2 },
   proText: { color: '#1d4ed8', fontSize: 9, fontWeight: '800' },
@@ -1425,9 +1414,6 @@ const styles = StyleSheet.create({
   toast: { position: 'absolute', top: 52, left: '50%', transform: [{ translateX: -170 }], width: 340, backgroundColor: '#0f172a', borderRadius: 18, borderWidth: 1, borderColor: '#60a5fa', padding: 10, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: 60 },
   toastIcon: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' },
   toastText: { color: '#fff', fontSize: 12, fontWeight: '700', flex: 1 },
-  logoBase: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', borderWidth: 0, borderColor: 'transparent', shadowOpacity: 0 },
-  logoCore: { alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: 'rgba(95,145,202,0.72)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.9)', overflow: 'hidden' },
-  logoPlaneIcon: { position: 'absolute', left: '38%', top: '36%', transform: [{ rotate: '35deg' }] },
   homeHealthBanner: {
     flexDirection: 'row',
     alignItems: 'center',
